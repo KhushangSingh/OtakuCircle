@@ -1,0 +1,52 @@
+const mongoose = require('mongoose');
+
+const userSchema = mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    profilePicture: { type: String, default: '' }, 
+    
+    // Watchlist (Plan to Watch)
+    watchlist: [{
+        animeId: { type: Number, required: true },
+        title: String,
+        poster: String
+    }],
+
+    // Watch History (Completed/Watching)
+    watchhistory: [{
+        animeId: { type: Number, required: true },
+        title: String,
+        poster: String,
+        status: {
+            type: String,
+            enum: ['Watching', 'Watched'],
+            default: 'Watching'
+        },
+        progress: { type: Number, default: 0 },
+        score: { type: Number, default: 0 },
+        review: { type: String, default: '' }
+    }],
+
+    // Social Graph
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    
+    // Recommendations Inbox (From Friends)
+    recommendations: [{
+        from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        animeId: Number,
+        animeTitle: String,
+        animePoster: String,
+        message: String,
+        timestamp: { type: Date, default: Date.now }
+    }],
+
+    // Aggregated Statistics
+    stats: {
+        totalWatched: { type: Number, default: 0 },
+        favoriteGenre: { type: String, default: '' },
+        genreCounts: { type: Map, of: Number, default: {} }
+    }
+}, { timestamps: true });
+
+module.exports = mongoose.model('User', userSchema);
