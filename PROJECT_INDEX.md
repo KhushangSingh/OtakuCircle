@@ -5,19 +5,6 @@
 
 ---
 
-## 🧭 Navigation Guide
-
-This document serves as the master index for the OtakuCircle project. Please refer to the specific documents below for detailed information.
-
-| Document | Audience | Purpose |
-| :--- | :--- | :--- |
-| [**PROJECT_SUMMARY.md**](./PROJECT_SUMMARY.md) | Everyone | Executive summary, architecture overview, and final status. |
-| [**SETUP_GUIDE.md**](./SETUP_GUIDE.md) | DevOps / New Devs | Step-by-step installation, environment config, and startup. |
-| [**QUICK_REFERENCE.md**](./QUICK_REFERENCE.md) | Developers | Cheat sheet for API endpoints, commands, and troubleshooting. |
-| [**VERIFICATION_REPORT.md**](./VERIFICATION_REPORT.md) | QA / Stakeholders | Detailed log of fixed issues and feature verification. |
-
----
-
 ## 🗂️ Source Code Inventory
 
 ### 1. Frontend Client (`client/`)
