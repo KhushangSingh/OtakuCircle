@@ -185,8 +185,8 @@ const Navbar = () => {
   const unreadCount = notifications.length;
 
   const getLinkClass = (path, showOnTablet = false) => {
-    const displayClass = showOnTablet ? "hidden md:flex" : "hidden lg:flex";
-    const baseClasses = `${displayClass} items-center gap-2 text-sm lg:text-base font-bold whitespace-nowrap transition-all duration-300 px-2 py-2 relative z-20 group`;
+    const displayClass = showOnTablet ? "hidden md:flex" : "hidden xl:flex";
+    const baseClasses = `${displayClass} items-center gap-1.5 md:gap-2 text-[13px] md:text-sm xl:text-base font-bold whitespace-nowrap transition-all duration-300 px-1.5 md:px-2 xl:px-3 py-2 relative z-20 group`;
     const activeClasses = "text-white after:content-[''] after:absolute after:bottom-0 after:left-1/4 after:w-1/2 after:h-[2px] after:bg-white after:rounded-full";
     const inactiveClasses = "text-zinc-200 hover:text-white after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-[2px] after:bg-white/50 after:transition-all after:duration-300 hover:after:w-1/2";
     return `${baseClasses} ${location.pathname === path ? activeClasses : inactiveClasses}`;
@@ -199,17 +199,17 @@ const Navbar = () => {
       <div className={`absolute inset-0 bg-[#050505]/80 backdrop-blur-xl shadow-2xl transition-opacity duration-500 ease-in-out ${isScrolled ? 'opacity-100' : 'opacity-0'}`}></div>
       <div className={`absolute inset-0 bg-gradient-to-b from-black/90 to-transparent transition-opacity duration-500 ease-in-out ${isScrolled ? 'opacity-0' : 'opacity-100'}`}></div>
 
-      <div className="w-full px-4 md:px-8 lg:px-12 h-full flex justify-between items-center relative z-10">
+      <div className="w-full px-4 md:px-6 xl:px-12 h-full flex justify-between items-center relative z-10">
         
         {/* Logo */}
-        <a href="/" onClick={handleLogoClick} className="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tighter flex items-center group cursor-pointer">
+        <a href="/" onClick={handleLogoClick} className="text-xl md:text-2xl xl:text-4xl font-extrabold tracking-tighter flex items-center group cursor-pointer">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400 group-hover:to-white transition-colors pr-2">
                 OtakuCircle
             </span>
         </a>
         
         {/* Search Bar */}
-        <div className="relative flex-1 max-w-[140px] sm:max-w-[200px] md:max-w-xs lg:w-1/4 group mx-2 md:mx-4" ref={searchRef}>
+        <div className="relative flex-1 max-w-[140px] sm:max-w-[180px] md:max-w-[250px] xl:max-w-sm group mx-2 md:mx-4" ref={searchRef}>
             <div className={searchInputClass}>
                 <Search className="text-zinc-300 w-5 h-5 mr-3 group-focus-within:text-white transition-colors" />
                 <input 
@@ -256,7 +256,7 @@ const Navbar = () => {
         </div>
 
         {/* Links & Profile */}
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-2 xl:gap-4">
             {isLoggedIn && (
                 <div className="hidden md:flex items-center gap-2 mr-4">
                     <Link to="/" className={getLinkClass('/', true)}>
@@ -379,7 +379,7 @@ const Navbar = () => {
             
             <button 
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden p-2 text-zinc-200 relative z-20 hover:text-white transition-colors"
+                className="xl:hidden p-2 text-zinc-200 relative z-20 hover:text-white transition-colors"
             >
                 <Menu size={24} />
             </button>
@@ -390,11 +390,11 @@ const Navbar = () => {
       
       {/* --- OVERLAY BACKGROUND --- */}
       <div 
-        className={`fixed inset-0 z-[55] bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 z-[55] bg-black/60 backdrop-blur-sm transition-opacity duration-300 xl:hidden ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={() => setIsMobileMenuOpen(false)}
       ></div>
       {/* --- MOBILE/TABLET DRAWER --- */}
-      <div className={`fixed inset-y-0 right-0 w-[65%] sm:w-[50%] md:w-[40%] max-w-sm z-[60] bg-black/95 backdrop-blur-2xl shadow-2xl transition-transform duration-300 ease-in-out lg:hidden border-l border-white/5 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed inset-y-0 right-0 w-[65%] sm:w-[50%] md:w-[40%] max-w-sm z-[60] bg-black/95 backdrop-blur-2xl shadow-2xl transition-transform duration-300 ease-in-out xl:hidden border-l border-white/5 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
 
           {/* Close button */}
           <button 
