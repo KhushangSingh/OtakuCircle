@@ -18,6 +18,7 @@ const movieSchema = mongoose.Schema({
     collection: 'movies' 
 });
 
+// Create indexes for performance
 movieSchema.index({ title: 'text' });
 
 module.exports = mongoose.model('Movie', movieSchema);

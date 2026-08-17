@@ -21,7 +21,7 @@ const animeSchema = mongoose.Schema({
     collection: 'anime' // Ensures syncing with Python scripts
 });
 
-// Create text index for basic keyword search fallback
+// Create indexes for performance
 animeSchema.index({ title: 'text', title_english: 'text' });
 
 module.exports = mongoose.model('Anime', animeSchema);

@@ -75,5 +75,8 @@ const userSchema = mongoose.Schema({
         genreCounts: { type: Map, of: Number, default: {} }
     }
 }, { timestamps: true });
+// --- Explicit Indexes for Performance ---
+userSchema.index({ 'watchhistory.animeId': 1 });
+userSchema.index({ 'movieWatchhistory.tmdbId': 1 });
 
 module.exports = mongoose.model('User', userSchema);

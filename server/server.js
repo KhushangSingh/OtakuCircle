@@ -47,9 +47,25 @@ const { getRecommendations: getAIRecommendations } = require('./controllers/reco
 
 // --- MIDDLEWARE ---
 const { protect } = require('./middleware/authMiddleware');
+const rateLimit = require('express-rate-limit');
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 20, // Limit each IP to 20 auth requests per window
+    message: { message: 'Too many authentication attempts from this IP, please try again after 15 minutes.' }
+});
 
 // --- CONFIG ---
 dotenv.config();
+
+// Verify critical environment variables
+const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET'];
+const missingVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+if (missingVars.length > 0) {
+    console.error(`❌ FATAL ERROR: Missing required environment variables: ${missingVars.join(', ')}`);
+    process.exit(1);
+}
+
 connectDB();
 
 const app = express();
@@ -63,6 +79,7 @@ app.use(express.json());
 // ==============================
 
 // --- AUTH ROUTES ---
+app.use('/api/auth', authLimiter);
 app.post('/api/auth/register', registerUser);
 app.post('/api/auth/login', loginUser);
 app.post('/api/auth/forgot-password', forgotPassword);
