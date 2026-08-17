@@ -25,7 +25,17 @@ router.get('/smart', async (req, res) => {
             }
 
             // 2. Fetch Full Details from MongoDB
-            const animes = await Anime.find({ mal_id: { $in: animeIds } })
+            // Dynamic NSFW Filtering
+            const adultKeywords = ['hentai', 'ecchi', 'erotica', 'nsfw', '18+', 'adult', 'sex', 'porn'];
+            const queryLower = query.toLowerCase();
+            const wantsAdult = adultKeywords.some(kw => queryLower.includes(kw));
+
+            const dbQuery = { mal_id: { $in: animeIds } };
+            if (!wantsAdult) {
+                dbQuery.genres = { $nin: ['Hentai', 'Ecchi', 'Erotica', 'Adult Cast'] };
+            }
+
+            const animes = await Anime.find(dbQuery)
                 .select('mal_id title poster_url score type year genres synopsis');
 
             // 3. Re-sort the results to match the AI's relevance ranking
@@ -41,7 +51,19 @@ router.get('/smart', async (req, res) => {
             console.error("⚠️ ML Service Error:", mlError.message);
             
             // Fallback: Basic Text Search if AI is down
-            const fallback = await Anime.find({ $text: { $search: query } }).limit(20);
+            const adultKeywords = ['hentai', 'ecchi', 'erotica', 'nsfw', '18+', 'adult', 'sex', 'porn'];
+            const queryLower = query.toLowerCase();
+            const wantsAdult = adultKeywords.some(kw => queryLower.includes(kw));
+
+            const fallbackQuery = { $text: { $search: query } };
+            if (!wantsAdult) {
+                fallbackQuery.genres = { $nin: ['Hentai', 'Ecchi', 'Erotica', 'Adult Cast'] };
+            }
+
+            const fallback = await Anime.find(fallbackQuery, { score: { $meta: "textScore" } })
+                .sort({ score: { $meta: "textScore" } })
+                .limit(20);
+                
             return res.json({ data: fallback });
         }
 

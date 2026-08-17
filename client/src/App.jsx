@@ -9,9 +9,9 @@ import Navbar from './components/Navbar';
 
 // --- Pages ---
 import Login from './pages/Login';
-import Home from './pages/Home';
-import AnimeDetails from './pages/AnimeDetails';
 import Profile from './pages/Profile';
+import Settings from './pages/Settings';
+import AnimeDetails from './pages/AnimeDetails';
 import Recommendations from './pages/Recommendations';
 import Friends from './pages/Friends';
 import FriendWatchedList from './pages/FriendWatchedList';
@@ -61,6 +61,10 @@ function App() {
               <Route 
                 path="/profile/:username" 
                 element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} 
+              />
+              <Route 
+                path="/settings" 
+                element={isAuthenticated ? <Settings /> : <Navigate to="/login" />} 
               />
               <Route 
                 path="/recommendations" 

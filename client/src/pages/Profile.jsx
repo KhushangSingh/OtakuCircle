@@ -6,8 +6,8 @@ import {
     RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
 import { 
-    Settings, Trash2, Lock, Mail, X, Activity, Film, Tv, 
-    LogOut, ShieldAlert, CheckCircle, User, Pencil, TrendingUp, Clock, Star, Zap, Users, Trophy, Award, Crown, Target
+    Trash2, X, Activity, Film, Tv, 
+    LogOut, CheckCircle, User, Pencil, TrendingUp, Clock, Star, Zap, Users, Trophy, Award, Crown, Target
 } from 'lucide-react';
 
 const Profile = () => {
@@ -32,21 +32,13 @@ const Profile = () => {
         commitmentScore: 0
     });
 
-    // UI
-    const [activeTab, setActiveTab] = useState('overview'); 
-    const [editingField, setEditingField] = useState(null);
-    
     // Modals
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [avatarOptions, setAvatarOptions] = useState([]);
     const [loadingAvatars, setLoadingAvatars] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState({ show: false, animeId: null, type: null, title: '' });
-    const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
-
-    // Forms
-    const [passwordData, setPasswordData] = useState({ current: '', new: '', confirm: '' });
-    const [emailData, setEmailData] = useState({ new: '', currentPassword: '' });
-    const [usernameData, setUsernameData] = useState(''); 
+    
+    // Auth
     const [message, setMessage] = useState({ type: '', text: '' });
     
     // Auth
@@ -216,46 +208,6 @@ const Profile = () => {
 
     const handleLogout = () => { localStorage.clear(); navigate('/login'); };
 
-    const handleUsernameChange = async (e) => {
-        e.preventDefault();
-        if (usernameData === user.username) { setEditingField(null); return; }
-        try {
-            await axios.put(`${API_URL}/users/profile`, { username: usernameData }, { headers: { Authorization: `Bearer ${token}` } });
-            localStorage.setItem('username', usernameData);
-            setMessage({ type: 'success', text: 'Username updated' });
-            setEditingField(null);
-            navigate(`/profile/${usernameData}`); 
-        } catch (error) { setMessage({ type: 'error', text: error.response?.data?.message || 'Username taken' }); }
-    };
-
-    const handlePasswordChange = async (e) => {
-        e.preventDefault();
-        if (passwordData.new !== passwordData.confirm) { setMessage({ type: 'error', text: 'Mismatch' }); return; }
-        try {
-            await axios.put(`${API_URL}/users/password`, { currentPassword: passwordData.current, newPassword: passwordData.new }, { headers: { Authorization: `Bearer ${token}` } });
-            setMessage({ type: 'success', text: 'Password updated' });
-            setEditingField(null);
-        } catch (error) { setMessage({ type: 'error', text: 'Error updating' }); }
-    };
-
-    const handleEmailChange = async (e) => {
-        e.preventDefault();
-        try {
-            await axios.put(`${API_URL}/users/email`, { newEmail: emailData.new, currentPassword: emailData.currentPassword }, { headers: { Authorization: `Bearer ${token}` } });
-            setMessage({ type: 'success', text: 'Email updated' });
-            setEditingField(null);
-            setUser(prev => ({ ...prev, email: emailData.new }));
-        } catch (error) { setMessage({ type: 'error', text: 'Error updating' }); }
-    };
-
-    const handleDeleteAccount = async () => {
-        try {
-            await axios.delete(`${API_URL}/users/profile`, { headers: { Authorization: `Bearer ${token}` } });
-            localStorage.clear();
-            navigate('/'); 
-        } catch (error) { setMessage({ type: 'error', text: 'Delete failed' }); }
-    };
-
     const handleDeleteClick = (animeId, type, title) => { setDeleteConfirm({ show: true, animeId, type, title }); };
 
     const handleDeleteConfirm = async () => {
@@ -322,103 +274,81 @@ const Profile = () => {
             <div className="w-full px-4 lg:px-8 space-y-12">
                 
                 {/* --- THE IDENTITY (HEADER) --- */}
-                <div className="relative w-full bg-[#151515] rounded-[32px] overflow-hidden mt-6 shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+                <div className="relative w-full rounded-[2.5rem] overflow-hidden mt-6 mb-12 shadow-2xl shadow-blue-900/10 border border-white/[0.05] bg-[#101010]">
                     
                     {/* Dynamic Background Banner */}
-                    <div className="absolute inset-0 z-0 h-48 md:h-64 overflow-hidden">
+                    <div className="absolute inset-0 z-0 h-40 md:h-56 overflow-hidden">
                         {topPoster ? (
                             <>
-                                <img src={topPoster} alt="Banner" className="w-full h-full object-cover opacity-30 blur-xl scale-125 translate-y-[-20%]" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#151515] via-[#151515]/80 to-transparent"></div>
-                                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-purple-900/20"></div>
+                                <img src={topPoster} alt="Banner" className="w-full h-full object-cover opacity-40 blur-md scale-110" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#101010] via-[#101010]/60 to-transparent"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 mix-blend-screen"></div>
                             </>
                         ) : (
                             <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900"></div>
                         )}
                     </div>
 
-                    <div className="relative z-10 p-4 md:p-10 pt-20 md:pt-32 flex flex-col md:flex-row gap-4 md:gap-8 items-center md:items-end">
+                    <div className="relative z-10 p-6 md:p-12 pt-16 md:pt-24 flex flex-col md:flex-row gap-6 md:gap-10 items-center md:items-end">
+                        
+                        {/* Avatar */}
                         <div className="relative flex-shrink-0 group/avatar">
-                            <div className="w-32 h-32 md:w-44 md:h-44 rounded-[2rem] p-1 bg-gradient-to-br from-blue-500 to-purple-500 shadow-2xl overflow-hidden translate-y-4">
+                            <div className="w-28 h-28 md:w-36 md:h-36 rounded-full p-1 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-[0_0_30px_rgba(59,130,246,0.3)] overflow-hidden transition-transform duration-500 group-hover/avatar:scale-105">
                                 {user.profilePicture ? 
-                                    <img src={user.profilePicture} className="w-full h-full object-cover rounded-[1.75rem] bg-[#1a1a1a]" /> : 
-                                    <div className="w-full h-full bg-[#1a1a1a] rounded-[1.75rem] flex items-center justify-center text-5xl md:text-7xl font-black text-white">{user.username.charAt(0).toUpperCase()}</div>
+                                    <img src={user.profilePicture} className="w-full h-full object-cover rounded-full bg-[#1a1a1a] border-4 border-[#101010]" /> : 
+                                    <div className="w-full h-full bg-[#1a1a1a] rounded-full border-4 border-[#101010] flex items-center justify-center text-4xl md:text-5xl font-black text-white">{user.username.charAt(0).toUpperCase()}</div>
                                 }
                             </div>
                             {isOwnProfile && (
-                                <button onClick={handleOpenAvatarModal} className="absolute -bottom-1 -right-1 p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95">
-                                    <Pencil size={20} />
+                                <button onClick={handleOpenAvatarModal} className="absolute bottom-2 right-2 p-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg transition-all hover:scale-110 active:scale-95 z-20 border-2 border-[#101010]">
+                                    <Pencil size={16} />
                                 </button>
                             )}
                         </div>
 
-                        <div className="flex-1 w-full pb-4">
-                            <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6">
-                                <div>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <div className="px-3 py-1 bg-green-500/20 text-green-400 text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center gap-1.5">
-                                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div> Online
-                                        </div>
-                                    </div>
-                                    <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white tracking-tighter leading-none">{user.username}</h1>
-                                </div>
-
-                                <div className="flex gap-4">
-                                    {isOwnProfile && (
-                                        <button onClick={handleLogout} className="flex items-center gap-2 px-6 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-sm font-bold uppercase tracking-wider transition-all">
-                                            <LogOut size={18} /> Logout
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Glassmorphic Stats Ribbon Overlapping Header */}
-                    <div className="relative z-20 mx-4 md:mx-10 mb-6 mt-8 p-4 md:p-6 bg-white/[0.03] backdrop-blur-xl rounded-3xl flex flex-wrap gap-4 md:gap-10 items-center justify-between ring-1 ring-white/5">
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-lg shadow-blue-900/50">
-                                <span className="text-2xl font-black text-white">{userLevel}</span>
-                            </div>
+                        {/* User Info */}
+                        <div className="flex-1 w-full text-center md:text-left space-y-4">
                             <div>
-                                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Global Rank</p>
-                                <p className="text-xl font-bold text-white">Level {userLevel}</p>
+                                <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
+                                    <div className="px-3 py-1 bg-green-500/10 text-green-400 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5 border border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.2)]">
+                                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div> Online
+                                    </div>
+                                    <div className="px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-blue-500/20">
+                                        Level {userLevel}
+                                    </div>
+                                </div>
+                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight">{user.username}</h1>
+                            </div>
+
+                            {/* Quick Stats Pills */}
+                            <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-4">
+                                <div className="flex flex-col items-center md:items-start px-5 py-2.5 bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 rounded-2xl transition-colors backdrop-blur-md">
+                                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Total Watched</span>
+                                    <span className="text-xl font-black text-white">{quickStats.total}</span>
+                                </div>
+                                <div className="flex flex-col items-center md:items-start px-5 py-2.5 bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 rounded-2xl transition-colors backdrop-blur-md">
+                                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Est. Hours</span>
+                                    <span className="text-xl font-black text-white">{quickStats.estimatedHours}<span className="text-sm text-zinc-500 ml-1">h</span></span>
+                                </div>
+                                <div className="flex flex-col items-center md:items-start px-5 py-2.5 bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 rounded-2xl transition-colors backdrop-blur-md">
+                                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Avg Score</span>
+                                    <span className="text-xl font-black text-white flex items-center gap-1"><Star size={14} className="text-yellow-500 inline fill-yellow-500"/> {quickStats.avgScore}</span>
+                                </div>
                             </div>
                         </div>
-                        
-                        <div className="w-[1px] h-12 bg-white/10 hidden md:block"></div>
-                        
-                        <div>
-                            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Total Watched</p>
-                            <p className="text-3xl font-black text-white">{quickStats.total}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Est. Hours</p>
-                            <p className="text-3xl font-black text-white">{quickStats.estimatedHours}<span className="text-lg text-zinc-500 ml-1">h</span></p>
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Avg Score</p>
-                            <p className="text-3xl font-black text-white">{quickStats.avgScore}</p>
-                        </div>
-                    </div>
 
-                    {/* Tab Navigation embedded in header */}
-                    {isOwnProfile && (
-                        <div className="px-4 md:px-10 flex gap-4 md:gap-8 border-t border-white/5 bg-[#101010] overflow-x-auto hide-scrollbar">
-                            <button onClick={() => setActiveTab('overview')} className={`text-sm font-bold uppercase tracking-widest py-5 transition-all relative ${activeTab === 'overview' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}>
-                                Dashboard
-                                {activeTab === 'overview' && <div className="absolute bottom-0 left-0 w-full h-1 bg-blue-500 rounded-t-full"></div>}
-                            </button>
-                            <button onClick={() => setActiveTab('settings')} className={`text-sm font-bold uppercase tracking-widest py-5 transition-all relative ${activeTab === 'settings' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}>
-                                Settings
-                                {activeTab === 'settings' && <div className="absolute bottom-0 left-0 w-full h-1 bg-blue-500 rounded-t-full"></div>}
-                            </button>
-                        </div>
-                    )}
+                        {/* Action Buttons */}
+                        {isOwnProfile && (
+                            <div className="flex-shrink-0 self-center md:self-end mb-2">
+                                <button onClick={handleLogout} className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl text-sm font-bold uppercase tracking-wider transition-all duration-300 shadow-[0_0_15px_rgba(239,68,68,0.1)]">
+                                    <LogOut size={16} /> Logout
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* --- OVERVIEW TAB --- */}
-                {activeTab === 'overview' && (
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         
                         {/* LEFT COLUMN: Insights & Trophies */}
@@ -585,85 +515,6 @@ const Profile = () => {
                             </div>
                         </div>
                     </div>
-                )}
-
-                {/* --- SETTINGS TAB --- */}
-                {activeTab === 'settings' && isOwnProfile && (
-                    <div className="max-w-3xl mx-auto space-y-8">
-                        
-                        <div className="bg-[#151515] rounded-[32px] p-6 md:p-12 shadow-xl space-y-8 md:space-y-12">
-                            <h3 className="text-2xl font-black text-white flex items-center gap-3"><Settings className="text-zinc-400" /> Account Settings</h3>
-                            
-                            {/* Username Edit */}
-                            <div>
-                                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 block">Username</label>
-                                {editingField === 'username' ? (
-                                    <form onSubmit={handleUsernameChange} className="p-6 bg-[#1a1a1a] rounded-2xl space-y-4">
-                                        <input type="text" value={usernameData} onChange={(e) => setUsernameData(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white font-bold focus:border-blue-500 focus:bg-black/60 outline-none transition-all" required />
-                                        <div className="flex gap-3">
-                                            <button type="submit" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-white transition-colors">Save Changes</button>
-                                            <button type="button" onClick={() => { setEditingField(null); setUsernameData(user.username); }} className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl font-bold text-zinc-300 transition-colors">Cancel</button>
-                                        </div>
-                                    </form>
-                                ) : (
-                                    <div className="flex items-center justify-between p-6 bg-[#1a1a1a] rounded-2xl group">
-                                        <span className="text-white font-bold text-lg flex items-center gap-3"><User className="text-zinc-500"/> @{user.username}</span>
-                                        <button onClick={() => setEditingField('username')} className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-bold rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">Edit</button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Email Edit */}
-                            <div>
-                                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 block">Email Address</label>
-                                {editingField === 'email' ? (
-                                    <form onSubmit={handleEmailChange} className="p-6 bg-[#1a1a1a] rounded-2xl space-y-4">
-                                        <input type="email" value={emailData.new} onChange={(e) => setEmailData({ ...emailData, new: e.target.value })} placeholder="New Email" className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white font-bold focus:border-blue-500 focus:bg-black/60 outline-none transition-all" required />
-                                        <input type="password" value={emailData.currentPassword} onChange={(e) => setEmailData({ ...emailData, currentPassword: e.target.value })} placeholder="Verify Password" className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white font-bold focus:border-blue-500 focus:bg-black/60 outline-none transition-all" required />
-                                        <div className="flex gap-3">
-                                            <button type="submit" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-white transition-colors">Save Changes</button>
-                                            <button type="button" onClick={() => setEditingField(null)} className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl font-bold text-zinc-300 transition-colors">Cancel</button>
-                                        </div>
-                                    </form>
-                                ) : (
-                                    <div className="flex items-center justify-between p-6 bg-[#1a1a1a] rounded-2xl group">
-                                        <span className="text-white font-bold text-lg flex items-center gap-3"><Mail className="text-zinc-500"/> {user.email}</span>
-                                        <button onClick={() => setEditingField('email')} className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-bold rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">Edit</button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Password Edit */}
-                            <div>
-                                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 block">Password</label>
-                                {editingField === 'password' ? (
-                                    <form onSubmit={handlePasswordChange} className="p-6 bg-[#1a1a1a] rounded-2xl space-y-4">
-                                        <input type="password" value={passwordData.current} onChange={(e) => setPasswordData({ ...passwordData, current: e.target.value })} placeholder="Current Password" className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white font-bold focus:border-blue-500 focus:bg-black/60 outline-none transition-all" required />
-                                        <input type="password" value={passwordData.new} onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })} placeholder="New Password" className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white font-bold focus:border-blue-500 focus:bg-black/60 outline-none transition-all" required />
-                                        <input type="password" value={passwordData.confirm} onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })} placeholder="Confirm New Password" className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white font-bold focus:border-blue-500 focus:bg-black/60 outline-none transition-all" required />
-                                        <div className="flex gap-3">
-                                            <button type="submit" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-white transition-colors">Update Password</button>
-                                            <button type="button" onClick={() => setEditingField(null)} className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl font-bold text-zinc-300 transition-colors">Cancel</button>
-                                        </div>
-                                    </form>
-                                ) : (
-                                    <div className="flex items-center justify-between p-6 bg-[#1a1a1a] rounded-2xl group">
-                                        <span className="text-white font-bold text-lg flex items-center gap-3"><Lock className="text-zinc-500"/> ••••••••</span>
-                                        <button onClick={() => setEditingField('password')} className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-bold rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">Change</button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Danger Zone */}
-                        <div className="bg-[#151515] rounded-[32px] p-6 md:p-12 shadow-xl border border-red-900/30 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                            <h3 className="text-lg font-black text-red-500 flex items-center gap-3 mb-6"><ShieldAlert /> Danger Zone</h3>
-                            <p className="text-zinc-400 mb-8 font-medium">Once you delete your account, there is no going back. Please be certain.</p>
-                            <button onClick={() => setShowDeleteAccountConfirm(true)} className="px-8 py-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl font-bold transition-all border border-red-500/20">Delete Account</button>
-                        </div>
-                    </div>
-                )}
             </div>
 
             {/* Modals (Avatar, Delete, Confirm) */}
@@ -708,23 +559,6 @@ const Profile = () => {
                         <div className="flex gap-4">
                             <button onClick={() => setDeleteConfirm({ show: false, animeId: null, type: null, title: '' })} className="flex-1 py-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold transition-colors">Cancel</button>
                             <button onClick={handleDeleteConfirm} className="flex-1 py-4 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold shadow-lg shadow-red-900/50 transition-all hover:scale-105 active:scale-95">Remove</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showDeleteAccountConfirm && (
-                <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-                    <div className="bg-[#151515] rounded-[32px] border border-red-500/20 shadow-2xl max-w-md w-full p-10 text-center relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-40 h-40 bg-red-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                        <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <ShieldAlert size={28} />
-                        </div>
-                        <h3 className="text-2xl font-black text-white mb-3">Delete Account?</h3>
-                        <p className="text-zinc-400 font-medium mb-8">This action is irreversible. All your data, history, and friends will be wiped.</p>
-                        <div className="flex gap-4 relative z-10">
-                            <button onClick={() => setShowDeleteAccountConfirm(false)} className="flex-1 py-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold transition-colors">Cancel</button>
-                            <button onClick={handleDeleteAccount} className="flex-1 py-4 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold shadow-lg shadow-red-900/50 transition-all hover:scale-105 active:scale-95">Confirm</button>
                         </div>
                     </div>
                 </div>

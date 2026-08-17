@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, User, Bell, Menu, Sparkles, Home, Heart, Users, Film } from 'lucide-react'; 
+import { Search, User, Bell, Menu, Sparkles, Home, Heart, Users, Film, Settings, LogOut } from 'lucide-react'; 
 import axios from 'axios';
 
 const Navbar = () => {
@@ -20,11 +20,13 @@ const Navbar = () => {
   
   // User Avatar State
   const [userProfilePic, setUserProfilePic] = useState(null);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
   const searchRef = useRef(null);
   const notificationsRef = useRef(null);
+  const profileDropdownRef = useRef(null);
   
   // API URL from environment variables
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -108,6 +110,7 @@ const Navbar = () => {
     const handleClickOutside = (event) => {
         if (searchRef.current && !searchRef.current.contains(event.target)) setIsSearchOpen(false);
         if (notificationsRef.current && !notificationsRef.current.contains(event.target)) setIsNotificationsOpen(false);
+        if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) setIsProfileDropdownOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -171,10 +174,18 @@ const Navbar = () => {
       navigate('/');
   };
 
+  const handleLogout = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      setIsProfileDropdownOpen(false);
+      setIsMobileMenuOpen(false);
+      navigate('/login');
+  };
+
   const unreadCount = notifications.length;
 
   const getLinkClass = (path) => {
-    const baseClasses = "hidden md:flex items-center gap-2 text-lg font-bold transition-all duration-200 px-4 py-2 rounded-lg relative z-20";
+    const baseClasses = "hidden md:flex items-center gap-2 text-sm xl:text-base font-bold whitespace-nowrap transition-all duration-200 px-3 py-2 rounded-lg relative z-20";
     const activeClasses = "bg-white/10 text-white shadow-sm border border-white/5";
     const inactiveClasses = "text-zinc-400 hover:text-white hover:bg-white/5";
     return `${baseClasses} ${location.pathname === path ? activeClasses : inactiveClasses}`;
@@ -312,14 +323,50 @@ const Navbar = () => {
                         )}
                     </div>
 
-                    {/* Profile Link */}
-                    <Link to={`/profile/${localStorage.getItem('username')}`} className="w-9 h-9 rounded-full bg-gradient-to-tr from-zinc-700 to-zinc-600 hover:from-blue-600 hover:to-purple-600 flex items-center justify-center text-white transition-all shadow-lg border border-white/10 overflow-hidden relative z-20">
-                        {userProfilePic ? (
-                            <img src={userProfilePic} alt="Profile" className="w-full h-full object-cover" />
-                        ) : (
-                            <User className="w-4 h-4" />
+                    {/* Profile Dropdown */}
+                    <div className="relative" ref={profileDropdownRef}>
+                        <button 
+                            onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                            className="w-9 h-9 rounded-full bg-gradient-to-tr from-zinc-700 to-zinc-600 hover:from-blue-600 hover:to-purple-600 flex items-center justify-center text-white transition-all shadow-lg border border-white/10 overflow-hidden relative z-20 focus:outline-none"
+                        >
+                            {userProfilePic ? (
+                                <img src={userProfilePic} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                                <User className="w-4 h-4" />
+                            )}
+                        </button>
+                        
+                        {isProfileDropdownOpen && (
+                            <div className={`absolute right-0 top-full mt-3 w-48 ${glassStyle} py-2`}>
+                                <div className="px-4 py-2 border-b border-white/5 mb-1">
+                                    <p className="text-sm font-bold text-white truncate">{localStorage.getItem('username')}</p>
+                                </div>
+                                
+                                <Link 
+                                    to={`/profile/${localStorage.getItem('username')}`} 
+                                    onClick={() => setIsProfileDropdownOpen(false)}
+                                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-300 hover:text-white hover:bg-white/10 transition-colors"
+                                >
+                                    <User size={16} /> Profile
+                                </Link>
+
+                                <Link 
+                                    to="/settings" 
+                                    onClick={() => setIsProfileDropdownOpen(false)}
+                                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-300 hover:text-white hover:bg-white/10 transition-colors"
+                                >
+                                    <Settings size={16} /> Settings
+                                </Link>
+                                
+                                <button 
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors text-left"
+                                >
+                                    <LogOut size={16} /> Log Out
+                                </button>
+                            </div>
                         )}
-                    </Link>
+                    </div>
                 </>
             )}
 
@@ -373,6 +420,13 @@ const Navbar = () => {
                               <Film size={32} /> Movies & Shows
                           </Link>
                       )}
+                      
+                      <button 
+                          onClick={handleLogout} 
+                          className="flex items-center gap-3 text-3xl font-bold transition-colors text-red-500 hover:text-red-400 mt-4"
+                      >
+                          <LogOut size={32} /> Log Out
+                      </button>
                   </>
               )}
           </div>

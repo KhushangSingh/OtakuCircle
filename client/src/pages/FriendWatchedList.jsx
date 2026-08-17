@@ -65,7 +65,7 @@ const AnimeCard = ({ anime }) => {
                 </div>
             </div>
             <div className="mt-4 px-1 space-y-1 transition-opacity duration-300 group-hover:opacity-80">
-                <h3 className="text-xl font-bold text-gray-100 truncate leading-tight">
+                <h3 className="text-xs sm:text-sm md:text-base font-bold text-gray-100 truncate leading-tight">
                     {anime.title}
                 </h3>
             </div>

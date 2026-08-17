@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
 const connectDB = require('./config/db');
 
 // --- IMPORT CONTROLLERS ---
@@ -71,8 +73,28 @@ connectDB();
 const app = express();
 
 // Middleware Setup
-app.use(cors());
+// Restrict CORS to frontend URLs
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+    origin: function (origin, callback) {
+        // allow requests with no origin (like mobile apps or curl requests)
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
+}));
+
+app.use(helmet()); // Secure HTTP headers
 app.use(express.json()); 
+app.use(mongoSanitize()); // Prevent NoSQL Injection
 
 // ==============================
 //           ROUTES

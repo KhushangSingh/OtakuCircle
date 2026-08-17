@@ -12,7 +12,7 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
 
     return (
         <div 
-            className="group relative flex-none w-[140px] sm:w-[180px] md:w-[260px] cursor-pointer perspective-1000"
+            className="group relative flex-none w-[120px] sm:w-[150px] md:w-[200px] cursor-pointer perspective-1000"
             onClick={onClick}
         >
             <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-zinc-900 transition-all duration-500 ease-out 
@@ -87,7 +87,7 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
             </div>
 
             <div className="mt-4 px-1 space-y-1 transition-opacity duration-300 group-hover:opacity-50">
-                <h3 className="text-sm sm:text-base md:text-xl font-bold text-gray-100 truncate leading-tight">
+                <h3 className="text-xs sm:text-sm md:text-base font-bold text-gray-100 truncate leading-tight">
                     {movie.title}
                 </h3>
                 <div className="flex items-center gap-2 text-xs text-zinc-500 font-semibold uppercase tracking-wider">

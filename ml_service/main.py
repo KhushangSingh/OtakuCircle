@@ -118,14 +118,21 @@ def semantic_search():
         # 2. Similarity Search
         scores = cosine_similarity(query_vec, SEARCH_EMBEDDINGS)[0]
 
-        # 3. Get Top 30 Results
-        top_n = 30
+        # 3. Get Top 100 Results with Threshold
+        top_n = min(100, len(SEARCH_IDS))
         # Efficiently find top N indices without full sort first
         top_indices = np.argpartition(scores, -top_n)[-top_n:]
         # Sort just the top N
         top_indices = top_indices[np.argsort(scores[top_indices])[::-1]]
 
-        result_ids = SEARCH_IDS[top_indices].tolist()
+        # Filter out garbage matches (e.g., score < 0.1)
+        valid_indices = [i for i in top_indices if scores[i] >= 0.1]
+        
+        # If the threshold is too strict and filters everything, return at least the top 10
+        if len(valid_indices) == 0:
+            valid_indices = top_indices[:10]
+
+        result_ids = SEARCH_IDS[valid_indices].tolist()
 
         return jsonify({'results': result_ids})
 
