@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 
 // --- IMPORT CONTROLLERS ---
-const { registerUser, loginUser } = require('./controllers/authController');
+const { registerUser, loginUser, forgotPassword, verifyOtp, resetPassword } = require('./controllers/authController');
 
 const { 
     getAnimes, 
@@ -63,6 +63,9 @@ app.use(express.json());
 // --- AUTH ROUTES ---
 app.post('/api/auth/register', registerUser);
 app.post('/api/auth/login', loginUser);
+app.post('/api/auth/forgot-password', forgotPassword);
+app.post('/api/auth/verify-otp', verifyOtp);
+app.post('/api/auth/reset-password', resetPassword);
 
 // --- SEARCH ROUTES ---
 const searchRoutes = require('./routes/search');
