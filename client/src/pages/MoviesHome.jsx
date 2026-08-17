@@ -21,8 +21,9 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 group-hover:scale-105 
                 group-hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.25)] 
                 border border-white/5 group-hover:border-white/20"
-                style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)' }}
+                
             >
+                <div className="absolute inset-0 rounded-2xl overflow-hidden">
                 <img 
                     src={movie.poster_url || 'https://via.placeholder.com/200x300?text=No+Image'} 
                     alt={movie.title} 
@@ -30,6 +31,7 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                     loading="lazy"
                 />
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+                </div>
                 
                 {movie.score && (
                     <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
@@ -64,6 +66,7 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                         }}
                         wrapperClass="w-[85%] mx-auto"
                         className="rounded-full"
+                        direction="up"
                     />
                 </div>
             </div>

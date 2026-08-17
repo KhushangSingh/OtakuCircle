@@ -21,8 +21,9 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 group-hover:scale-105 
                 group-hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.25)] 
                 border border-white/5 group-hover:border-white/20"
-                style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)' }}
+                
             >
+                <div className="absolute inset-0 rounded-2xl overflow-hidden">
                 <img 
                     src={anime.poster_url || 'https://via.placeholder.com/200x300?text=No+Image'} 
                     alt={anime.title} 
@@ -30,6 +31,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                     loading="lazy"
                 />
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+                </div>
                 
                 {anime.score && (
                     <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
@@ -64,6 +66,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                         }}
                         wrapperClass="w-[85%] mx-auto"
                         className="rounded-full"
+                        direction="up"
                     />
                 </div>
             </div>
@@ -178,7 +181,7 @@ const SpotlightHero = ({ backgroundImage, onExplore }) => {
                 <h1 
                     className="text-5xl sm:text-7xl md:text-[9rem] font-extrabold tracking-tighter leading-none text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.3)] select-none py-4 px-4 pb-2"
                     style={{
-                        background: 'linear-gradient(to bottom, #ffffff, #a1a1aa)',
+                        background: 'linear-gradient(to bottom, #ffffff, #e4e4e7)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         filter: 'drop-shadow(0px 4px 10px rgba(0,0,0,0.5))'
@@ -187,14 +190,14 @@ const SpotlightHero = ({ backgroundImage, onExplore }) => {
                     OtakuCircle
                 </h1>
                 
-                <p className="mt-4 text-base md:text-2xl text-zinc-300 font-medium max-w-2xl mx-auto tracking-wide drop-shadow-md">
+                <p className="mt-4 text-base md:text-2xl text-white font-medium max-w-2xl mx-auto tracking-wide drop-shadow-md">
                     Track your journey. Discover new worlds. Connect with friends.
                 </p>
                 
-                <div className="mt-10 flex justify-center gap-4">
+                <div className="mt-20 flex justify-center gap-4">
                     <button 
                         onClick={onExplore}
-                        className="px-6 py-3 md:px-10 md:py-4 bg-white text-black rounded-full font-bold text-base md:text-lg hover:scale-105 transition-transform shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+                        className="px-6 py-3 md:px-10 md:py-4 bg-zinc-200 hover:bg-white text-black rounded-full font-bold text-base md:text-lg hover:scale-105 transition-all shadow-lg"
                     >
                         Start Exploring
                     </button>

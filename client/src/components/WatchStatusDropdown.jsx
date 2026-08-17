@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 
-const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded, className, wrapperClass }) => {
+const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded, className, wrapperClass, direction = 'down' }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -52,7 +52,7 @@ const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded,
             </button>
 
             {isOpen && !disabled && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-32 py-2 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl z-[100] overflow-hidden transform origin-top animate-in fade-in slide-in-from-top-2">
+                <div className={`absolute left-1/2 -translate-x-1/2 w-32 py-2 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl z-[100] overflow-hidden transform animate-in fade-in ${direction === 'up' ? 'bottom-full mb-2 origin-bottom slide-in-from-bottom-2' : 'top-full mt-2 origin-top slide-in-from-top-2'}`}>
                     <button
                         type="button"
                         onClick={(e) => handleSelect(e, 'Watching')}
