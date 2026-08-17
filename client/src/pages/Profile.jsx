@@ -337,7 +337,7 @@ const Profile = () => {
                         )}
                     </div>
 
-                    <div className="relative z-10 p-6 md:p-10 pt-20 md:pt-32 flex flex-col md:flex-row gap-8 items-end">
+                    <div className="relative z-10 p-4 md:p-10 pt-20 md:pt-32 flex flex-col md:flex-row gap-4 md:gap-8 items-center md:items-end">
                         <div className="relative flex-shrink-0 group/avatar">
                             <div className="w-32 h-32 md:w-44 md:h-44 rounded-[2rem] p-1 bg-gradient-to-br from-blue-500 to-purple-500 shadow-2xl overflow-hidden translate-y-4">
                                 {user.profilePicture ? 
@@ -375,7 +375,7 @@ const Profile = () => {
                     </div>
 
                     {/* Glassmorphic Stats Ribbon Overlapping Header */}
-                    <div className="relative z-20 mx-6 md:mx-10 mb-6 mt-8 p-6 bg-white/[0.03] backdrop-blur-xl rounded-3xl flex flex-wrap gap-10 items-center justify-between ring-1 ring-white/5">
+                    <div className="relative z-20 mx-4 md:mx-10 mb-6 mt-8 p-4 md:p-6 bg-white/[0.03] backdrop-blur-xl rounded-3xl flex flex-wrap gap-4 md:gap-10 items-center justify-between ring-1 ring-white/5">
                         <div className="flex items-center gap-4">
                             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-lg shadow-blue-900/50">
                                 <span className="text-2xl font-black text-white">{userLevel}</span>
@@ -404,7 +404,7 @@ const Profile = () => {
 
                     {/* Tab Navigation embedded in header */}
                     {isOwnProfile && (
-                        <div className="px-10 flex gap-8 border-t border-white/5 bg-[#101010]">
+                        <div className="px-4 md:px-10 flex gap-4 md:gap-8 border-t border-white/5 bg-[#101010] overflow-x-auto hide-scrollbar">
                             <button onClick={() => setActiveTab('overview')} className={`text-sm font-bold uppercase tracking-widest py-5 transition-all relative ${activeTab === 'overview' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}>
                                 Dashboard
                                 {activeTab === 'overview' && <div className="absolute bottom-0 left-0 w-full h-1 bg-blue-500 rounded-t-full"></div>}
@@ -591,7 +591,7 @@ const Profile = () => {
                 {activeTab === 'settings' && isOwnProfile && (
                     <div className="max-w-3xl mx-auto space-y-8">
                         
-                        <div className="bg-[#151515] rounded-[32px] p-8 md:p-12 shadow-xl space-y-12">
+                        <div className="bg-[#151515] rounded-[32px] p-6 md:p-12 shadow-xl space-y-8 md:space-y-12">
                             <h3 className="text-2xl font-black text-white flex items-center gap-3"><Settings className="text-zinc-400" /> Account Settings</h3>
                             
                             {/* Username Edit */}
@@ -656,7 +656,7 @@ const Profile = () => {
                         </div>
 
                         {/* Danger Zone */}
-                        <div className="bg-[#151515] rounded-[32px] p-8 md:p-12 shadow-xl border border-red-900/30 relative overflow-hidden">
+                        <div className="bg-[#151515] rounded-[32px] p-6 md:p-12 shadow-xl border border-red-900/30 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
                             <h3 className="text-lg font-black text-red-500 flex items-center gap-3 mb-6"><ShieldAlert /> Danger Zone</h3>
                             <p className="text-zinc-400 mb-8 font-medium">Once you delete your account, there is no going back. Please be certain.</p>

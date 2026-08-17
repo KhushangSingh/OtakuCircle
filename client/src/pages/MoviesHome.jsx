@@ -12,7 +12,7 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
 
     return (
         <div 
-            className="group relative flex-none w-[200px] md:w-[260px] cursor-pointer perspective-1000"
+            className="group relative flex-none w-[140px] sm:w-[180px] md:w-[260px] cursor-pointer perspective-1000"
             onClick={onClick}
         >
             <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-zinc-900 transition-all duration-500 ease-out 
@@ -87,7 +87,7 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
             </div>
 
             <div className="mt-4 px-1 space-y-1 transition-opacity duration-300 group-hover:opacity-50">
-                <h3 className="text-xl font-bold text-gray-100 truncate leading-tight">
+                <h3 className="text-sm sm:text-base md:text-xl font-bold text-gray-100 truncate leading-tight">
                     {movie.title}
                 </h3>
                 <div className="flex items-center gap-2 text-xs text-zinc-500 font-semibold uppercase tracking-wider">
@@ -116,7 +116,7 @@ const MovieSection = ({ title, data, onAddWatchlist, onAddWatchhistory, onCardCl
     return (
         <div id={id} className="mb-16 relative group/section scroll-mt-32">
             <div className="flex items-end justify-between px-4 lg:px-8 mb-6">
-                <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">{title}</h2>
+                <h2 className="text-xl md:text-3xl font-bold text-white tracking-tight">{title}</h2>
                 <button 
                     onClick={() => navigate(`/movies/section/${sectionKey}`)} 
                     className="text-xs font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-widest"
@@ -309,7 +309,7 @@ const MoviesHome = () => {
             <div className="w-full px-4 lg:px-8 mb-12 relative z-10 mt-2">
                 <div className="relative p-6 md:p-8 rounded-[32px] overflow-hidden border border-white/10 bg-black shadow-2xl flex flex-col md:flex-row items-center gap-6">
                     
-                    <div className="relative z-20 flex-1 max-w-2xl">
+                    <div className="relative z-20 flex-1 max-w-2xl w-full">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="p-1.5 bg-gradient-to-br from-red-900 to-red-500 rounded-lg shadow-lg shadow-red-500/20 border border-red-500/30">
                                 <Film size={16} className="text-white" />
@@ -328,7 +328,7 @@ const MoviesHome = () => {
                     </div>
 
                     {/* --- Search Bar --- */}
-                    <div className="relative z-20 hidden md:block w-72 lg:w-96" ref={searchRef}>
+                    <div className="relative md:absolute md:top-6 md:right-6 lg:top-8 lg:right-8 z-30 w-full md:w-72 lg:w-96 mt-6 md:mt-0" ref={searchRef}>
                         <div className="flex items-center bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-5 py-3 transition-all duration-300 focus-within:bg-black/60 focus-within:border-white/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]">
                             <Search className="text-zinc-500 w-5 h-5 mr-3 transition-colors" />
                             <input 
@@ -340,21 +340,34 @@ const MoviesHome = () => {
                             />
                         </div>
                         {isSearchOpen && (
-                            <div className="absolute top-full mt-3 w-full bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/10 text-gray-200 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/5">
-                                <div className="px-4 py-3 text-xs font-bold text-zinc-400 uppercase tracking-widest bg-white/5 border-b border-white/5">
+                            <div 
+                                className="absolute top-full mt-3 w-full bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/10 text-gray-200 rounded-2xl shadow-2xl overflow-y-auto max-h-[300px] z-50 animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/5"
+                                style={{
+                                    scrollbarWidth: 'thin',
+                                    scrollbarColor: '#3f3f46 transparent'
+                                }}
+                            >
+                                <style>{`
+                                    .search-results-scrollbar::-webkit-scrollbar { width: 4px; }
+                                    .search-results-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                                    .search-results-scrollbar::-webkit-scrollbar-thumb { background-color: #3f3f46; border-radius: 4px; }
+                                `}</style>
+                                <div className="px-4 py-3 text-xs font-bold text-zinc-400 uppercase tracking-widest bg-white/5 border-b border-white/5 sticky top-0 z-10 backdrop-blur-md">
                                     Top Matches
                                 </div>
-                                {searchResults.length > 0 ? searchResults.slice(0, 5).map(item => (
-                                    <div key={item.tmdb_id} onClick={() => handleSearchResultClick(item.tmdb_id, item.type)} className="flex items-center gap-4 p-3 hover:bg-white/10 cursor-pointer border-b border-white/5 last:border-none transition-colors group/item">
-                                        <img src={item.poster_url || 'https://via.placeholder.com/40x60?text=NA'} alt={item.title} className="w-9 h-12 object-cover rounded shadow-md bg-zinc-800" />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-semibold text-sm text-white truncate group-hover/item:text-blue-400 transition-colors">{item.title}</p>
-                                            <p className="text-[10px] text-zinc-400 mt-0.5 uppercase">{item.type} • {item.year || 'N/A'}</p>
+                                <div className="search-results-scrollbar">
+                                    {searchResults.length > 0 ? searchResults.map(item => (
+                                        <div key={item.tmdb_id} onClick={() => handleSearchResultClick(item.tmdb_id, item.type)} className="flex items-center gap-4 p-3 hover:bg-white/10 cursor-pointer border-b border-white/5 last:border-none transition-colors group/item">
+                                            <img src={item.poster_url || 'https://via.placeholder.com/40x60?text=NA'} alt={item.title} className="w-9 h-12 object-cover rounded shadow-md bg-zinc-800" />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-semibold text-sm text-white truncate group-hover/item:text-blue-400 transition-colors">{item.title}</p>
+                                                <p className="text-[10px] text-zinc-400 mt-0.5 uppercase">{item.type} • {item.year || 'N/A'}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                )) : (
-                                    <div className="p-4 text-center text-xs text-zinc-500">No matches found.</div>
-                                )}
+                                    )) : (
+                                        <div className="p-4 text-center text-xs text-zinc-500">No matches found.</div>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>

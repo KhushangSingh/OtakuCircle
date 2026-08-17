@@ -177,7 +177,7 @@ const MovieDetails = () => {
             <div className="relative z-10 w-full px-4 lg:px-8 flex flex-col md:flex-row gap-10 lg:gap-16 items-center justify-center h-full">
                 
                 {/* Poster */}
-                <div className="hidden md:block w-[220px] md:w-[280px] lg:w-[320px] flex-shrink-0 group perspective-1000">
+                <div className="w-[160px] sm:w-[200px] md:w-[280px] lg:w-[320px] flex-shrink-0 group perspective-1000 mt-16 md:mt-0">
                     <div className="relative rounded-2xl overflow-hidden shadow-[0_40px_80px_rgba(0,0,0,0.9)] border border-white/10 transition-transform duration-500 hover:scale-[1.02]">
                         <img src={movie.poster_url} alt={movie.title} className="w-full h-auto object-cover" />
                     </div>
@@ -319,9 +319,10 @@ const MovieDetails = () => {
 
                                     <textarea
                                         className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500/50 resize-none h-24 mb-4"
-                                        placeholder="Add a message... (optional)"
+                                        placeholder="Add a message... (optional) [Max 50 chars]"
                                         value={recMessage}
                                         onChange={(e) => setRecMessage(e.target.value)}
+                                        maxLength={50}
                                     ></textarea>
 
                                     <button 

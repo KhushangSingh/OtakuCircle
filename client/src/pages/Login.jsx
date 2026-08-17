@@ -2,6 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, Loader, X, KeyRound, ShieldCheck } from 'lucide-react';
+import heroImage from '../assets/spotlight-hero-bg.jpg';
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -190,16 +191,23 @@ const Login = () => {
     return (
         <div className="h-screen w-full bg-[#0d0d0d] flex relative overflow-hidden font-sans text-white">
             
+            {/* FULL PAGE BACKGROUND WITH GRADIENT FADE */}
+            <div className="absolute inset-0 z-0 pointer-events-none">
+                <div 
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50"
+                    style={{ backgroundImage: `url(${heroImage})` }}
+                ></div>
+                {/* Gradient overlay: allows left side to be visible, but right side (form) becomes solid black */}
+                <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-[#0d0d0d]/40 lg:from-transparent via-[#0d0d0d]/90 lg:via-[#0d0d0d]/80 to-[#0d0d0d]"></div>
+            </div>
+
             {/* LEFT SIDE: VISUALS */}
-            <div className="hidden lg:flex lg:w-1/2 relative bg-zinc-900 items-center justify-center overflow-hidden h-full">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 via-[#0d0d0d] to-purple-900/40 z-0"></div>
-                <div className="absolute inset-0 bg-[url('https://wallpapers.com/images/hd/anime-scenery-1920-x-1080-369-1220677.jpg')] bg-cover bg-center opacity-30 mix-blend-overlay"></div>
-                
-                <div className="relative z-10 p-12 max-w-lg">
-                    <h1 className="text-6xl font-extrabold tracking-tighter mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center overflow-hidden h-full z-10">
+                <div className="relative p-12 max-w-lg">
+                    <h1 className="text-6xl font-extrabold tracking-tighter mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent drop-shadow-lg">
                         OtakuCircle
                     </h1>
-                    <p className="text-xl text-zinc-400 font-light leading-relaxed">
+                    <p className="text-xl text-zinc-300 font-light leading-relaxed drop-shadow-md">
                         Your personal anime sanctuary. Track progress, discover hidden gems, and connect with a community that gets it.
                     </p>
                 </div>

@@ -12,6 +12,9 @@ const Navbar = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   
+  // Mobile Menu State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   // Scroll State
   const [isScrolled, setIsScrolled] = useState(false);
   
@@ -109,6 +112,13 @@ const Navbar = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+  
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = 'auto';
+    return () => { document.body.style.overflow = 'auto'; };
+  }, [isMobileMenuOpen]);
 
   const handleResultClick = (id) => {
       setIsSearchOpen(false);
@@ -157,6 +167,7 @@ const Navbar = () => {
       sessionStorage.removeItem('otaku_home_scroll');
       sessionStorage.removeItem('otaku_movies_home_scroll');
       window.scrollTo(0, 0);
+      setIsMobileMenuOpen(false);
       navigate('/');
   };
 
@@ -318,10 +329,53 @@ const Navbar = () => {
                </Link>
             )}
             
-            <button className="md:hidden p-2 text-zinc-400 relative z-20">
+            <button 
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="md:hidden p-2 text-zinc-400 relative z-20 hover:text-white transition-colors"
+            >
                 <Menu size={24} />
             </button>
         </div>
+      </div>
+
+      {/* --- MOBILE MENU OVERLAY --- */}
+      <div className={`fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl transition-all duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+          {/* Close button */}
+          <button 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="absolute top-6 right-6 p-2 text-white hover:text-zinc-300 transition-colors"
+          >
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+
+          <div className="flex flex-col items-center justify-center h-full gap-8">
+              {!isLoggedIn && (
+                  <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-3xl font-bold text-white mb-8 hover:text-zinc-300 transition-colors">
+                      Sign In
+                  </Link>
+              )}
+              {isLoggedIn && (
+                  <>
+                      <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                          <Home size={32} /> Home
+                      </Link>
+                      <Link to="/smart-search" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/smart-search' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                          <Sparkles size={32} /> Smart Search
+                      </Link>
+                      <Link to="/recommendations" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/recommendations' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                          <Heart size={32} /> For You
+                      </Link>
+                      <Link to="/friends" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/friends' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                          <Users size={32} /> Friends
+                      </Link>
+                      {import.meta.env.VITE_ENABLE_MOVIES === 'true' && (
+                          <Link to="/movies" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/movies' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                              <Film size={32} /> Movies & Shows
+                          </Link>
+                      )}
+                  </>
+              )}
+          </div>
       </div>
     </nav>
   );

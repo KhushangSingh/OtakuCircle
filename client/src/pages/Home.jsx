@@ -12,7 +12,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
 
     return (
         <div 
-            className="group relative flex-none w-[200px] md:w-[260px] cursor-pointer perspective-1000"
+            className="group relative flex-none w-[140px] sm:w-[180px] md:w-[260px] cursor-pointer perspective-1000"
             onClick={onClick}
         >
             <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-zinc-900 transition-all duration-500 ease-out 
@@ -87,7 +87,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
             </div>
 
             <div className="mt-4 px-1 space-y-1 transition-opacity duration-300 group-hover:opacity-50">
-                <h3 className="text-xl font-bold text-gray-100 truncate leading-tight">
+                <h3 className="text-sm sm:text-base md:text-xl font-bold text-gray-100 truncate leading-tight">
                     {anime.title}
                 </h3>
                 <div className="flex items-center gap-2 text-xs text-zinc-500 font-semibold uppercase tracking-wider">
@@ -116,7 +116,7 @@ const AnimeSection = ({ title, data, onAddWatchlist, onAddWatchhistory, onCardCl
     return (
         <div id={id} className="mb-16 relative group/section scroll-mt-32">
             <div className="flex items-end justify-between px-4 mb-6">
-                <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">{title}</h2>
+                <h2 className="text-xl md:text-3xl font-bold text-white tracking-tight">{title}</h2>
                 <button 
                     onClick={() => navigate(`/section/${sectionKey}`)} 
                     className="text-xs font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-widest"
@@ -194,7 +194,7 @@ const SpotlightHero = ({ backgroundImage, onExplore }) => {
                 }}
             >
                 <h1 
-                    className="text-7xl md:text-[9rem] font-extrabold tracking-tighter leading-none text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.3)] select-none py-4 px-4 pb-2"
+                    className="text-5xl sm:text-7xl md:text-[9rem] font-extrabold tracking-tighter leading-none text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.3)] select-none py-4 px-4 pb-2"
                     style={{
                         background: 'linear-gradient(to bottom, #ffffff, #a1a1aa)',
                         WebkitBackgroundClip: 'text',
@@ -205,14 +205,14 @@ const SpotlightHero = ({ backgroundImage, onExplore }) => {
                     OtakuCircle
                 </h1>
                 
-                <p className="mt-4 text-lg md:text-2xl text-zinc-300 font-medium max-w-2xl mx-auto tracking-wide drop-shadow-md">
+                <p className="mt-4 text-base md:text-2xl text-zinc-300 font-medium max-w-2xl mx-auto tracking-wide drop-shadow-md">
                     Track your journey. Discover new worlds. Connect with friends.
                 </p>
                 
                 <div className="mt-10 flex justify-center gap-4">
                     <button 
                         onClick={onExplore}
-                        className="px-10 py-4 bg-white text-black rounded-full font-bold text-lg hover:scale-105 transition-transform shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+                        className="px-6 py-3 md:px-10 md:py-4 bg-white text-black rounded-full font-bold text-base md:text-lg hover:scale-105 transition-transform shadow-[0_0_30px_rgba(255,255,255,0.3)]"
                     >
                         Start Exploring
                     </button>

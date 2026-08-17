@@ -481,12 +481,9 @@ const Friends = () => {
                                         
                                         {/* Actions */}
                                         <div className="flex gap-3 mt-2">
-                                            <button className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-semibold py-2 rounded-xl transition-colors flex items-center justify-center gap-2">
-                                                <MessageCircle size={16} /> Message
-                                            </button>
                                             <button 
                                                 onClick={() => handleFriendClick(friend)}
-                                                className="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold py-2 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                                className="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold py-2 rounded-xl transition-colors flex items-center justify-center gap-2"
                                             >
                                                 View Profile
                                             </button>
@@ -503,7 +500,7 @@ const Friends = () => {
             {/* --- FROZEN GLASS MODAL (EXISTING) --- */}
             {selectedFriend && friendDetails && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={closeModal}>
-                    <div className="relative w-full max-w-5xl h-[600px] flex flex-col md:flex-row overflow-hidden shadow-2xl rounded-[32px] border border-white/10 bg-[#111] backdrop-blur-3xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="relative w-full max-w-5xl h-[85vh] md:h-[600px] flex flex-col md:flex-row overflow-hidden shadow-2xl rounded-[32px] border border-white/10 bg-[#111] backdrop-blur-3xl" onClick={(e) => e.stopPropagation()}>
                         <button onClick={closeModal} className="absolute top-5 right-5 z-50 p-2.5 bg-white/5 hover:bg-white/20 text-white/70 hover:text-white backdrop-blur-md rounded-full border border-white/10 transition-all duration-300 group">
                             <X size={20} className="group-hover:rotate-90 transition-transform duration-300" />
                         </button>

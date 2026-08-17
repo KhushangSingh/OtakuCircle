@@ -97,7 +97,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
 
             {/* Metadata */}
             <div className="mt-4 px-1 space-y-1 transition-opacity duration-300 group-hover:opacity-50">
-                <h3 className="text-xl font-bold text-gray-100 truncate leading-tight">
+                <h3 className="text-sm sm:text-base md:text-xl font-bold text-gray-100 truncate leading-tight">
                     {anime.title}
                 </h3>
                 <div className="flex items-center gap-2 text-xs text-zinc-500 font-semibold uppercase tracking-wider">
