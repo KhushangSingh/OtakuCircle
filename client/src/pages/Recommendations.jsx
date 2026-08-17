@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import WatchStatusDropdown from '../components/WatchStatusDropdown';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Sparkles, Tv, Star, Check } from 'lucide-react';

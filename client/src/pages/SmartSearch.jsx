@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import WatchStatusDropdown from '../components/WatchStatusDropdown';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Search, Sparkles, Plus, Check, Star } from 'lucide-react';
