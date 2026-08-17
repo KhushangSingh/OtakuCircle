@@ -24,7 +24,7 @@ def build_index():
         # 1. Fetch Data
         print("📥 Fetching anime data...")
         # Only fetch necessary fields to save RAM
-        cursor = collection.find({}, {'mal_id': 1, 'title': 1, 'synopsis': 1, 'genres': 1})
+        cursor = collection.find({}, {'mal_id': 1, 'title': 1, 'title_english': 1, 'synopsis': 1, 'genres': 1})
         animes = list(cursor)
         
         if not animes:
@@ -36,8 +36,9 @@ def build_index():
         for anime in animes:
             if anime.get('synopsis'):
                 genres = ", ".join(anime.get('genres', []))
+                title_english = anime.get('title_english') or ''
                 # "Rich Text" representation for better semantic understanding
-                combined_text = f"Title: {anime['title']}. Genre: {genres}. Synopsis: {anime['synopsis']}"
+                combined_text = f"Title: {anime['title']} {title_english}. Genre: {genres}. Synopsis: {anime['synopsis']}"
                 
                 data.append({
                     'mal_id': anime['mal_id'],
@@ -48,8 +49,8 @@ def build_index():
         print(f"📊 Processing {len(df)} records.")
 
         # 3. Generate Embeddings
-        print("🧠 Loading AI Model (all-MiniLM-L6-v2)...")
-        model = SentenceTransformer('all-MiniLM-L6-v2')
+        print("🧠 Loading AI Model (all-mpnet-base-v2)...")
+        model = SentenceTransformer('all-mpnet-base-v2')
 
         print("⚡ Generating Vectors (this takes time)...")
         embeddings = model.encode(df['combined_text'].tolist(), show_progress_bar=True)

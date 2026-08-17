@@ -3,7 +3,7 @@ const Anime = require('../models/Anime');
 const User = require('../models/User');
 
 // --- CONFIGURATION ---
-const JIKAN_BASE = 'https://api.jikan.moe/v4';
+const ANILIST_URL = 'https://graphql.anilist.co';
 const CACHE_DURATION = 1000 * 60 * 60 * 24; // 24 Hours
 
 // Simple In-Memory Cache (Resets on server restart)
@@ -14,18 +14,22 @@ let homeCache = {
 
 // --- HELPERS ---
 
-// Delay to respect Jikan's rate limit (3 req/sec)
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const anilistQuery = async (query, variables = {}) => {
+    const response = await axios.post(ANILIST_URL, { query, variables }, {
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    });
+    return response.data.data;
+};
 
-// Format Jikan response to match application schema
-const formatAnime = (list) => {
-    return list.map(item => ({
-        mal_id: item.mal_id,
-        title: item.title,
-        poster_url: item.images.jpg.large_image_url || item.images.jpg.image_url,
-        score: item.score,
-        type: item.type,
-        year: item.year || (item.aired && item.aired.prop && item.aired.prop.from ? item.aired.prop.from.year : null),
+// Format AniList response to match application schema
+const formatAniListMedia = (mediaList) => {
+    return mediaList.map(item => ({
+        mal_id: item.idMal || item.id,
+        title: item.title?.english || item.title?.romaji || 'Unknown',
+        poster_url: item.coverImage?.extraLarge || item.coverImage?.large,
+        score: item.averageScore ? (item.averageScore / 10).toFixed(1) : null,
+        type: item.format,
+        year: item.seasonYear || (item.startDate ? item.startDate.year : null),
         status: item.status
     }));
 };
@@ -51,7 +55,7 @@ const getAnimes = async (req, res) => {
     }
 };
 
-// @desc    Get single anime (DB first -> Jikan Fallback)
+// @desc    Get single anime (DB first -> AniList Fallback)
 // @route   GET /api/anime/:id
 const getAnimeById = async (req, res) => {
     const { id } = req.params;
@@ -65,47 +69,91 @@ const getAnimeById = async (req, res) => {
         // 2. Try finding in local Database first (Fastest)
         let anime = await Anime.findOne({ mal_id: Number(id) });
 
-        if (anime) {
-            // Found in DB
+        // If found but missing new fields (duration, trailer), force a refetch
+        if (anime && anime.duration && anime.trailer_url !== undefined) {
             return res.json(anime);
         }
 
-        // 3. Fallback: Fetch from Jikan API if not in DB
-        console.log(`⚠️ Anime ${id} not in DB. Fetching from Jikan...`);
-        const jikanUrl = `https://api.jikan.moe/v4/anime/${id}`;
+        // 3. Fallback: Fetch from AniList API if not in DB or incomplete
+        console.log(`⚠️ Anime ${id} not in DB or incomplete. Fetching from AniList...`);
         
-        const response = await axios.get(jikanUrl);
-        const data = response.data.data;
+        const query = `
+        query ($malId: Int) {
+          Media(idMal: $malId, type: ANIME) {
+            id
+            idMal
+            title { romaji english }
+            description(asHtml: false)
+            format
+            episodes
+            status
+            averageScore
+            genres
+            coverImage { extraLarge large }
+            seasonYear
+            startDate { year }
+            duration
+            trailer { site id }
+          }
+        }`;
 
-        if (!data) {
+        const data = await anilistQuery(query, { malId: Number(id) });
+        const media = data.Media;
+
+        if (!media) {
             return res.status(404).json({ message: 'Anime not found' });
         }
 
-        // 4. Create new Anime entry in DB (Cache it for next time)
-        anime = new Anime({
-            mal_id: data.mal_id,
-            title: data.title,
-            title_english: data.title_english,
-            synopsis: data.synopsis,
-            type: data.type,
-            episodes: data.episodes,
-            status: data.status,
-            score: data.score,
-            genres: data.genres ? data.genres.map(g => g.name) : [],
-            poster_url: data.images?.jpg?.large_image_url || data.images?.jpg?.image_url
-        });
+        // Clean up description by removing HTML tags if any remain
+        const cleanSynopsis = media.description ? media.description.replace(/<[^>]*>?/gm, '') : 'No synopsis available.';
+        
+        // Format trailer URL
+        let trailerUrl = null;
+        if (media.trailer && media.trailer.site === 'youtube') {
+            trailerUrl = `https://www.youtube.com/watch?v=${media.trailer.id}`;
+        }
+
+        if (anime) {
+            // Update existing
+            anime.title = media.title.english || media.title.romaji || 'Unknown';
+            anime.title_english = media.title.english;
+            anime.synopsis = cleanSynopsis;
+            anime.type = media.format;
+            anime.episodes = media.episodes;
+            anime.status = media.status;
+            anime.score = media.averageScore ? (media.averageScore / 10).toFixed(1) : null;
+            anime.genres = media.genres || [];
+            anime.poster_url = media.coverImage?.extraLarge || media.coverImage?.large;
+            anime.duration = media.duration ? `${media.duration} min` : 'Unknown';
+            anime.trailer_url = trailerUrl;
+        } else {
+            // Create new
+            anime = new Anime({
+                mal_id: media.idMal || media.id, 
+                title: media.title.english || media.title.romaji || 'Unknown',
+                title_english: media.title.english,
+                synopsis: cleanSynopsis,
+                type: media.format,
+                episodes: media.episodes,
+                status: media.status,
+                score: media.averageScore ? (media.averageScore / 10).toFixed(1) : null,
+                genres: media.genres || [],
+                poster_url: media.coverImage?.extraLarge || media.coverImage?.large,
+                duration: media.duration ? `${media.duration} min` : 'Unknown',
+                trailer_url: trailerUrl
+            });
+        }
 
         await anime.save();
-        console.log(`✅ Saved new anime: ${data.title}`);
+        console.log(`✅ Saved new anime: ${anime.title}`);
 
         res.json(anime);
 
     } catch (error) {
         console.error(`❌ Error fetching anime ${id}:`, error.message);
         
-        // Handle Jikan 404
         if (error.response && error.response.status === 404) {
-            return res.status(404).json({ message: 'Anime not found on Jikan' });
+            return res.status(404).json({ message: 'Anime not found on AniList' });
         }
         
         res.status(500).json({ message: 'Server Error' });
@@ -208,10 +256,10 @@ const removeFromWatchhistory = async (req, res) => {
 };
 
 // ==========================================
-//           JIKAN API CONTROLLER
+//           ANILIST API CONTROLLER
 // ==========================================
 
-// @desc    Get Home Page Data (Jikan API + Caching)
+// @desc    Get Home Page Data (AniList API + Caching)
 // @route   GET /api/anime/home
 const getHomeData = async (req, res) => {
     try {
@@ -222,42 +270,73 @@ const getHomeData = async (req, res) => {
             return res.json(homeCache.data);
         }
 
-        console.log("🌐 Fetching Fresh Home Data from Jikan API...");
+        console.log("🌐 Fetching Fresh Home Data from AniList API...");
 
-        // 2. Fetch Data Sequentially (To avoid 429 Rate Limits)
-        const trendingRes = await axios.get(`${JIKAN_BASE}/top/anime?filter=airing&limit=20`);
-        await delay(1000); 
+        // 2. Fetch Data in ONE single GraphQL query
+        const query = `
+        query {
+          trending: Page(perPage: 20) {
+            media(type: ANIME, sort: TRENDING_DESC, status: RELEASING) {
+              idMal id title { romaji english } coverImage { extraLarge large }
+              averageScore format seasonYear status startDate { year }
+            }
+          }
+          topRated: Page(perPage: 20) {
+            media(type: ANIME, sort: SCORE_DESC) {
+              idMal id title { romaji english } coverImage { extraLarge large }
+              averageScore format seasonYear status startDate { year }
+            }
+          }
+          popular: Page(perPage: 20) {
+            media(type: ANIME, sort: POPULARITY_DESC) {
+              idMal id title { romaji english } coverImage { extraLarge large }
+              averageScore format seasonYear status startDate { year }
+            }
+          }
+          upcoming: Page(perPage: 20) {
+            media(type: ANIME, status: NOT_YET_RELEASED, sort: POPULARITY_DESC) {
+              idMal id title { romaji english } coverImage { extraLarge large }
+              averageScore format seasonYear status startDate { year }
+            }
+          }
+          latest: Page(perPage: 20) {
+            media(type: ANIME, season: SUMMER, seasonYear: 2026, sort: POPULARITY_DESC) {
+              idMal id title { romaji english } coverImage { extraLarge large }
+              averageScore format seasonYear status startDate { year }
+            }
+          }
+          action: Page(perPage: 20) {
+            media(type: ANIME, genre: "Action", sort: SCORE_DESC) {
+              idMal id title { romaji english } coverImage { extraLarge large }
+              averageScore format seasonYear status startDate { year }
+            }
+          }
+          fantasy: Page(perPage: 20) {
+            media(type: ANIME, genre: "Fantasy", sort: SCORE_DESC) {
+              idMal id title { romaji english } coverImage { extraLarge large }
+              averageScore format seasonYear status startDate { year }
+            }
+          }
+          romance: Page(perPage: 20) {
+            media(type: ANIME, genre: "Romance", sort: SCORE_DESC) {
+              idMal id title { romaji english } coverImage { extraLarge large }
+              averageScore format seasonYear status startDate { year }
+            }
+          }
+        }`;
 
-        const topRatedRes = await axios.get(`${JIKAN_BASE}/top/anime?limit=20`);
-        await delay(1000);
-
-        const popularRes = await axios.get(`${JIKAN_BASE}/top/anime?filter=bypopularity&limit=20`);
-        await delay(1000);
-
-        const upcomingRes = await axios.get(`${JIKAN_BASE}/top/anime?filter=upcoming&limit=20`);
-        await delay(1000);
-
-        const latestRes = await axios.get(`${JIKAN_BASE}/seasons/now?limit=20`);
-        await delay(1000);
-
-        const actionRes = await axios.get(`${JIKAN_BASE}/anime?genres=1&order_by=score&sort=desc&limit=20`);
-        await delay(1000);
-
-        const fantasyRes = await axios.get(`${JIKAN_BASE}/anime?genres=10&order_by=score&sort=desc&limit=20`);
-        await delay(1000);
-
-        const romanceRes = await axios.get(`${JIKAN_BASE}/anime?genres=22&order_by=score&sort=desc&limit=20`);
+        const data = await anilistQuery(query);
 
         // 3. Format Data
         const finalData = {
-            trending: formatAnime(trendingRes.data.data),
-            topRated: formatAnime(topRatedRes.data.data),
-            popular: formatAnime(popularRes.data.data),
-            upcoming: formatAnime(upcomingRes.data.data),
-            latest: formatAnime(latestRes.data.data),
-            action: formatAnime(actionRes.data.data),
-            fantasy: formatAnime(fantasyRes.data.data),
-            romance: formatAnime(romanceRes.data.data),
+            trending: formatAniListMedia(data.trending.media),
+            topRated: formatAniListMedia(data.topRated.media),
+            popular: formatAniListMedia(data.popular.media),
+            upcoming: formatAniListMedia(data.upcoming.media),
+            latest: formatAniListMedia(data.latest.media),
+            action: formatAniListMedia(data.action.media),
+            fantasy: formatAniListMedia(data.fantasy.media),
+            romance: formatAniListMedia(data.romance.media),
         };
 
         // 4. Update Cache
@@ -269,9 +348,12 @@ const getHomeData = async (req, res) => {
         res.json(finalData);
 
     } catch (error) {
-        console.error("❌ Jikan API Error:", error.message);
+        console.error("❌ AniList API Error:", error.message);
+        if (error.response) {
+            console.error("AniList Error Data:", error.response.data);
+        }
         
-        // Fallback: If Jikan fails, serve old cache if exists
+        // Fallback: If AniList fails, serve old cache if exists
         if (homeCache.data) {
             console.log("⚠️ Serving Stale Cache due to API Error");
             return res.json(homeCache.data);

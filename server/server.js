@@ -119,6 +119,13 @@ app.put('/api/anime/watchhistory/:animeId', protect, updateWatchhistory);
 app.delete('/api/anime/watchhistory/:animeId', protect, removeFromWatchhistory);
 
 
+// --- MOVIES MODULE (Feature Flagged) ---
+if (process.env.ENABLE_MOVIES === 'true') {
+    const movieRoutes = require('./routes/movies');
+    app.use('/api/movies', movieRoutes);
+}
+
+
 // --- SERVER START ---
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

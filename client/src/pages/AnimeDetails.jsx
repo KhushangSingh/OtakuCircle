@@ -135,34 +135,34 @@ const AnimeDetails = () => {
     );
 
     return (
-        <div className="relative h-screen w-full bg-[#0d0d0d] text-white overflow-hidden font-sans flex items-center pt-20">
+        <div className="min-h-screen lg:h-screen bg-[#0d0d0d] text-white font-sans selection:bg-white/20 relative pt-16 pb-8 flex flex-col justify-center overflow-y-auto lg:overflow-hidden">
             
             {/* BACK BUTTON */}
             <button 
                 onClick={() => navigate(-1)} 
-                className="absolute top-24 left-6 z-40 flex items-center justify-center w-10 h-10 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-white hover:bg-white/20 transition-all active:scale-95"
+                className="absolute top-20 left-6 lg:left-12 z-50 p-2 lg:p-3 bg-black/40 hover:bg-black/80 backdrop-blur-md border border-white/10 rounded-full text-white transition-all shadow-xl group"
                 title="Go Back"
             >
-                <ArrowLeft size={20} />
+                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             </button>
 
-            {/* IMMERSIVE BACKGROUND */}
-            <div className="absolute inset-0 z-0">
+            {/* BACKGROUND POSTER LAYER */}
+            <div className="absolute inset-0 z-0 bg-[#0a0a0a]">
                 <img 
                     src={anime.poster_url} 
                     alt="Background" 
-                    className="w-full h-full object-cover opacity-10 blur-xl scale-110" 
+                    className="absolute right-0 top-0 w-full md:w-3/4 h-full object-cover opacity-40 blur-md" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/90 to-[#0d0d0d]/40" />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#0d0d0d] via-[#0d0d0d]/70 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a] via-[#0a0a0a]/90 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/50" />
             </div>
 
             {/* MAIN CONTENT */}
-            <div className="relative z-10 container mx-auto px-6 lg:px-12 flex flex-col md:flex-row gap-10 lg:gap-16 items-center justify-center h-full">
+            <div className="relative z-10 w-full px-4 lg:px-8 flex flex-col md:flex-row gap-10 lg:gap-16 items-center justify-center h-full">
                 
                 {/* Poster */}
-                <div className="hidden md:block w-[300px] md:w-[350px] lg:w-[400px] flex-shrink-0 group perspective-1000">
-                    <div className="relative rounded-2xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.6)] border border-white/10 transition-transform duration-500 hover:scale-[1.02]">
+                <div className="hidden md:block w-[220px] md:w-[280px] lg:w-[320px] flex-shrink-0 group perspective-1000">
+                    <div className="relative rounded-2xl overflow-hidden shadow-[0_40px_80px_rgba(0,0,0,0.9)] border border-white/10 transition-transform duration-500 hover:scale-[1.02]">
                         <img src={anime.poster_url} alt={anime.title} className="w-full h-auto object-cover" />
                     </div>
                 </div>
@@ -170,8 +170,8 @@ const AnimeDetails = () => {
                 {/* Details */}
                 <div className="flex-1 w-full max-w-4xl flex flex-col justify-center">
                     
-                    <div className="flex items-center gap-3 mb-2 text-[10px] md:text-xs font-bold tracking-widest uppercase text-zinc-400">
-                        <span className="bg-white/10 backdrop-blur-md px-2 py-0.5 rounded text-white border border-white/5">
+                    <div className="flex items-center gap-2 mb-2 text-[10px] md:text-xs font-bold tracking-widest uppercase text-zinc-400">
+                        <span className="bg-white/10 backdrop-blur-md px-2 py-0.5 rounded-md text-white border border-white/5">
                             {anime.type || 'TV'}
                         </span>
                         {anime.status && <><span>•</span><span>{anime.status}</span></>}
@@ -179,18 +179,18 @@ const AnimeDetails = () => {
                         {anime.year && <><span>•</span><span>{anime.year}</span></>}
                     </div>
 
-                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-1 leading-tight line-clamp-2">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter text-white mb-2 leading-tight line-clamp-2">
                         {anime.title}
                     </h1>
                     
-                    <div className="flex flex-wrap items-center gap-4 mb-6 text-zinc-300 text-xs md:text-sm mt-2">
-                        <div className="flex items-center gap-1.5 bg-yellow-500/10 px-2 py-1 rounded border border-yellow-500/20 text-yellow-400">
+                    <div className="flex flex-wrap items-center gap-2 mb-6 text-zinc-300 text-xs md:text-sm mt-1">
+                        <div className="flex items-center gap-1 bg-yellow-500/10 px-2.5 py-1 rounded-lg border border-yellow-500/20 text-yellow-400">
                             <Star className="w-3.5 h-3.5 fill-current" />
-                            <span className="font-bold">{anime.score}</span>
+                            <span className="font-extrabold">{anime.score}</span>
                         </div>
                         <div className="flex gap-2">
                             {anime.genres && anime.genres.slice(0, 4).map((g, i) => (
-                                <span key={i} className="border border-white/10 bg-white/5 rounded-full px-2.5 py-0.5 text-xs">
+                                <span key={i} className="border border-white/10 bg-white/5 rounded-full px-2.5 py-0.5 text-xs font-bold">
                                     {typeof g === 'string' ? g : g.name}
                                 </span>
                             ))}
@@ -199,35 +199,35 @@ const AnimeDetails = () => {
 
                     {/* Action Buttons */}
                     <div className="flex flex-wrap gap-3 mb-6">
-                        <button onClick={handleWatchTrailer} className="flex items-center gap-2 bg-white text-black px-5 py-2 rounded-lg font-bold text-xs md:text-sm hover:bg-zinc-200 transition-all shadow-lg">
-                            <Play className="w-3.5 h-3.5 fill-black" /> Trailer
+                        <button onClick={handleWatchTrailer} className="flex items-center gap-1.5 bg-white text-black px-4 py-2.5 rounded-xl font-black text-xs md:text-sm hover:bg-zinc-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95">
+                            <Play className="w-4 h-4 fill-black" /> Trailer
                         </button>
-                        <button onClick={handleAddToList} className="flex items-center gap-2 bg-white/10 backdrop-blur-md text-white border border-white/10 px-5 py-2 rounded-lg font-semibold text-xs md:text-sm hover:bg-white/20 transition-all">
-                            <Plus className="w-3.5 h-3.5" /> Watchlist
+                        <button onClick={handleAddToList} className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md text-white border border-white/10 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm hover:bg-white/20 transition-all hover:scale-105 active:scale-95">
+                            <Plus className="w-4 h-4" /> Watchlist
                         </button>
                         
                         {/* Recommend Button */}
                         <button 
                             onClick={openRecModal}
-                            className="flex items-center gap-2 bg-purple-500/20 text-purple-200 border border-purple-500/30 px-5 py-2 rounded-lg font-semibold text-xs md:text-sm hover:bg-purple-500/30 transition-all"
+                            className="flex items-center gap-1.5 bg-purple-500/20 text-purple-200 border border-purple-500/30 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm hover:bg-purple-500/30 transition-all hover:scale-105 active:scale-95"
                         >
-                            <Share2 className="w-3.5 h-3.5" /> Recommend
+                            <Share2 className="w-4 h-4" /> Recommend
                         </button>
 
-                        <button onClick={handleMarkWatched} className="flex items-center justify-center bg-white/10 backdrop-blur-md text-white border border-white/10 w-10 h-9 rounded-lg hover:bg-green-500/20 hover:text-green-400 transition-all">
-                            <Check className="w-4 h-4" />
+                        <button onClick={handleMarkWatched} className="flex items-center justify-center bg-white/10 backdrop-blur-md text-white border border-white/10 w-10 h-10 rounded-xl hover:bg-green-500/20 hover:text-green-400 transition-all hover:scale-105 active:scale-95">
+                            <Check className="w-5 h-5" strokeWidth={3} />
                         </button>
                     </div>
 
                     <div className="w-full pr-4">
-                        <p className="text-sm md:text-base text-zinc-300 leading-relaxed font-light text-justify w-full line-clamp-[10]">
+                        <p className="text-sm md:text-base text-zinc-300 leading-relaxed font-light text-justify w-full line-clamp-5 md:line-clamp-6">
                             {anime.synopsis}
                         </p>
                     </div>
 
-                    <div className="mt-6 flex gap-6 border-t border-white/5 pt-4 text-xs text-zinc-500">
-                        <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> <span>{anime.year || 'N/A'}</span></div>
-                        <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> <span>{anime.duration || '24m'}</span></div>
+                    <div className="mt-6 flex gap-6 border-t border-white/10 pt-4 text-xs md:text-sm text-zinc-400 font-bold uppercase tracking-wider">
+                        <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-white" /> <span>{anime.year || 'N/A'}</span></div>
+                        <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-white" /> <span>{anime.duration || '24m'}</span></div>
                     </div>
                 </div>
             </div>

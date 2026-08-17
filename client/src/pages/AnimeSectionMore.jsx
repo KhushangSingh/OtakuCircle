@@ -29,7 +29,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
                 {anime.score && (
-                    <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-[11px] font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
+                    <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
                         ★ {anime.score}
                     </div>
                 )}
@@ -41,10 +41,10 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                             setWatchlistAdded(true);
                         }}
                         disabled={watchlistAdded}
-                        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-xs font-bold backdrop-blur-xl border transition-all active:scale-95 shadow-lg
+                        className={`w-full flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold backdrop-blur-xl border transition-all active:scale-95 shadow-lg
                             ${watchlistAdded ? 'bg-blue-500/20 border-blue-500/50 text-blue-400 shadow-blue-500/20' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}
                     >
-                        <Plus size={14} strokeWidth={3} />
+                        <Plus size={16} strokeWidth={3} />
                         <span>Watchlist</span>
                     </button>
                     <button 
@@ -54,17 +54,17 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                             setWatchedAdded(true);
                         }}
                         disabled={watchedAdded}
-                        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-xs font-bold backdrop-blur-xl border transition-all active:scale-95 shadow-lg
+                        className={`w-full flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold backdrop-blur-xl border transition-all active:scale-95 shadow-lg
                             ${watchedAdded ? 'bg-green-500/20 border-green-500/50 text-green-400 shadow-green-500/20' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}
                     >
-                        <Check size={14} strokeWidth={3} />
+                        <Check size={16} strokeWidth={3} />
                         <span>Watched</span>
                     </button>
                 </div>
             </div>
             <div className="mt-4 px-1 space-y-1 transition-opacity duration-300 group-hover:opacity-50">
-                <h3 className="text-sm font-bold text-gray-100 truncate leading-tight">{anime.title}</h3>
-                <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">
+                <h3 className="text-xl font-bold text-gray-100 truncate leading-tight">{anime.title}</h3>
+                <div className="flex items-center gap-2 text-xs text-zinc-500 font-semibold uppercase tracking-wider">
                     <span>{anime.type || 'TV'}</span>
                     {anime.year && <span>• {anime.year}</span>}
                 </div>
@@ -181,7 +181,7 @@ const AnimeSectionMore = () => {
                 <h1 className="text-2xl font-bold tracking-wide">{label}</h1>
             </div>
 
-            <div className="container mx-auto px-6 py-8">
+            <div className="w-full px-4 lg:px-8 py-8">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-20 gap-4">
                         <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>

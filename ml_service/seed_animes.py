@@ -8,7 +8,28 @@ from dotenv import load_dotenv
 # --- CONFIGURATION ---
 load_dotenv(os.path.join(os.path.dirname(__file__), '../server/.env'))
 MONGO_URI = os.getenv("MONGO_URI")
-JIKAN_API = "https://api.jikan.moe/v4/top/anime"
+ANILIST_URL = "https://graphql.anilist.co"
+
+QUERY = """
+query ($page: Int, $perPage: Int) {
+  Page(page: $page, perPage: $perPage) {
+    pageInfo { hasNextPage }
+    media(type: ANIME, sort: SCORE_DESC) {
+      idMal
+      id
+      title { romaji english }
+      description
+      format
+      episodes
+      status
+      averageScore
+      genres
+      coverImage { extraLarge large }
+      seasonYear
+    }
+  }
+}
+"""
 
 def get_mongo_collection():
     """Connects to MongoDB and returns the anime collection."""
@@ -21,38 +42,48 @@ def get_mongo_collection():
     return db.anime
 
 def fetch_anime_data(limit=1000):
-    """Fetches top anime from Jikan API with rate limiting."""
+    """Fetches top anime from AniList API."""
     anime_list = []
     page = 1
-    total_pages = limit // 25
+    per_page = 50 # AniList allows 50 per page
+    total_pages = limit // per_page
     
     print(f"📡 Starting fetch for {limit} animes...")
 
     while page <= total_pages:
         try:
             print(f"   Fetching page {page}/{total_pages}...")
-            response = requests.get(f"{JIKAN_API}?page={page}")
+            response = requests.post(ANILIST_URL, json={
+                "query": QUERY,
+                "variables": {"page": page, "perPage": per_page}
+            })
             
             if response.status_code == 200:
-                data = response.json().get('data', [])
-                for item in data:
+                data = response.json().get('data', {}).get('Page', {})
+                media_list = data.get('media', [])
+                
+                for item in media_list:
+                    # Fallback to AniList ID if MAL ID is missing
+                    mal_id = item.get('idMal') or item.get('id')
+                    
                     anime_doc = {
-                        "mal_id": item['mal_id'],
-                        "title": item['title'],
-                        "title_english": item.get('title_english'),
-                        "synopsis": item.get('synopsis'),
-                        "type": item.get('type'),
+                        "mal_id": mal_id,
+                        "title": item.get('title', {}).get('english') or item.get('title', {}).get('romaji') or 'Unknown',
+                        "title_english": item.get('title', {}).get('english'),
+                        "synopsis": item.get('description'),
+                        "type": item.get('format'),
                         "episodes": item.get('episodes'),
                         "status": item.get('status'),
-                        "score": item.get('score'),
-                        "genres": [g['name'] for g in item.get('genres', [])], 
-                        "poster_url": item['images']['jpg']['large_image_url'],
+                        "score": (item.get('averageScore') / 10) if item.get('averageScore') else None,
+                        "genres": item.get('genres', []),
+                        "poster_url": item.get('coverImage', {}).get('extraLarge') or item.get('coverImage', {}).get('large'),
                         "vector_embedding": [] # Reserved for future use
                     }
                     anime_list.append(anime_doc)
                 
                 page += 1
-                time.sleep(1.2) # Jikan Rate Limit: 3 req/sec max. 1.2s is safe.
+                # AniList rate limit is 90 per minute, so small sleep is sufficient
+                time.sleep(0.5) 
             
             elif response.status_code == 429:
                 print("⚠️ Rate limited. Sleeping for 10 seconds...")
@@ -60,6 +91,7 @@ def fetch_anime_data(limit=1000):
             
             else:
                 print(f"❌ Error {response.status_code} on page {page}")
+                print(response.text)
                 break
                 
         except Exception as e:

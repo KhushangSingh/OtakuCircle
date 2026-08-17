@@ -27,6 +27,33 @@ const userSchema = mongoose.Schema({
         score: { type: Number, default: 0 },
         review: { type: String, default: '' }
     }],
+    
+    // --- Decoupled Movies Module ---
+    movieWatchlist: [{
+        tmdbId: Number,
+        title: String,
+        poster: String,
+        mediaType: { type: String, enum: ['movie', 'tv'] },
+        addedAt: { type: Date, default: Date.now }
+    }],
+    movieWatchhistory: [{
+        tmdbId: Number,
+        title: String,
+        poster: String,
+        mediaType: { type: String, enum: ['movie', 'tv'] },
+        addedAt: { type: Date, default: Date.now },
+        status: { type: String, enum: ['Watching', 'Completed', 'On Hold', 'Dropped'], default: 'Watching' },
+        review: { type: String, default: '' }
+    }],
+    movieRecommendations: [{
+        from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        tmdbId: Number,
+        title: String,
+        poster: String,
+        mediaType: { type: String, enum: ['movie', 'tv'] },
+        message: String,
+        timestamp: { type: Date, default: Date.now }
+    }],
 
     // Social Graph
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

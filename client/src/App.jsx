@@ -17,7 +17,8 @@ import Friends from './pages/Friends';
 import FriendWatchedList from './pages/FriendWatchedList';
 import AnimeSectionMore from './pages/AnimeSectionMore';
 import SmartSearch from './pages/SmartSearch';
-
+import MoviesHome from './pages/MoviesHome';
+import MovieDetails from './pages/MovieDetails';
 // Layout Wrapper (Applied to protected routes)
 const MainLayout = () => {
   return (
@@ -80,6 +81,20 @@ function App() {
                 path="/smart-search" 
                 element={<SmartSearch />} 
               />
+              
+              {/* --- MOVIES MODULE --- */}
+              {import.meta.env.VITE_ENABLE_MOVIES === 'true' && (
+                <>
+                  <Route 
+                    path="/movies" 
+                    element={isAuthenticated ? <MoviesHome /> : <Navigate to="/login" />} 
+                  />
+                  <Route 
+                    path="/movies/:type/:id" 
+                    element={isAuthenticated ? <MovieDetails /> : <Navigate to="/login" />} 
+                  />
+                </>
+              )}
             </Route>
           </Routes>
 

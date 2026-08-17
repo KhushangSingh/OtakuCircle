@@ -18,6 +18,12 @@ const notificationSchema = mongoose.Schema({
     },
     animeId: { type: Number }, // Optional: only populated for recommendations
     animeTitle: { type: String },
+    
+    // --- Decoupled Movies Module ---
+    movieId: { type: Number },
+    movieTitle: { type: String },
+    mediaType: { type: String, enum: ['movie', 'tv'] },
+    
     message: { type: String },
     isRead: { type: Boolean, default: false }
 }, { timestamps: true });

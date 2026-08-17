@@ -13,7 +13,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
 
     return (
         <div 
-            className="group relative w-full max-w-[220px] cursor-pointer perspective-1000 mx-auto"
+            className="group relative w-full max-w-[260px] cursor-pointer perspective-1000 mx-auto"
             onClick={onClick}
         >
             {/* Poster Container */}
@@ -36,7 +36,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 
                 {/* Score Badge */}
                 {anime.score && (
-                    <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-[11px] font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
+                    <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
                         ★ {anime.score}
                     </div>
                 )}
@@ -52,13 +52,13 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                             setWatchlistAdded(true);
                         }}
                         disabled={watchlistAdded}
-                        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-xs font-bold backdrop-blur-xl border transition-all active:scale-95 shadow-lg
+                        className={`w-[85%] mx-auto flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-bold backdrop-blur-sm border transition-colors active:scale-95 shadow-lg
                             ${watchlistAdded 
                                 ? 'bg-blue-500/20 border-blue-500/50 text-blue-400 shadow-blue-500/20' 
-                                : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                                : 'bg-white/10 border-white/30 text-white hover:bg-white/20'
                             }`}
                     >
-                        <Plus size={14} strokeWidth={3} />
+                        <Plus size={16} strokeWidth={3} />
                         <span>Watchlist</span>
                     </button>
 
@@ -70,13 +70,13 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                             setWatchedAdded(true);
                         }}
                         disabled={watchedAdded}
-                        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-xs font-bold backdrop-blur-xl border transition-all active:scale-95 shadow-lg
+                        className={`w-[85%] mx-auto flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-bold backdrop-blur-sm border transition-colors active:scale-95 shadow-lg
                             ${watchedAdded 
                                 ? 'bg-green-500/20 border-green-500/50 text-green-400 shadow-green-500/20' 
-                                : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                                : 'bg-white/10 border-white/30 text-white hover:bg-white/20'
                             }`}
                     >
-                        <Check size={14} strokeWidth={3} />
+                        <Check size={16} strokeWidth={3} />
                         <span>Watched</span>
                     </button>
                 </div>
@@ -84,10 +84,10 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
 
             {/* Metadata */}
             <div className="mt-4 px-1 space-y-1 transition-opacity duration-300 group-hover:opacity-50">
-                <h3 className="text-sm font-bold text-gray-100 truncate leading-tight">
+                <h3 className="text-xl font-bold text-gray-100 truncate leading-tight">
                     {anime.title}
                 </h3>
-                <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-xs text-zinc-500 font-semibold uppercase tracking-wider">
                     <span>{anime.type || 'TV'}</span>
                     {anime.year && <span>• {anime.year}</span>}
                 </div>
@@ -197,35 +197,34 @@ const Recommendations = () => {
         <div className="min-h-screen bg-[#0d0d0d] text-white font-sans pb-20 pt-28 relative overflow-hidden">
             
             {/* --- HERO HEADER --- */}
-            <div className="container mx-auto px-6 mb-12 relative z-10">
-                <div className="relative p-8 rounded-3xl overflow-hidden border border-white/10 bg-[#0d0d0d]/40 backdrop-blur-2xl shadow-2xl flex items-center">
-                    <div className="relative z-20 flex-1 pr-8 max-w-lg">
+            <div className="w-full px-4 lg:px-8 mb-10 relative z-10">
+                <div className="relative p-6 md:p-8 rounded-[32px] overflow-hidden border border-white/10 bg-black shadow-2xl flex items-center">
+                    <div className="relative z-20 flex-1 pr-6 max-w-2xl">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="p-2 bg-gradient-to-br from-zinc-800 to-zinc-400 rounded-lg shadow-lg shadow-zinc-400/20 border border-white/10">
                                 <Sparkles size={20} className="text-white" />
                             </div>
-                            <span className="text-sm font-bold tracking-widest text-zinc-300 uppercase">AI Powered</span>
+                            <span className="text-base font-bold tracking-widest text-zinc-300 uppercase">AI Powered</span>
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
                             Your Personal <br className="hidden md:block" />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-blue-200">
                                 Discovery Feed
                             </span>
                         </h2>
-                        <p className="text-zinc-300 text-lg font-light leading-relaxed drop-shadow-md">
+                        <p className="text-zinc-300 text-base md:text-lg font-light leading-relaxed drop-shadow-md">
                             We've analyzed your watch history to find these hidden gems. The more you watch, the smarter we get.
                         </p>
                     </div>
-                    <div className="absolute top-0 right-0 w-[85%] h-full pointer-events-none overflow-hidden rounded-r-3xl">
-                        <img src={heroImage} alt="" className="w-full h-full object-cover opacity-80 mix-blend-overlay" />
-                        <div className="absolute inset-0 bg-gradient-to-br from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent z-10"></div>
-                        <div className="absolute inset-0 bg-gradient-to-tl from-transparent via-purple-900/20 to-blue-900/20 blur-[100px] opacity-50 z-20 mix-blend-screen"></div>
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[32px]">
+                        <img src={heroImage} alt="" className="absolute right-0 top-0 w-[60%] h-full object-cover opacity-50" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-transparent z-10"></div>
                     </div>
                 </div>
             </div>
 
             {/* --- CONTENT GRID --- */}
-            <div className="container mx-auto px-6 relative z-10">
+            <div className="w-full px-4 lg:px-8 relative z-10">
                 {recs.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-32 bg-white/5 rounded-3xl border border-dashed border-white/10 text-center mx-auto max-w-2xl backdrop-blur-sm">
                         <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6 shadow-inner ring-1 ring-white/10">

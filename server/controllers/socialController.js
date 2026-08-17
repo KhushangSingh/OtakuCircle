@@ -120,6 +120,104 @@ const deleteRecommendation = async (req, res) => {
     }
 };
 
+// --- Decoupled Movie Recommendations ---
+
+// @desc    Recommend Movie/TV to Friend
+// @route   POST /api/social/recommend-movie
+const recommendMovie = async (req, res) => {
+    const { friendId, tmdbId, title, poster, mediaType, message } = req.body;
+    
+    try {
+        const friend = await User.findById(friendId);
+        if (!friend) return res.status(404).json({ message: 'Friend not found' });
+
+        // Check duplicates
+        const alreadyRec = friend.movieRecommendations.find(
+            r => r.tmdbId === tmdbId && r.mediaType === mediaType && r.from.toString() === req.user.id
+        );
+
+        if (alreadyRec) {
+            return res.status(400).json({ message: 'You already recommended this.' });
+        }
+
+        // Add to friend's movie recommendations list
+        friend.movieRecommendations.unshift({
+            from: req.user.id,
+            tmdbId,
+            title,
+            poster,
+            mediaType,
+            message: message || ''
+        });
+        await friend.save();
+
+        // Create Notification
+        await Notification.create({
+            recipient: friendId,
+            sender: req.user.id,
+            type: 'RECOMMENDATION',
+            movieId: tmdbId,
+            movieTitle: title,
+            mediaType: mediaType,
+            message: `${req.user.username} recommended: ${title}`
+        });
+
+        res.status(200).json({ message: 'Recommendation sent!' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get Movie Recommendations for Current User
+// @route   GET /api/recommendations/movies
+const getMovieRecommendations = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id)
+            .populate('movieRecommendations.from', 'username profilePicture')
+            .lean();
+
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Format data for frontend (similar to anime but with decoupled fields)
+        const formattedRecs = user.movieRecommendations.map(rec => ({
+            _id: rec._id,
+            from: rec.from,
+            message: rec.message,
+            movie: {
+                tmdbId: rec.tmdbId,
+                title: rec.title,
+                poster: rec.poster,
+                mediaType: rec.mediaType
+            },
+            timestamp: rec.timestamp
+        }));
+
+        res.json(formattedRecs);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Delete a movie recommendation
+// @route   DELETE /api/recommendations/movies/:id
+const deleteMovieRecommendation = async (req, res) => {
+    try {
+        const result = await User.updateOne(
+            { _id: req.user.id }, 
+            { $pull: { movieRecommendations: { _id: req.params.id } } }
+        );
+
+        if (result.modifiedCount === 0) {
+            return res.status(404).json({ message: 'Recommendation not found or already deleted' });
+        }
+
+        res.status(200).json({ message: 'Recommendation deleted' });
+    } catch (error) {
+        console.error("Delete Error:", error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 // @desc    Get Notifications
 // @route   GET /api/social/notifications
 const getNotifications = async (req, res) => {
@@ -269,12 +367,27 @@ const getFriends = async (req, res) => {
             .select('username _id watchhistory profilePicture') 
             .lean();
         
-        const friendsWithCount = friends.map(friend => ({
-            _id: friend._id,
-            username: friend.username,
-            profilePicture: friend.profilePicture, 
-            watchlistCount: Array.isArray(friend.watchhistory) ? friend.watchhistory.length : 0
-        }));
+        const friendsWithCount = friends.map(friend => {
+            const watchhistory = Array.isArray(friend.watchhistory) ? friend.watchhistory : [];
+            const watchedList = watchhistory.filter(h => h.status === 'Watched' || h.status === 'Completed');
+            const currentlyWatching = watchhistory.filter(h => h.status === 'Watching');
+            
+            // Get the most recent item
+            let recentWatched = null;
+            if (currentlyWatching.length > 0) {
+                recentWatched = currentlyWatching[currentlyWatching.length - 1];
+            } else if (watchhistory.length > 0) {
+                recentWatched = watchhistory[watchhistory.length - 1];
+            }
+
+            return {
+                _id: friend._id,
+                username: friend.username,
+                profilePicture: friend.profilePicture, 
+                watchlistCount: watchedList.length,
+                recentWatched: recentWatched
+            };
+        });
         
         res.json(friendsWithCount);
     } catch (error) {
@@ -293,5 +406,8 @@ module.exports = {
     getFriends, 
     markNotificationAsRead, 
     declineFriendRequest,
-    deleteRecommendation
+    deleteRecommendation,
+    recommendMovie,
+    getMovieRecommendations,
+    deleteMovieRecommendation
 };

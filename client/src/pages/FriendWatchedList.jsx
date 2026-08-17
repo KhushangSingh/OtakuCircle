@@ -52,7 +52,7 @@ const AnimeCard = ({ anime }) => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
                 
                 {anime.score > 0 && (
-                    <div className="absolute top-3 right-3 bg-blue-600/90 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-[11px] font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
+                    <div className="absolute top-3 right-3 bg-blue-600/90 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
                         ★ {anime.score}
                     </div>
                 )}
@@ -65,7 +65,7 @@ const AnimeCard = ({ anime }) => {
                 </div>
             </div>
             <div className="mt-4 px-1 space-y-1 transition-opacity duration-300 group-hover:opacity-80">
-                <h3 className="text-sm font-bold text-gray-100 truncate leading-tight">
+                <h3 className="text-xl font-bold text-gray-100 truncate leading-tight">
                     {anime.title}
                 </h3>
             </div>
@@ -116,7 +116,7 @@ const FriendWatchedList = () => {
         // Added pt-32 to fix navbar overlap
         <div className="min-h-screen bg-[#0d0d0d] text-white font-sans pb-20 pt-32">
             
-            <div className="container mx-auto px-6 max-w-7xl">
+            <div className="w-full px-4 lg:px-8">
                 
                 {/* --- TOP NAVIGATION BAR --- */}
                 <div className="flex justify-between items-center mb-12">
@@ -165,7 +165,7 @@ const FriendWatchedList = () => {
                             
                             {/* NEON FROZEN LEVEL BUTTON */}
                             <span className="flex items-center gap-2 px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl text-xs font-bold uppercase tracking-wider backdrop-blur-md shadow-[0_0_15px_-3px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_-3px_rgba(59,130,246,0.5)] transition-shadow cursor-default">
-                                <Zap size={14} fill="currentColor" />
+                                <Zap size={16} fill="currentColor" />
                                 Level {Math.floor(Math.sqrt(watched.length)) + 1}
                             </span>
 

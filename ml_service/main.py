@@ -25,11 +25,11 @@ SEARCH_EMBEDDINGS = None
 def load_resources():
     """Loads the AI model and pre-computed index into memory on startup."""
     global MODEL, SEARCH_IDS, SEARCH_EMBEDDINGS
-    print("⏳ Loading AI Models & Index...")
+    print("Loading AI Models & Index...")
     
     try:
         # 1. Load Sentence Transformer (Must match build_search_index.py)
-        MODEL = SentenceTransformer('all-MiniLM-L6-v2')
+        MODEL = SentenceTransformer('all-mpnet-base-v2')
         
         # 2. Load Search Index
         if not os.path.exists('search_index.pkl'):
@@ -40,9 +40,9 @@ def load_resources():
             SEARCH_IDS = np.array(data['ids'])
             SEARCH_EMBEDDINGS = data['embeddings']
             
-        print(f"✅ ML Service Ready! Loaded {len(SEARCH_IDS)} items.")
+        print(f"ML Service Ready! Loaded {len(SEARCH_IDS)} items.")
     except Exception as e:
-        print(f"❌ Critical Error loading resources: {e}")
+        print(f"Critical Error loading resources: {e}")
 
 # Load on startup
 load_resources()
@@ -137,8 +137,8 @@ def health():
 
 if __name__ == '__main__':
     # Use Waitress for Production Serving
-    print("🚀 Starting Production ML Service on port 8000...")
+    port = int(os.environ.get("PORT", 8000))
+    print(f"Starting Production ML Service on port {port}...")
     print("   (Press CTRL+C to quit)")
     
-    # threads=6 allows handling multiple requests simultaneously
-    serve(app, host='0.0.0.0', port=8000, threads=6)
+    serve(app, host='0.0.0.0', port=port, threads=6)

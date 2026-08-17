@@ -18,16 +18,16 @@ const getRecommendations = async (req, res) => {
         // Handle Empty History
         if (watchedAnimeIds.length === 0) {
             const fallback = await Anime.find().sort({ score: -1 }).limit(20);
-            return res.json({ 
-                message: "Watch some anime to get personalized picks!", 
-                data: fallback 
+            return res.json({
+                message: "Watch some anime to get personalized picks!",
+                data: fallback
             });
         }
 
         // 2. Call Python ML Service
         // Prioritize .env, fallback to 5001 if missing
-        const mlServiceUrl = process.env.ML_SERVICE_URL || 'http://127.0.0.1:5001';
-        
+        const mlServiceUrl = process.env.ML_SERVICE_URL || 'http://127.0.0.1:8000';
+
         console.log(`🤖 Connecting to AI Service at: ${mlServiceUrl}/predict`);
 
         try {
@@ -38,14 +38,14 @@ const getRecommendations = async (req, res) => {
             const recommendedIds = mlResponse.data.recommendations;
 
             if (!recommendedIds || recommendedIds.length === 0) {
-                 console.log("⚠️ AI returned no recommendations. Showing fallback.");
-                 const fallback = await Anime.find().sort({ members: -1 }).limit(20);
-                 return res.json({ data: fallback });
+                console.log("⚠️ AI returned no recommendations. Showing fallback.");
+                const fallback = await Anime.find().sort({ members: -1 }).limit(20);
+                return res.json({ data: fallback });
             }
 
             // 3. Fetch Full Anime Details from MongoDB
-            const recommendations = await Anime.find({ 
-                mal_id: { $in: recommendedIds } 
+            const recommendations = await Anime.find({
+                mal_id: { $in: recommendedIds }
             });
 
             // Re-sort to match ML ranking order
@@ -59,12 +59,12 @@ const getRecommendations = async (req, res) => {
         } catch (mlError) {
             console.error(`⚠️ ML Service Failed: ${mlError.message}`);
             console.error(`   -> Ensure Python script is running on port ${mlServiceUrl.split(':').pop()}`);
-            
+
             // Fallback: Return popular anime if ML service is down
             const fallback = await Anime.find().sort({ members: -1 }).limit(24);
-            return res.json({ 
-                message: "AI unavailable, showing popular anime", 
-                data: fallback 
+            return res.json({
+                message: "AI unavailable, showing popular anime",
+                data: fallback
             });
         }
 

@@ -12,7 +12,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
 
     return (
         <div 
-            className="group relative w-full max-w-[220px] cursor-pointer perspective-1000 mx-auto"
+            className="group relative w-full max-w-[260px] cursor-pointer perspective-1000 mx-auto"
             onClick={onClick}
         >
             {/* Poster Container */}
@@ -35,7 +35,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 
                 {/* Score Badge */}
                 {anime.score && (
-                    <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-[11px] font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
+                    <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
                         ★ {anime.score}
                     </div>
                 )}
@@ -51,13 +51,13 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                             setWatchlistAdded(true);
                         }}
                         disabled={watchlistAdded}
-                        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-xs font-bold backdrop-blur-xl border transition-all active:scale-95 shadow-lg
+                        className={`w-[85%] mx-auto flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-bold backdrop-blur-sm border transition-colors active:scale-95 shadow-lg
                             ${watchlistAdded 
                                 ? 'bg-blue-500/20 border-blue-500/50 text-blue-400 shadow-blue-500/20' 
-                                : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                                : 'bg-white/10 border-white/30 text-white hover:bg-white/20'
                             }`}
                     >
-                        <Plus size={14} strokeWidth={3} />
+                        <Plus size={16} strokeWidth={3} />
                         <span>Watchlist</span>
                     </button>
 
@@ -69,13 +69,13 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                             setWatchedAdded(true);
                         }}
                         disabled={watchedAdded}
-                        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-xs font-bold backdrop-blur-xl border transition-all active:scale-95 shadow-lg
+                        className={`w-[85%] mx-auto flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-bold backdrop-blur-sm border transition-colors active:scale-95 shadow-lg
                             ${watchedAdded 
                                 ? 'bg-green-500/20 border-green-500/50 text-green-400 shadow-green-500/20' 
-                                : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                                : 'bg-white/10 border-white/30 text-white hover:bg-white/20'
                             }`}
                     >
-                        <Check size={14} strokeWidth={3} />
+                        <Check size={16} strokeWidth={3} />
                         <span>Watched</span>
                     </button>
                 </div>
@@ -83,10 +83,10 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
 
             {/* Metadata */}
             <div className="mt-4 px-1 space-y-1 transition-opacity duration-300 group-hover:opacity-50">
-                <h3 className="text-sm font-bold text-gray-100 truncate leading-tight">
+                <h3 className="text-xl font-bold text-gray-100 truncate leading-tight">
                     {anime.title}
                 </h3>
-                <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-xs text-zinc-500 font-semibold uppercase tracking-wider">
                     <span>{anime.type || 'TV'}</span>
                     {anime.year && <span>• {anime.year}</span>}
                 </div>
@@ -169,41 +169,41 @@ const SmartSearch = () => {
         <div className="min-h-screen bg-[#0d0d0d] text-white font-sans selection:bg-white/20">
             
             {/* --- HERO SECTION --- */}
-            <div className="relative pt-32 pb-20 px-6 overflow-hidden">
-                <div className="absolute top-0 left-0 w-full max-w-4xl h-[400px] bg-[#0d0d0d] pointer-events-none" />
+            <div className="relative pt-24 pb-12 px-6 overflow-hidden">
+                <div className="absolute top-0 left-0 w-full max-w-4xl h-[300px] bg-[#0d0d0d] pointer-events-none" />
 
-                <div className="relative z-10 max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+                <div className="relative z-10 w-full px-4 lg:px-8 flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
                     
                     {/* LEFT COLUMN: Text Content */}
                     <div className="w-full lg:w-1/2 flex flex-col items-start text-left">
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-[11px] font-bold tracking-widest text-zinc-300 uppercase mb-6 shadow-sm">
-                            <Sparkles size={12} className="text-blue-400" />
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-xs font-bold tracking-widest text-zinc-300 uppercase mt-4 mb-6 shadow-sm">
+                            <Sparkles size={16} className="text-blue-400" />
                             <span>AI Discovery Engine</span>
                         </div>
                         
-                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tighter text-white mb-4 leading-tight">
+                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tighter text-white mb-6 leading-tight">
                             Search by <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60">
                                 Feeling & Context
                             </span>
                         </h1>
                         
-                        <p className="text-base md:text-lg text-zinc-400 font-light leading-relaxed max-w-xl">
+                        <p className="text-base md:text-lg lg:text-xl text-zinc-400 font-light leading-relaxed max-w-2xl">
                             Don't recall the name? Just describe the plot, the vibe, or the characters. Our AI understands what you mean.
                         </p>
                     </div>
 
                     {/* RIGHT COLUMN: Search Bar */}
                     <div className="w-full lg:w-1/2 relative group">
-                        <div className="relative flex items-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-4 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5),inset_0_2px_6px_rgba(0,0,0,0.7)] transition-all group-focus-within:bg-white/10 group-focus-within:border-white/20">
-                            <Search className="text-zinc-400 w-5 h-5 mr-5 group-focus-within:text-white transition-colors" />
+                        <div className="relative flex items-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5),inset_0_2px_6px_rgba(0,0,0,0.7)] transition-all group-focus-within:bg-white/10 group-focus-within:border-white/20">
+                            <Search className="text-zinc-400 w-5 h-5 mr-4 group-focus-within:text-white transition-colors" />
                             <input 
                                 type="text" 
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 onKeyDown={handleKeyDown}
                                 placeholder="Describe an anime (e.g., 'Time travel thriller with a microwave')" 
-                                className="bg-transparent border-none outline-none text-base text-white w-full placeholder-zinc-500 font-medium leading-relaxed"
+                                className="bg-transparent border-none outline-none text-base lg:text-lg text-white w-full placeholder-zinc-500 font-medium leading-relaxed"
                                 autoFocus
                             />
                         </div>
@@ -213,7 +213,7 @@ const SmartSearch = () => {
             </div>
 
             {/* --- RESULTS SECTION --- */}
-            <div className="container mx-auto px-8 md:px-12 lg:px-20 pb-32">
+            <div className="w-full px-4 lg:px-8 pb-32">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-20 space-y-6">
                         <div className="w-10 h-10 border-4 border-white/10 border-t-white rounded-full animate-spin"></div>
@@ -232,7 +232,7 @@ const SmartSearch = () => {
                                 </p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-6 gap-y-12">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 gap-4 gap-y-10">
                                 {results.map((anime) => (
                                     <AnimeCard 
                                         key={anime.mal_id} 

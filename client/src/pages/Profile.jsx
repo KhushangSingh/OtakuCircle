@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
-    BarChart, Bar, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell 
+    BarChart, Bar, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell,
+    RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
 import { 
     Settings, Trash2, Lock, Mail, X, Activity, Film, Tv, 
-    LogOut, ShieldAlert, CheckCircle, User, Pencil, TrendingUp, Clock, Star, Zap, Users
+    LogOut, ShieldAlert, CheckCircle, User, Pencil, TrendingUp, Clock, Star, Zap, Users, Trophy, Award, Crown, Target
 } from 'lucide-react';
 
 const Profile = () => {
@@ -21,6 +22,8 @@ const Profile = () => {
     const [genreData, setGenreData] = useState([]);
     const [socialStats, setSocialStats] = useState([]);
     const [completionData, setCompletionData] = useState([]);
+    const [badges, setBadges] = useState([]);
+    const [topPoster, setTopPoster] = useState(null);
     const [quickStats, setQuickStats] = useState({ 
         total: 0, 
         completionRate: 0, 
@@ -60,6 +63,15 @@ const Profile = () => {
         const watchlist = userData.watchlist || [];
         const totalHistory = history.length;
         
+        // Find Top Rated for Banner Background
+        const scoredItems = history.filter(h => h.score > 0);
+        if (scoredItems.length > 0) {
+            const top = [...scoredItems].sort((a, b) => b.score - a.score)[0];
+            setTopPoster(top.poster);
+        } else if (history.length > 0) {
+            setTopPoster(history[0].poster);
+        }
+        
         // Basic Counts
         const watchedCount = history.filter(h => h.status === 'Watched' || h.status === 'Completed').length;
         const watchingCount = history.filter(h => h.status === 'Watching').length;
@@ -73,7 +85,6 @@ const Profile = () => {
         const estimatedHours = Math.round(totalHistory * 5); 
 
         // Avg Score
-        const scoredItems = history.filter(h => h.score > 0);
         const avgScore = scoredItems.length > 0 
             ? (scoredItems.reduce((acc, curr) => acc + curr.score, 0) / scoredItems.length).toFixed(1)
             : "N/A";
@@ -91,18 +102,29 @@ const Profile = () => {
             commitmentScore
         });
 
+        // Calculate Badges
+        const earnedBadges = [];
+        if (totalHistory >= 100) earnedBadges.push({ name: 'Otaku Legend', icon: Crown, color: 'text-yellow-400', bg: 'bg-yellow-400/10' });
+        if (completionRate > 90 && totalHistory > 10) earnedBadges.push({ name: 'Completionist', icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-400/10' });
+        if (estimatedHours > 500) earnedBadges.push({ name: 'Binge Watcher', icon: Clock, color: 'text-purple-400', bg: 'bg-purple-400/10' });
+        if (scoredItems.length > 10 && parseFloat(avgScore) < 6) earnedBadges.push({ name: 'The Critic', icon: Star, color: 'text-red-400', bg: 'bg-red-400/10' });
+        if (watchingCount > 10) earnedBadges.push({ name: 'Multitasker', icon: Activity, color: 'text-blue-400', bg: 'bg-blue-400/10' });
+        
+        if (earnedBadges.length === 0) earnedBadges.push({ name: 'Novice Watcher', icon: Target, color: 'text-zinc-400', bg: 'bg-zinc-400/10' });
+        setBadges(earnedBadges);
+
         // Genre Data
         let genres = [];
         if (userData.stats && userData.stats.genreCounts && Object.keys(userData.stats.genreCounts).length > 0) {
             genres = Object.entries(userData.stats.genreCounts)
-                .map(([name, value]) => ({ name, value }))
-                .sort((a, b) => b.value - a.value)
+                .map(([name, value]) => ({ subject: name, A: value, fullMark: Math.max(...Object.values(userData.stats.genreCounts)) }))
+                .sort((a, b) => b.A - a.A)
                 .slice(0, 5);
         } else if (totalHistory > 0) {
             genres = [
-                { name: 'Action', value: Math.ceil(totalHistory * 0.4) },
-                { name: 'Drama', value: Math.ceil(totalHistory * 0.3) },
-                { name: 'Fantasy', value: Math.ceil(totalHistory * 0.3) },
+                { subject: 'Action', A: Math.ceil(totalHistory * 0.4), fullMark: totalHistory },
+                { subject: 'Drama', A: Math.ceil(totalHistory * 0.3), fullMark: totalHistory },
+                { subject: 'Fantasy', A: Math.ceil(totalHistory * 0.3), fullMark: totalHistory },
             ];
         }
         setGenreData(genres);
@@ -166,8 +188,18 @@ const Profile = () => {
         if (avatarOptions.length === 0) {
             setLoadingAvatars(true);
             try {
-                const res = await axios.get('https://api.jikan.moe/v4/top/characters?limit=20');
-                setAvatarOptions(res.data.data);
+                const query = `
+                {
+                  Page(perPage: 20) {
+                    characters(sort: FAVOURITES_DESC) {
+                      id
+                      name { full }
+                      image { large }
+                    }
+                  }
+                }`;
+                const res = await axios.post('https://graphql.anilist.co', { query });
+                setAvatarOptions(res.data.data.Page.characters);
             } catch (error) { console.error("Failed to fetch avatars"); } 
             finally { setLoadingAvatars(false); }
         }
@@ -275,8 +307,10 @@ const Profile = () => {
     if (loading) return <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center"><div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div></div>;
     if (!user) return <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center text-red-500 font-medium">User not found</div>;
 
+    const userLevel = Math.floor(Math.sqrt(user.watchhistory?.length || 0)) + 1;
+
     return (
-        <div className="min-h-screen bg-[#0d0d0d] text-gray-100 font-sans pb-20 pt-24">
+        <div className="min-h-screen bg-[#0d0d0d] text-white font-sans pb-20 pt-20 selection:bg-blue-500/30">
             
             {/* Toast */}
             {message.text && (
@@ -285,210 +319,269 @@ const Profile = () => {
                 </div>
             )}
 
-            <div className="container mx-auto px-6 mb-12">
+            <div className="w-full px-4 lg:px-8 space-y-12">
                 
-                {/* --- HEADER --- */}
-                <div className="relative bg-[#1a1a1a] border border-white/10 rounded-3xl p-8 lg:p-10 shadow-2xl overflow-hidden mb-8">
-                    <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start md:items-center">
+                {/* --- THE IDENTITY (HEADER) --- */}
+                <div className="relative w-full bg-[#151515] rounded-[32px] overflow-hidden mt-6 shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+                    
+                    {/* Dynamic Background Banner */}
+                    <div className="absolute inset-0 z-0 h-48 md:h-64 overflow-hidden">
+                        {topPoster ? (
+                            <>
+                                <img src={topPoster} alt="Banner" className="w-full h-full object-cover opacity-30 blur-xl scale-125 translate-y-[-20%]" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#151515] via-[#151515]/80 to-transparent"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-purple-900/20"></div>
+                            </>
+                        ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900"></div>
+                        )}
+                    </div>
+
+                    <div className="relative z-10 p-6 md:p-10 pt-20 md:pt-32 flex flex-col md:flex-row gap-8 items-end">
                         <div className="relative flex-shrink-0 group/avatar">
-                            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full p-[2px] bg-zinc-700 shadow-xl overflow-hidden">
+                            <div className="w-32 h-32 md:w-44 md:h-44 rounded-[2rem] p-1 bg-gradient-to-br from-blue-500 to-purple-500 shadow-2xl overflow-hidden translate-y-4">
                                 {user.profilePicture ? 
-                                    <img src={user.profilePicture} className="w-full h-full object-cover rounded-full bg-[#151515]" /> : 
-                                    <div className="w-full h-full bg-[#151515] rounded-full flex items-center justify-center text-5xl md:text-6xl font-bold text-white">{user.username.charAt(0).toUpperCase()}</div>
+                                    <img src={user.profilePicture} className="w-full h-full object-cover rounded-[1.75rem] bg-[#1a1a1a]" /> : 
+                                    <div className="w-full h-full bg-[#1a1a1a] rounded-[1.75rem] flex items-center justify-center text-5xl md:text-7xl font-black text-white">{user.username.charAt(0).toUpperCase()}</div>
                                 }
                             </div>
-                            {isOwnProfile && <button onClick={handleOpenAvatarModal} className="absolute bottom-2 right-2 p-2 bg-zinc-500/30 backdrop-blur-md hover:bg-zinc-500/50 text-white rounded-full shadow-lg border border-white/20"><Pencil size={16} /></button>}
+                            {isOwnProfile && (
+                                <button onClick={handleOpenAvatarModal} className="absolute -bottom-1 -right-1 p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95">
+                                    <Pencil size={20} />
+                                </button>
+                            )}
                         </div>
 
-                        <div className="flex-1 w-full">
-                            <div className="flex justify-between items-start">
+                        <div className="flex-1 w-full pb-4">
+                            <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6">
                                 <div>
-                                    <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-2">{user.username}</h1>
-                                    <p className="text-zinc-500 text-sm mb-6 flex items-center gap-2"><span className="w-2 h-2 bg-green-500 rounded-full"></span> Online</p>
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="px-3 py-1 bg-green-500/20 text-green-400 text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center gap-1.5">
+                                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div> Online
+                                        </div>
+                                    </div>
+                                    <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white tracking-tighter leading-none">{user.username}</h1>
                                 </div>
-                                {isOwnProfile && <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-bold uppercase tracking-wider"><LogOut size={16} /> Logout</button>}
-                            </div>
 
-                            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl text-xs font-bold uppercase tracking-wider backdrop-blur-md">
-                                <Zap size={14} fill="currentColor" />
-                                Level {Math.floor(Math.sqrt(user.watchhistory?.length || 0)) + 1}
+                                <div className="flex gap-4">
+                                    {isOwnProfile && (
+                                        <button onClick={handleLogout} className="flex items-center gap-2 px-6 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-sm font-bold uppercase tracking-wider transition-all">
+                                            <LogOut size={18} /> Logout
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    {/* Glassmorphic Stats Ribbon Overlapping Header */}
+                    <div className="relative z-20 mx-6 md:mx-10 mb-6 mt-8 p-6 bg-white/[0.03] backdrop-blur-xl rounded-3xl flex flex-wrap gap-10 items-center justify-between ring-1 ring-white/5">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-lg shadow-blue-900/50">
+                                <span className="text-2xl font-black text-white">{userLevel}</span>
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Global Rank</p>
+                                <p className="text-xl font-bold text-white">Level {userLevel}</p>
+                            </div>
+                        </div>
+                        
+                        <div className="w-[1px] h-12 bg-white/10 hidden md:block"></div>
+                        
+                        <div>
+                            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Total Watched</p>
+                            <p className="text-3xl font-black text-white">{quickStats.total}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Est. Hours</p>
+                            <p className="text-3xl font-black text-white">{quickStats.estimatedHours}<span className="text-lg text-zinc-500 ml-1">h</span></p>
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Avg Score</p>
+                            <p className="text-3xl font-black text-white">{quickStats.avgScore}</p>
+                        </div>
+                    </div>
+
+                    {/* Tab Navigation embedded in header */}
                     {isOwnProfile && (
-                        <div className="mt-10 flex gap-6 border-t border-white/5 pt-6">
-                            <button onClick={() => setActiveTab('overview')} className={`text-sm font-bold uppercase tracking-widest pb-1 transition-all ${activeTab === 'overview' ? 'text-white border-b-2 border-blue-500' : 'text-zinc-500 hover:text-zinc-300'}`}>Overview</button>
-                            <button onClick={() => setActiveTab('settings')} className={`text-sm font-bold uppercase tracking-widest pb-1 transition-all ${activeTab === 'settings' ? 'text-white border-b-2 border-blue-500' : 'text-zinc-500 hover:text-zinc-300'}`}>Settings</button>
+                        <div className="px-10 flex gap-8 border-t border-white/5 bg-[#101010]">
+                            <button onClick={() => setActiveTab('overview')} className={`text-sm font-bold uppercase tracking-widest py-5 transition-all relative ${activeTab === 'overview' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                                Dashboard
+                                {activeTab === 'overview' && <div className="absolute bottom-0 left-0 w-full h-1 bg-blue-500 rounded-t-full"></div>}
+                            </button>
+                            <button onClick={() => setActiveTab('settings')} className={`text-sm font-bold uppercase tracking-widest py-5 transition-all relative ${activeTab === 'settings' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                                Settings
+                                {activeTab === 'settings' && <div className="absolute bottom-0 left-0 w-full h-1 bg-blue-500 rounded-t-full"></div>}
+                            </button>
                         </div>
                     )}
                 </div>
 
                 {/* --- OVERVIEW TAB --- */}
                 {activeTab === 'overview' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         
-                        {/* LEFT: INSIGHTS */}
-                        <div className="lg:col-span-1 space-y-6">
+                        {/* LEFT COLUMN: Insights & Trophies */}
+                        <div className="lg:col-span-4 space-y-8">
                             
-                            {/* Card 1: Social Standing */}
-                            <div className="bg-white/[0.03] backdrop-blur-md border border-white/5 rounded-3xl p-6 shadow-lg relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none"><Users size={60} /></div>
-                                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                    <Users size={14} className="text-blue-400"/> Social Standing
+                            {/* Trophy Case */}
+                            <div className="bg-[#151515] rounded-[32px] p-8 shadow-xl">
+                                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-3">
+                                    <Trophy size={18} className="text-yellow-500"/> Trophy Case
                                 </h3>
-                                <div className="h-[180px] w-full mt-2">
+                                <div className="grid grid-cols-2 gap-4">
+                                    {badges.map((badge, idx) => {
+                                        const Icon = badge.icon;
+                                        return (
+                                            <div key={idx} className={`${badge.bg} rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-3 transition-transform hover:scale-105 cursor-default`}>
+                                                <Icon size={28} className={badge.color} />
+                                                <span className={`text-xs font-bold ${badge.color}`}>{badge.name}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Social Standing */}
+                            <div className="bg-[#151515] rounded-[32px] p-8 shadow-xl relative overflow-hidden">
+                                <div className="absolute -top-10 -right-10 text-blue-500/5 pointer-events-none"><Users size={120} /></div>
+                                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-3">
+                                    <TrendingUp size={18} className="text-blue-400"/> Social Standing
+                                </h3>
+                                <div className="h-[200px] w-full">
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={socialStats} barSize={30}>
-                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#71717a', fontSize: 12}} />
-                                            <RechartsTooltip 
-                                                cursor={{fill: 'transparent'}}
-                                                contentStyle={{backgroundColor: '#0d0d0d', border: '1px solid #333', borderRadius: '8px'}}
-                                            />
-                                            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                                        <BarChart data={socialStats} barSize={40} margin={{top: 0, right: 0, left: -20, bottom: 0}}>
+                                            <defs>
+                                                <linearGradient id="colorYou" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                                                </linearGradient>
+                                                <linearGradient id="colorFriends" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#71717a" stopOpacity={0.5}/>
+                                                    <stop offset="95%" stopColor="#71717a" stopOpacity={0.1}/>
+                                                </linearGradient>
+                                            </defs>
+                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 13, fontWeight: 700}} />
+                                            <RechartsTooltip cursor={{fill: 'transparent'}} contentStyle={{backgroundColor: '#1a1a1a', border: 'none', borderRadius: '16px', color: '#fff'}} />
+                                            <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                                                 {socialStats.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={index === 0 ? '#3b82f6' : '#27272a'} />
+                                                    <Cell key={`cell-${index}`} fill={index === 0 ? 'url(#colorYou)' : 'url(#colorFriends)'} />
                                                 ))}
                                             </Bar>
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
-                                <p className="text-center text-xs text-zinc-500 mt-2">Anime Completed vs. Friends Avg</p>
                             </div>
 
-                            {/* Card 2: Commitment Index */}
-                            <div className="bg-white/[0.03] backdrop-blur-md border border-white/5 rounded-3xl p-6 shadow-lg relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none"><Zap size={60} /></div>
-                                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                    <Zap size={14} className="text-yellow-400"/> Commitment Index
-                                </h3>
-                                <div className="flex items-baseline gap-1 mt-4">
-                                    <span className="text-5xl font-black text-white tracking-tighter">{quickStats.commitmentScore}</span>
-                                    <span className="text-sm text-zinc-500 font-bold">/100</span>
+                            {/* Genre Radar */}
+                            {genreData.length > 0 && (
+                                <div className="bg-[#151515] rounded-[32px] p-8 shadow-xl">
+                                    <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-3">
+                                        <Activity size={18} className="text-purple-400"/> Genre DNA
+                                    </h3>
+                                    <div className="h-[250px] w-full -ml-4">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <RadarChart cx="50%" cy="50%" outerRadius="70%" data={genreData}>
+                                                <PolarGrid stroke="#27272a" />
+                                                <PolarAngleAxis dataKey="subject" tick={{fill: '#a1a1aa', fontSize: 11}} />
+                                                <Radar name="Genres" dataKey="A" stroke="#a855f7" fill="#a855f7" fillOpacity={0.3} />
+                                                <RechartsTooltip contentStyle={{backgroundColor: '#1a1a1a', border: 'none', borderRadius: '16px', color: '#fff'}} />
+                                            </RadarChart>
+                                        </ResponsiveContainer>
+                                    </div>
                                 </div>
-                                <div className="w-full bg-zinc-800/50 h-2 rounded-full mt-4 overflow-hidden">
-                                    <div 
-                                        className="h-full bg-gradient-to-r from-yellow-600 to-yellow-400 transition-all duration-1000" 
-                                        style={{ width: `${quickStats.commitmentScore}%` }}
-                                    ></div>
-                                </div>
-                                <p className="text-xs text-zinc-500 mt-3 leading-relaxed">
-                                    Based on the ratio of anime you finish versus just adding to your list.
-                                </p>
-                            </div>
+                            )}
 
-                            {/* Card 3: Activity Breakdown */}
-                            <div className="bg-white/[0.03] backdrop-blur-md border border-white/5 rounded-3xl p-6 shadow-lg">
-                                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                    <Activity size={14} className="text-green-400"/> Activity Split
-                                </h3>
-                                <div className="space-y-4">
-                                    {completionData.map((item) => (
-                                        <div key={item.name}>
-                                            <div className="flex justify-between text-xs mb-1">
-                                                <span className="text-zinc-300">{item.name}</span>
-                                                <span className="text-white font-bold">{item.value}</span>
-                                            </div>
-                                            <div className="w-full bg-zinc-800/50 h-1.5 rounded-full overflow-hidden">
-                                                <div 
-                                                    className="h-full rounded-full" 
-                                                    style={{ 
-                                                        width: `${item.percent}%`,
-                                                        backgroundColor: item.color 
-                                                    }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
                         </div>
 
-                        {/* RIGHT: LISTS */}
-                        <div className="lg:col-span-2 space-y-6">
+                        {/* RIGHT COLUMN: Lists */}
+                        <div className="lg:col-span-8 space-y-8">
                             
-                            {/* Watchlist */}
-                            <div className="bg-[#1a1a1a] border border-white/5 rounded-3xl overflow-hidden shadow-lg">
-                                <div className="px-6 py-4 border-b border-white/5 flex items-center gap-2 bg-white/[0.02]">
-                                    <Film className="text-blue-500" size={18} />
-                                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Watchlist</h3>
-                                    <span className="ml-auto text-xs font-bold text-zinc-500">{user.watchlist?.length || 0} items</span>
+                            {/* History */}
+                            <div className="bg-[#151515] rounded-[32px] p-8 shadow-xl">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-3">
+                                        <CheckCircle className="text-green-500" size={18} /> Library History
+                                    </h3>
+                                    <span className="px-3 py-1 bg-white/5 rounded-lg text-xs font-bold text-zinc-400">{user.watchhistory?.length || 0} Entries</span>
                                 </div>
-                                {user.watchlist?.length > 0 ? (
-                                    <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                                        <table className="w-full text-left">
-                                            <tbody className="divide-y divide-white/5 text-sm text-zinc-300">
-                                                {[...user.watchlist].reverse().map((item, idx) => (
-                                                    <tr key={idx} className="hover:bg-white/5 transition-colors">
-                                                        <td className="px-6 py-3 flex items-center gap-4">
-                                                            <img src={item.poster} className="w-8 h-12 object-cover rounded bg-zinc-800" />
-                                                            <span className="font-medium text-white truncate max-w-[150px] sm:max-w-xs">{item.title}</span>
-                                                        </td>
-                                                        {isOwnProfile && (
-                                                            <td className="px-6 py-3 text-right">
-                                                                <div className="flex justify-end gap-2">
-                                                                    <button onClick={() => handleMoveToHistory(item)} className="p-1.5 bg-green-500/10 text-green-400 rounded hover:bg-green-500/20"><Tv size={14}/></button>
-                                                                    <button onClick={() => handleDeleteClick(item.animeId, 'watchlist', item.title)} className="p-1.5 bg-red-500/10 text-red-400 rounded hover:bg-red-500/20"><Trash2 size={14}/></button>
-                                                                </div>
-                                                            </td>
-                                                        )}
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                
+                                {user.watchhistory?.length > 0 ? (
+                                    <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
+                                        {[...user.watchhistory].reverse().map((item, idx) => {
+                                            const currentStatus = item.status || 'Watching';
+                                            const isWatched = currentStatus === 'Watched' || currentStatus === 'Completed';
+                                            
+                                            return (
+                                                <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-[#1a1a1a] hover:bg-[#1e1e1e] transition-colors group">
+                                                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                        <img src={item.poster} className="w-12 h-16 object-cover rounded-xl shadow-md" />
+                                                        <div className="flex flex-col flex-1 min-w-0 pr-4">
+                                                            <span className="font-bold text-white text-base truncate">{item.title}</span>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <span className={`text-[10px] uppercase font-black px-2 py-0.5 rounded-md ${isWatched ? 'bg-green-500/10 text-green-400' : 'bg-blue-500/10 text-blue-400'}`}>
+                                                                    {item.status}
+                                                                </span>
+                                                                {item.score > 0 && (
+                                                                    <span className="text-[10px] font-bold text-yellow-400 flex items-center gap-1"><Star size={10} fill="currentColor"/>{item.score}</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {isOwnProfile && (
+                                                        <div className="flex items-center gap-3 shrink-0">
+                                                            <select 
+                                                                value={currentStatus} 
+                                                                onChange={(e) => handleStatusChange(item.animeId, e.target.value)} 
+                                                                className="bg-black/40 border border-white/10 text-xs font-bold rounded-xl px-4 py-2 outline-none text-zinc-300 focus:border-white/20 hover:bg-black/60 transition-colors cursor-pointer appearance-none"
+                                                            >
+                                                                <option value="Watching" className="bg-[#151515]">Watching</option>
+                                                                <option value="Watched" className="bg-[#151515]">Watched</option>
+                                                            </select>
+                                                            <button onClick={() => handleDeleteClick(item.animeId, 'watchhistory', item.title)} className="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors">
+                                                                <Trash2 size={16}/>
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                ) : <div className="p-8 text-center text-zinc-500 text-sm">List is empty.</div>}
+                                ) : <div className="p-12 text-center text-zinc-500 text-sm bg-[#1a1a1a] rounded-2xl">No library history yet.</div>}
                             </div>
 
-                            {/* History */}
-                            <div className="bg-[#1a1a1a] border border-white/5 rounded-3xl overflow-hidden shadow-lg">
-                                <div className="px-6 py-4 border-b border-white/5 flex items-center gap-2 bg-white/[0.02]">
-                                    <Activity className="text-purple-500" size={18} />
-                                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">History</h3>
-                                    <span className="ml-auto text-xs font-bold text-zinc-500">{user.watchhistory?.length || 0} items</span>
+                            {/* Watchlist */}
+                            <div className="bg-[#151515] rounded-[32px] p-8 shadow-xl">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-3">
+                                        <Film className="text-blue-500" size={18} /> Up Next (Watchlist)
+                                    </h3>
+                                    <span className="px-3 py-1 bg-white/5 rounded-lg text-xs font-bold text-zinc-400">{user.watchlist?.length || 0} Entries</span>
                                 </div>
-                                {user.watchhistory?.length > 0 ? (
-                                    <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                                        <table className="w-full text-left">
-                                            <tbody className="divide-y divide-white/5 text-sm text-zinc-300">
-                                                {[...user.watchhistory].reverse().map((item, idx) => {
-                                                    const currentStatus = item.status || 'Watching';
-                                                    const selectClass = currentStatus === 'Watching' 
-                                                        ? 'bg-green-500/10 border-green-500/20 text-green-400 focus:border-green-500' 
-                                                        : 'bg-red-500/10 border-red-500/20 text-red-400 focus:border-red-500';
-
-                                                    return (
-                                                        <tr key={idx} className="hover:bg-white/5 transition-colors group">
-                                                            <td className="px-6 py-3 flex items-center gap-4">
-                                                                <img src={item.poster} className="w-8 h-12 object-cover rounded bg-zinc-800" />
-                                                                <div className="flex flex-col">
-                                                                    <span className="font-medium text-white truncate max-w-[150px] sm:max-w-xs">{item.title}</span>
-                                                                    <span className={`text-[10px] uppercase font-bold ${item.status === 'Watched' ? 'text-green-500' : 'text-blue-500'}`}>{item.status}</span>
-                                                                </div>
-                                                            </td>
-                                                            {isOwnProfile && (
-                                                                <>
-                                                                    <td className="px-6 py-4">
-                                                                        <select 
-                                                                            value={currentStatus} 
-                                                                            onChange={(e) => handleStatusChange(item.animeId, e.target.value)} 
-                                                                            className={`bg-black/40 border text-xs font-bold rounded-lg px-3 py-1.5 outline-none ${selectClass}`}
-                                                                        >
-                                                                            <option value="Watching" className="bg-[#151515] text-gray-300">Watching</option>
-                                                                            <option value="Watched" className="bg-[#151515] text-gray-300">Watched</option>
-                                                                        </select>
-                                                                    </td>
-                                                                    <td className="px-6 py-4 text-right">
-                                                                        <button onClick={() => handleDeleteClick(item.animeId, 'watchhistory', item.title)} className="p-1.5 hover:bg-white/10 text-zinc-500 hover:text-red-400 rounded"><Trash2 size={14}/></button>
-                                                                    </td>
-                                                                </>
-                                                            )}
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
+                                
+                                {user.watchlist?.length > 0 ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+                                        {[...user.watchlist].reverse().map((item, idx) => (
+                                            <div key={idx} className="flex items-center p-3 rounded-2xl bg-[#1a1a1a] hover:bg-[#1e1e1e] transition-colors group">
+                                                <img src={item.poster} className="w-12 h-16 object-cover rounded-xl shadow-md mr-4" />
+                                                <div className="flex-1 min-w-0 mr-4">
+                                                    <span className="font-bold text-white text-sm line-clamp-2">{item.title}</span>
+                                                </div>
+                                                {isOwnProfile && (
+                                                    <div className="flex flex-col gap-2 shrink-0">
+                                                        <button onClick={() => handleMoveToHistory(item)} className="p-2 bg-green-500/10 text-green-400 rounded-lg hover:bg-green-500/20 transition-colors" title="Move to History">
+                                                            <Tv size={16}/>
+                                                        </button>
+                                                        <button onClick={() => handleDeleteClick(item.animeId, 'watchlist', item.title)} className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors" title="Remove">
+                                                            <Trash2 size={16}/>
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
                                     </div>
-                                ) : <div className="p-8 text-center text-zinc-500 text-sm">No history yet.</div>}
+                                ) : <div className="p-12 text-center text-zinc-500 text-sm bg-[#1a1a1a] rounded-2xl">Watchlist is empty.</div>}
                             </div>
                         </div>
                     </div>
@@ -496,71 +589,78 @@ const Profile = () => {
 
                 {/* --- SETTINGS TAB --- */}
                 {activeTab === 'settings' && isOwnProfile && (
-                    <div className="max-w-2xl mx-auto bg-[#1a1a1a] border border-white/5 rounded-3xl p-8 space-y-8">
-                        <h3 className="text-lg font-bold text-white flex items-center gap-2"><Settings size={18} className="text-zinc-400" /> Account Settings</h3>
+                    <div className="max-w-3xl mx-auto space-y-8">
                         
-                        {/* Username Edit */}
-                        <div>
-                            <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Username</label>
-                            {editingField === 'username' ? (
-                                <form onSubmit={handleUsernameChange} className="p-6 bg-[#0d0d0d] rounded-xl border border-white/10 space-y-4">
-                                    <input type="text" value={usernameData} onChange={(e) => setUsernameData(e.target.value)} className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-blue-500 outline-none" required />
-                                    <div className="flex gap-3">
-                                        <button type="submit" className="px-4 py-2 bg-blue-600 rounded-lg text-sm font-bold text-white">Save</button>
-                                        <button type="button" onClick={() => { setEditingField(null); setUsernameData(user.username); }} className="px-4 py-2 bg-white/10 rounded-lg text-sm font-bold text-zinc-400">Cancel</button>
+                        <div className="bg-[#151515] rounded-[32px] p-8 md:p-12 shadow-xl space-y-12">
+                            <h3 className="text-2xl font-black text-white flex items-center gap-3"><Settings className="text-zinc-400" /> Account Settings</h3>
+                            
+                            {/* Username Edit */}
+                            <div>
+                                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 block">Username</label>
+                                {editingField === 'username' ? (
+                                    <form onSubmit={handleUsernameChange} className="p-6 bg-[#1a1a1a] rounded-2xl space-y-4">
+                                        <input type="text" value={usernameData} onChange={(e) => setUsernameData(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white font-bold focus:border-blue-500 focus:bg-black/60 outline-none transition-all" required />
+                                        <div className="flex gap-3">
+                                            <button type="submit" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-white transition-colors">Save Changes</button>
+                                            <button type="button" onClick={() => { setEditingField(null); setUsernameData(user.username); }} className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl font-bold text-zinc-300 transition-colors">Cancel</button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <div className="flex items-center justify-between p-6 bg-[#1a1a1a] rounded-2xl group">
+                                        <span className="text-white font-bold text-lg flex items-center gap-3"><User className="text-zinc-500"/> @{user.username}</span>
+                                        <button onClick={() => setEditingField('username')} className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-bold rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">Edit</button>
                                     </div>
-                                </form>
-                            ) : (
-                                <div className="flex items-center justify-between p-4 bg-[#0d0d0d] rounded-xl border border-white/5">
-                                    <span className="text-zinc-300 text-sm flex items-center gap-2"><User size={14}/> @{user.username}</span>
-                                    <button onClick={() => setEditingField('username')} className="text-xs font-bold text-blue-400 hover:underline">Edit</button>
-                                </div>
-                            )}
+                                )}
+                            </div>
+
+                            {/* Email Edit */}
+                            <div>
+                                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 block">Email Address</label>
+                                {editingField === 'email' ? (
+                                    <form onSubmit={handleEmailChange} className="p-6 bg-[#1a1a1a] rounded-2xl space-y-4">
+                                        <input type="email" value={emailData.new} onChange={(e) => setEmailData({ ...emailData, new: e.target.value })} placeholder="New Email" className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white font-bold focus:border-blue-500 focus:bg-black/60 outline-none transition-all" required />
+                                        <input type="password" value={emailData.currentPassword} onChange={(e) => setEmailData({ ...emailData, currentPassword: e.target.value })} placeholder="Verify Password" className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white font-bold focus:border-blue-500 focus:bg-black/60 outline-none transition-all" required />
+                                        <div className="flex gap-3">
+                                            <button type="submit" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-white transition-colors">Save Changes</button>
+                                            <button type="button" onClick={() => setEditingField(null)} className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl font-bold text-zinc-300 transition-colors">Cancel</button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <div className="flex items-center justify-between p-6 bg-[#1a1a1a] rounded-2xl group">
+                                        <span className="text-white font-bold text-lg flex items-center gap-3"><Mail className="text-zinc-500"/> {user.email}</span>
+                                        <button onClick={() => setEditingField('email')} className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-bold rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">Edit</button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Password Edit */}
+                            <div>
+                                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 block">Password</label>
+                                {editingField === 'password' ? (
+                                    <form onSubmit={handlePasswordChange} className="p-6 bg-[#1a1a1a] rounded-2xl space-y-4">
+                                        <input type="password" value={passwordData.current} onChange={(e) => setPasswordData({ ...passwordData, current: e.target.value })} placeholder="Current Password" className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white font-bold focus:border-blue-500 focus:bg-black/60 outline-none transition-all" required />
+                                        <input type="password" value={passwordData.new} onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })} placeholder="New Password" className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white font-bold focus:border-blue-500 focus:bg-black/60 outline-none transition-all" required />
+                                        <input type="password" value={passwordData.confirm} onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })} placeholder="Confirm New Password" className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white font-bold focus:border-blue-500 focus:bg-black/60 outline-none transition-all" required />
+                                        <div className="flex gap-3">
+                                            <button type="submit" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-white transition-colors">Update Password</button>
+                                            <button type="button" onClick={() => setEditingField(null)} className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl font-bold text-zinc-300 transition-colors">Cancel</button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <div className="flex items-center justify-between p-6 bg-[#1a1a1a] rounded-2xl group">
+                                        <span className="text-white font-bold text-lg flex items-center gap-3"><Lock className="text-zinc-500"/> ••••••••</span>
+                                        <button onClick={() => setEditingField('password')} className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-bold rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">Change</button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        {/* Email Edit */}
-                        <div>
-                            <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Email Address</label>
-                            {editingField === 'email' ? (
-                                <form onSubmit={handleEmailChange} className="p-6 bg-[#0d0d0d] rounded-xl border border-white/10 space-y-4">
-                                    <input type="email" value={emailData.new} onChange={(e) => setEmailData({ ...emailData, new: e.target.value })} placeholder="New Email" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-blue-500 outline-none" required />
-                                    <input type="password" value={emailData.currentPassword} onChange={(e) => setEmailData({ ...emailData, currentPassword: e.target.value })} placeholder="Verify Password" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:border-blue-500 outline-none" required />
-                                    <div className="flex gap-3">
-                                        <button type="submit" className="px-4 py-2 bg-blue-600 rounded-lg text-sm font-bold text-white">Save</button>
-                                        <button type="button" onClick={() => setEditingField(null)} className="px-4 py-2 bg-white/10 rounded-lg text-sm font-bold text-zinc-400">Cancel</button>
-                                    </div>
-                                </form>
-                            ) : (
-                                <div className="flex items-center justify-between p-4 bg-[#0d0d0d] rounded-xl border border-white/5">
-                                    <span className="text-zinc-300 text-sm flex items-center gap-2"><Mail size={14}/> {user.email}</span>
-                                    <button onClick={() => setEditingField('email')} className="text-xs font-bold text-blue-400 hover:underline">Edit</button>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Password Edit */}
-                        <div>
-                            <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Password</label>
-                            {editingField === 'password' ? (
-                                <form onSubmit={handlePasswordChange} className="p-6 bg-[#0d0d0d] rounded-xl border border-white/10 space-y-4">
-                                    <input type="password" value={passwordData.current} onChange={(e) => setPasswordData({ ...passwordData, current: e.target.value })} placeholder="Current" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none" required />
-                                    <input type="password" value={passwordData.new} onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })} placeholder="New" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none" required />
-                                    <input type="password" value={passwordData.confirm} onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })} placeholder="Confirm" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none" required />
-                                    <div className="flex gap-3">
-                                        <button type="submit" className="px-4 py-2 bg-blue-600 rounded-lg text-sm font-bold text-white">Update</button>
-                                        <button type="button" onClick={() => setEditingField(null)} className="px-4 py-2 bg-white/10 rounded-lg text-sm font-bold text-zinc-400">Cancel</button>
-                                    </div>
-                                </form>
-                            ) : (
-                                <div className="flex items-center justify-between p-4 bg-[#0d0d0d] rounded-xl border border-white/5">
-                                    <span className="text-zinc-300 text-sm flex items-center gap-2"><Lock size={14}/> ••••••••</span>
-                                    <button onClick={() => setEditingField('password')} className="text-xs font-bold text-blue-400 hover:underline">Change</button>
-                                </div>
-                            )}
-                        </div>
-                        <div className="bg-red-500/5 border border-red-500/10 rounded-3xl p-8 mt-12">
-                            <h3 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-4 flex items-center gap-2"><ShieldAlert size={16} /> Danger Zone</h3>
-                            <button onClick={() => setShowDeleteAccountConfirm(true)} className="px-6 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-xl text-sm font-bold transition-all">Delete Account</button>
+                        {/* Danger Zone */}
+                        <div className="bg-[#151515] rounded-[32px] p-8 md:p-12 shadow-xl border border-red-900/30 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                            <h3 className="text-lg font-black text-red-500 flex items-center gap-3 mb-6"><ShieldAlert /> Danger Zone</h3>
+                            <p className="text-zinc-400 mb-8 font-medium">Once you delete your account, there is no going back. Please be certain.</p>
+                            <button onClick={() => setShowDeleteAccountConfirm(true)} className="px-8 py-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl font-bold transition-all border border-red-500/20">Delete Account</button>
                         </div>
                     </div>
                 )}
@@ -568,19 +668,27 @@ const Profile = () => {
 
             {/* Modals (Avatar, Delete, Confirm) */}
             {showAvatarModal && (
-                <div className="fixed inset-0 bg-black/90 backdrop-blur-none flex items-center justify-center z-50 p-6 animate-in fade-in duration-300">
-                    <div className="bg-[#0f0f0f] rounded-3xl border border-white/10 shadow-3xl max-w-2xl w-full p-8 max-h-[80vh] flex flex-col">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold text-white">Select Avatar</h3>
-                            <button onClick={() => setShowAvatarModal(false)} className="text-zinc-500 hover:text-white transition-colors"><X size={24} /></button>
+                <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-6 animate-in fade-in duration-300">
+                    <div className="bg-[#151515] rounded-[32px] shadow-2xl max-w-3xl w-full p-8 md:p-10 max-h-[85vh] flex flex-col border border-white/5">
+                        <div className="flex justify-between items-center mb-8">
+                            <div>
+                                <h3 className="text-3xl font-black text-white">Select Avatar</h3>
+                                <p className="text-zinc-400 mt-1 font-medium">Choose from top trending characters</p>
+                            </div>
+                            <button onClick={() => setShowAvatarModal(false)} className="p-3 bg-white/5 hover:bg-white/10 rounded-full transition-colors"><X size={24} className="text-white" /></button>
                         </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-4">
                             {loadingAvatars ? (
-                                <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-blue-500 rounded-full animate-spin"></div></div>
+                                <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div></div>
                             ) : (
-                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-6">
                                     {avatarOptions.map(char => (
-                                        <img key={char.mal_id} src={char.images.jpg.image_url} onClick={() => handleAvatarUpdate(char.images.jpg.image_url)} className="rounded-full cursor-pointer hover:opacity-80 transition-opacity" />
+                                        <div key={char.id} className="relative group cursor-pointer" onClick={() => handleAvatarUpdate(char.image.large)}>
+                                            <div className="w-full aspect-square rounded-2xl overflow-hidden shadow-lg group-hover:shadow-blue-500/20 transition-all group-hover:scale-105 group-hover:-translate-y-1">
+                                                <img src={char.image.large} className="w-full h-full object-cover" alt={char.name?.full || "Avatar"} />
+                                            </div>
+                                            <p className="text-center text-[10px] font-bold text-zinc-400 mt-2 truncate group-hover:text-white transition-colors">{char.name?.full}</p>
+                                        </div>
                                     ))}
                                 </div>
                             )}
@@ -591,11 +699,15 @@ const Profile = () => {
 
             {deleteConfirm.show && (
                 <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-                    <div className="bg-[#151515] rounded-3xl border border-white/10 shadow-2xl max-w-sm w-full p-8 text-center">
-                        <h3 className="text-xl font-bold text-white mb-2">Remove Item?</h3>
-                        <div className="flex gap-3 mt-6">
-                            <button onClick={() => setDeleteConfirm({ show: false, animeId: null, type: null, title: '' })} className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-sm font-bold">Cancel</button>
-                            <button onClick={handleDeleteConfirm} className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold">Confirm</button>
+                    <div className="bg-[#151515] rounded-[32px] border border-white/5 shadow-2xl max-w-md w-full p-10 text-center">
+                        <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Trash2 size={24} />
+                        </div>
+                        <h3 className="text-2xl font-black text-white mb-3">Remove Item?</h3>
+                        <p className="text-zinc-400 font-medium mb-8">Are you sure you want to remove <span className="text-white">{deleteConfirm.title}</span>?</p>
+                        <div className="flex gap-4">
+                            <button onClick={() => setDeleteConfirm({ show: false, animeId: null, type: null, title: '' })} className="flex-1 py-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold transition-colors">Cancel</button>
+                            <button onClick={handleDeleteConfirm} className="flex-1 py-4 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold shadow-lg shadow-red-900/50 transition-all hover:scale-105 active:scale-95">Remove</button>
                         </div>
                     </div>
                 </div>
@@ -603,12 +715,16 @@ const Profile = () => {
 
             {showDeleteAccountConfirm && (
                 <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-                    <div className="bg-[#151515] rounded-3xl border border-white/10 shadow-2xl max-w-sm w-full p-8 text-center">
-                        <h3 className="text-xl font-bold text-white mb-2">Delete Account?</h3>
-                        <p className="text-zinc-400 text-sm mb-6">This action cannot be undone.</p>
-                        <div className="flex gap-3">
-                            <button onClick={() => setShowDeleteAccountConfirm(false)} className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-sm font-bold">Cancel</button>
-                            <button onClick={handleDeleteAccount} className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold">Confirm</button>
+                    <div className="bg-[#151515] rounded-[32px] border border-red-500/20 shadow-2xl max-w-md w-full p-10 text-center relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-red-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                        <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <ShieldAlert size={28} />
+                        </div>
+                        <h3 className="text-2xl font-black text-white mb-3">Delete Account?</h3>
+                        <p className="text-zinc-400 font-medium mb-8">This action is irreversible. All your data, history, and friends will be wiped.</p>
+                        <div className="flex gap-4 relative z-10">
+                            <button onClick={() => setShowDeleteAccountConfirm(false)} className="flex-1 py-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold transition-colors">Cancel</button>
+                            <button onClick={handleDeleteAccount} className="flex-1 py-4 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold shadow-lg shadow-red-900/50 transition-all hover:scale-105 active:scale-95">Confirm</button>
                         </div>
                     </div>
                 </div>

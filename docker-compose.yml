@@ -1,0 +1,32 @@
+services:
+  client:
+    build:
+      context: ./client
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - otakucircle_net
+
+  server:
+    build:
+      context: ./server
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./server/.env
+    networks:
+      - otakucircle_net
+
+  ml_service:
+    build:
+      context: ./ml_service
+    ports:
+      - "8000:8000"
+    networks:
+      - otakucircle_net
+
+networks:
+  otakucircle_net:
+    driver: bridge

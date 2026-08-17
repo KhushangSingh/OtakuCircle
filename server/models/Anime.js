@@ -11,6 +11,8 @@ const animeSchema = mongoose.Schema({
     score: { type: Number },
     genres: [String],
     poster_url: { type: String },
+    duration: { type: String },
+    trailer_url: { type: String },
     
     // Future-proofing for internal vector storage
     vector_embedding: { type: [Number], default: [] } 

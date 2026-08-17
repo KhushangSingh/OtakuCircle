@@ -1,10 +1,20 @@
 # 🌸 OtakuCircle - Social Anime Discovery Platform
 
 ![Project Status](https://img.shields.io/badge/status-production%20ready-success)
+![CI](https://github.com/KhushangSingh/OtakuCircle/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Stack](https://img.shields.io/badge/stack-MERN%20%2B%20Python-blueviolet)
 
 **OtakuCircle** is a full-stack social cataloging application for anime enthusiasts. It allows users to track their watch history, discover new anime via AI-powered recommendations, and connect with friends to share suggestions.
+
+---
+
+## 🏗️ Architecture
+OtakuCircle is built using a modern microservice-inspired architecture, separating concerns into three distinct layers:
+
+1. **Client (Frontend):** React + Vite SPA. Handled by Nginx in production.
+2. **Server (Backend API):** Node.js + Express. Handles authentication, database interactions, and business logic.
+3. **ML Service:** Python + FastAPI. Dedicated service for generating cosine similarity recommendations using SentenceTransformers.
 
 ---
 
@@ -38,7 +48,6 @@
 * **Framework:** React (Vite)
 * **Styling:** Tailwind CSS
 * **Routing:** React Router DOM
-* **State/Data:** Axios, React Hooks
 * **Search:** Fuse.js
 
 ### **Backend**
@@ -48,7 +57,7 @@
 * **Authentication:** JSON Web Tokens (JWT), BcryptJS
 
 ### **Machine Learning Service**
-* **Framework:** Python FastAPI
+* **Framework:** Python FastAPI (Served with Waitress)
 * **Libraries:** Scikit-learn, SentenceTransformers, Pandas, NumPy
 * **Model:** Cosine Similarity on Vector Embeddings
 
@@ -56,25 +65,47 @@
 
 ## 🚀 Quick Start Guide
 
-To run the application locally, you need to start three separate services.
+You can run the entire stack locally using **Docker Compose**, or manually start each service.
 
-### Prerequisites
-* Node.js (v16+)
-* Python (v3.8+)
-* MongoDB Atlas URI
+### 🐳 Option 1: Docker (Recommended)
+**Prerequisites:** Docker and Docker Compose installed.
 
-### 1. Installation
-Clone the repository and install dependencies for all services:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/KhushangSingh/OtakuCircle.git
+   cd OtakuCircle
+   ```
+2. Create environment files:
+   - Create `server/.env` based on `server/.env.example`
+   - Create `client/.env` based on `client/.env.example`
+3. Start all services:
+   ```bash
+   docker-compose up --build
+   ```
+4. Access the application:
+   - Frontend: `http://localhost:80`
+   - Backend API: `http://localhost:5000`
+   - ML Service: `http://localhost:8000`
+
+### 🖥️ Option 2: Manual Setup
+If you prefer running without Docker, follow the manual installation steps:
 
 ```bash
 # 1. Install Backend Dependencies
 cd server
 npm install
+npm run dev
 
-# 2. Install Frontend Dependencies
-cd ../client
+# 2. Install Frontend Dependencies (In a new terminal)
+cd client
 npm install
+npm run dev
 
-# 3. Install Python Dependencies
-cd ../ml_service
+# 3. Install Python Dependencies (In a new terminal)
+cd ml_service
 pip install -r requirements.txt
+python main.py
+```
+
+---
+*Built with ❤️ by the OtakuCircle Team*

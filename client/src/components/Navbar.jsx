@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, User, Bell, Menu, Sparkles, Home, Heart, Users } from 'lucide-react'; 
+import { Search, User, Bell, Menu, Sparkles, Home, Heart, Users, Film } from 'lucide-react'; 
 import axios from 'axios';
 
 const Navbar = () => {
@@ -27,7 +27,7 @@ const Navbar = () => {
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   // --- STYLES ---
-  const searchInputClass = "flex items-center bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-4 py-2.5 transition-all duration-300 focus-within:bg-black/60 focus-within:border-white/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]";
+  const searchInputClass = "flex items-center bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-5 py-3 transition-all duration-300 focus-within:bg-black/60 focus-within:border-white/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]";
   const glassStyle = "bg-[#0a0a0a]/80 backdrop-blur-2xl border border-white/10 text-gray-200 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/5";
 
   // 1. SCROLL TRIGGER LOGIC
@@ -162,7 +162,7 @@ const Navbar = () => {
   const unreadCount = notifications.length;
 
   const getLinkClass = (path) => {
-    const baseClasses = "hidden md:flex items-center gap-2 text-sm font-medium transition-all duration-200 px-3 py-2 rounded-lg relative z-20";
+    const baseClasses = "hidden md:flex items-center gap-2 text-lg font-bold transition-all duration-200 px-4 py-2 rounded-lg relative z-20";
     const activeClasses = "bg-white/10 text-white shadow-sm border border-white/5";
     const inactiveClasses = "text-zinc-400 hover:text-white hover:bg-white/5";
     return `${baseClasses} ${location.pathname === path ? activeClasses : inactiveClasses}`;
@@ -175,19 +175,19 @@ const Navbar = () => {
       <div className={`absolute inset-0 bg-[#050505]/80 backdrop-blur-xl shadow-2xl transition-opacity duration-500 ease-in-out ${isScrolled ? 'opacity-100' : 'opacity-0'}`}></div>
       <div className={`absolute inset-0 bg-gradient-to-b from-black/90 to-transparent transition-opacity duration-500 ease-in-out ${isScrolled ? 'opacity-0' : 'opacity-100'}`}></div>
 
-      <div className="container mx-auto px-6 h-full flex justify-between items-center relative z-10">
+      <div className="w-full px-8 lg:px-12 h-full flex justify-between items-center relative z-10">
         
         {/* Logo */}
-        <a href="/" onClick={handleLogoClick} className="text-2xl font-extrabold tracking-tighter flex items-center group cursor-pointer">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400 group-hover:to-white transition-colors">
+        <a href="/" onClick={handleLogoClick} className="text-2xl md:text-3xl font-extrabold tracking-tighter flex items-center group cursor-pointer">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400 group-hover:to-white transition-colors pr-2">
                 OtakuCircle
             </span>
         </a>
         
         {/* Search Bar */}
-        <div className="relative hidden md:block w-1/3 group" ref={searchRef}>
+        <div className="relative hidden md:block w-1/4 group" ref={searchRef}>
             <div className={searchInputClass}>
-                <Search className="text-zinc-500 w-4 h-4 mr-3 group-focus-within:text-white transition-colors" />
+                <Search className="text-zinc-500 w-5 h-5 mr-3 group-focus-within:text-white transition-colors" />
                 <input 
                     type="text" 
                     value={searchQuery}
@@ -247,6 +247,11 @@ const Navbar = () => {
                     <Link to="/friends" className={getLinkClass('/friends')}>
                         <Users size={16} /> Friends
                     </Link>
+                    {import.meta.env.VITE_ENABLE_MOVIES === 'true' && (
+                        <Link to="/movies" className={getLinkClass('/movies')}>
+                            <Film size={16} /> Movies & Shows
+                        </Link>
+                    )}
                 </div>
             )}
 
@@ -266,24 +271,24 @@ const Navbar = () => {
                         
                         {/* Notifications Dropdown */}
                         {isNotificationsOpen && (
-                            <div className={`absolute right-0 top-full mt-3 w-80 ${glassStyle}`}>
-                                <div className="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
-                                    <h3 className="font-semibold text-sm text-white">Notifications</h3>
-                                    {unreadCount > 0 && <span className="text-xs text-blue-400 font-bold">{unreadCount} NEW</span>}
+                            <div className={`absolute right-0 top-full mt-3 w-96 md:w-[400px] ${glassStyle}`}>
+                                <div className="p-5 border-b border-white/5 flex justify-between items-center bg-white/5">
+                                    <h3 className="font-semibold text-base text-white">Notifications</h3>
+                                    {unreadCount > 0 && <span className="text-sm text-blue-400 font-bold">{unreadCount} NEW</span>}
                                 </div>
-                                <div className="max-h-80 overflow-y-auto custom-scrollbar p-2 space-y-1">
+                                <div className="max-h-[400px] overflow-y-auto custom-scrollbar p-3 space-y-2">
                                     {notifications.length === 0 ? (
-                                        <div className="p-6 text-center text-zinc-500 text-xs">No new notifications</div>
+                                        <div className="p-6 text-center text-zinc-500 text-sm">No new notifications</div>
                                     ) : (
                                         notifications.map(n => (
-                                            <div key={n._id} className="p-3 rounded-xl bg-white/5 border border-white/5 flex justify-between items-center gap-3 hover:bg-white/10 transition-colors group">
+                                            <div key={n._id} className="p-4 rounded-xl bg-white/5 border border-white/5 flex justify-between items-center gap-4 hover:bg-white/10 transition-colors group">
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-xs text-zinc-300 leading-relaxed line-clamp-2">{n.message}</p>
-                                                    <p className="text-[10px] text-zinc-500 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
+                                                    <p className="text-sm text-zinc-300 leading-relaxed line-clamp-2">{n.message}</p>
+                                                    <p className="text-xs text-zinc-500 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
                                                 </div>
                                                 <button 
                                                     onClick={(e) => handleViewNotification(n, e)}
-                                                    className="text-[10px] font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded transition-all shrink-0 uppercase tracking-wider"
+                                                    className="text-xs font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-4 py-2 rounded transition-all shrink-0 uppercase tracking-wider"
                                                 >
                                                     View
                                                 </button>
