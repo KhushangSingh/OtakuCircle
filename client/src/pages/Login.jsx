@@ -195,21 +195,24 @@ const Login = () => {
             <div className="absolute inset-0 z-0 pointer-events-none bg-[#0d0d0d]">
                 {/* The background image: blurred and 50% opacity */}
                 <div 
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50 blur-2xl scale-110"
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60 blur-lg scale-105"
                     style={{ backgroundImage: `url(${heroImage})` }}
                 ></div>
                 {/* Gradient overlay: Left side is solid black, transitioning to transparent on the right */}
-                <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-[#0d0d0d] via-[#0d0d0d]/90 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-[#000000] via-[#050505]/95 to-transparent"></div>
             </div>
 
             {/* LEFT SIDE: VISUALS */}
             <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center overflow-hidden h-full z-10">
-                <div className="relative p-12 max-w-lg">
-                    <h1 className="text-6xl font-extrabold tracking-tighter mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent drop-shadow-lg">
+                <div className="relative p-12 max-w-2xl">
+                    <div className="inline-block px-4 py-1.5 mb-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+                        <span className="text-sm font-bold tracking-widest text-zinc-300 uppercase">Premium Anime Tracker</span>
+                    </div>
+                    <h1 className="text-7xl lg:text-[5rem] leading-none font-extrabold tracking-tighter mb-8 bg-gradient-to-br from-white via-blue-200 to-purple-400 bg-clip-text text-transparent drop-shadow-2xl">
                         OtakuCircle
                     </h1>
-                    <p className="text-xl text-zinc-300 font-light leading-relaxed drop-shadow-md">
-                        Your personal anime sanctuary. Track progress, discover hidden gems, and connect with a community that gets it.
+                    <p className="text-2xl lg:text-3xl text-zinc-300 font-light leading-relaxed drop-shadow-md">
+                        Your personal anime sanctuary. <br/><span className="text-white font-semibold">Track</span> progress, <span className="text-white font-semibold">discover</span> hidden gems, and <span className="text-white font-semibold">connect</span> with a community that gets it.
                     </p>
                 </div>
             </div>

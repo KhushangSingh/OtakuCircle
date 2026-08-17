@@ -214,24 +214,13 @@ const AnimeDetails = () => {
                             <Share2 className="w-4 h-4" /> Recommend
                         </button>
 
-                        <div className="relative inline-block">
-                            <select 
-                                onChange={(e) => {
-                                    if (e.target.value) {
-                                        handleMarkWatched(e.target.value);
-                                        e.target.value = ""; 
-                                    }
-                                }}
-                                className="appearance-none flex items-center gap-2 bg-white/10 backdrop-blur-md text-white border border-white/10 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm hover:bg-green-500/20 hover:text-green-400 transition-all hover:scale-105 active:scale-95 outline-none cursor-pointer pr-8"
-                            >
-                                <option value="" disabled selected hidden>Set Status</option>
-                                <option value="Watching" className="bg-[#151515] text-white">Watching</option>
-                                <option value="Watched" className="bg-[#151515] text-white">Watched</option>
-                            </select>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
-                                <Check className="w-4 h-4" />
-                            </div>
-                        </div>
+                        <WatchStatusDropdown 
+                            currentStatus={null}
+                            onStatusChange={(status) => {
+                                handleMarkWatched(status);
+                            }}
+                            wrapperClass="w-40 shrink-0"
+                        />
                     </div>
 
                     <div className="w-full pr-4">

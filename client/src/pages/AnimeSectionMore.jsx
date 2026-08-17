@@ -47,35 +47,16 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                         <Plus size={16} strokeWidth={3} />
                         <span>Watchlist</span>
                     </button>
-                    <div 
-                        className={`w-[85%] mx-auto relative rounded-full backdrop-blur-sm border transition-colors shadow-lg
-                            ${watchedAdded 
-                                ? 'bg-green-500/20 border-green-500/50 text-green-400 shadow-green-500/20' 
-                                : 'bg-white/10 border-white/30 text-white hover:bg-white/20'
-                            }`}
-                    >
-                        <select 
-                            onChange={(e) => {
-                                e.stopPropagation();
-                                if (e.target.value) {
-                                    onAddWatchhistory(anime, e.target.value);
-                                    setWatchedAdded(true);
-                                    e.target.value = "";
-                                }
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            disabled={watchedAdded}
-                            className="appearance-none w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold bg-transparent outline-none cursor-pointer text-center pl-6 pr-4"
-                            style={{ textAlignLast: 'center' }}
-                        >
-                            <option value="" disabled selected hidden>{watchedAdded ? "Added" : "Set Status"}</option>
-                            <option value="Watching" className="bg-[#151515] text-white text-left">Watching</option>
-                            <option value="Watched" className="bg-[#151515] text-white text-left">Watched</option>
-                        </select>
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <Check size={16} strokeWidth={3} />
-                        </div>
-                    </div>
+                    <WatchStatusDropdown 
+                        isAdded={watchedAdded}
+                        disabled={watchedAdded}
+                        onStatusChange={(status) => {
+                            onAddWatchhistory(anime, status);
+                            setWatchedAdded(true);
+                        }}
+                        wrapperClass="w-[85%] mx-auto"
+                        className="rounded-full"
+                    />
                 </div>
             </div>
             <div className="mt-4 px-1 space-y-1 transition-opacity duration-300 group-hover:opacity-50">

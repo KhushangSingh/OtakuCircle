@@ -9,6 +9,7 @@ import {
     Trash2, X, Activity, Film, Tv, 
     LogOut, CheckCircle, User, Pencil, TrendingUp, Clock, Star, Zap, Users, Trophy, Award, Crown, Target
 } from 'lucide-react';
+import WatchStatusDropdown from '../components/WatchStatusDropdown';
 
 const Profile = () => {
     const { username } = useParams();
@@ -338,13 +339,6 @@ const Profile = () => {
                         </div>
 
                         {/* Action Buttons */}
-                        {isOwnProfile && (
-                            <div className="flex-shrink-0 self-center md:self-end mb-2">
-                                <button onClick={handleLogout} className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl text-sm font-bold uppercase tracking-wider transition-all duration-300 shadow-[0_0_15px_rgba(239,68,68,0.1)]">
-                                    <LogOut size={16} /> Logout
-                                </button>
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -374,7 +368,6 @@ const Profile = () => {
 
                             {/* Social Standing */}
                             <div className="bg-[#151515] rounded-[32px] p-8 shadow-xl relative overflow-hidden">
-                                <div className="absolute -top-10 -right-10 text-blue-500/5 pointer-events-none"><Users size={120} /></div>
                                 <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-3">
                                     <TrendingUp size={18} className="text-blue-400"/> Social Standing
                                 </h3>
@@ -461,14 +454,11 @@ const Profile = () => {
                                                     
                                                     {isOwnProfile && (
                                                         <div className="flex items-center gap-3 shrink-0">
-                                                            <select 
-                                                                value={currentStatus} 
-                                                                onChange={(e) => handleStatusChange(item.animeId, e.target.value)} 
-                                                                className="bg-black/40 border border-white/10 text-xs font-bold rounded-xl px-4 py-2 outline-none text-zinc-300 focus:border-white/20 hover:bg-black/60 transition-colors cursor-pointer appearance-none"
-                                                            >
-                                                                <option value="Watching" className="bg-[#151515]">Watching</option>
-                                                                <option value="Watched" className="bg-[#151515]">Watched</option>
-                                                            </select>
+                                                            <WatchStatusDropdown 
+                                                                currentStatus={currentStatus} 
+                                                                onStatusChange={(status) => handleStatusChange(item.animeId, status)}
+                                                                wrapperClass="w-32"
+                                                            />
                                                             <button onClick={() => handleDeleteClick(item.animeId, 'watchhistory', item.title)} className="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors">
                                                                 <Trash2 size={16}/>
                                                             </button>
