@@ -222,7 +222,7 @@ const Login = () => {
                         <h2 className="text-3xl font-bold text-white mb-2">
                             {isLogin ? 'Welcome back' : 'Create an account'}
                         </h2>
-                        <p className="text-zinc-500">
+                        <p className="text-zinc-300">
                             {isLogin ? 'Enter your details to access your lists.' : 'Start your journey with us today.'}
                         </p>
                     </div>
@@ -237,9 +237,9 @@ const Login = () => {
                     <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
                         {!isLogin && (
                             <div className="space-y-1.5">
-                                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider pl-1">Username</label>
+                                <label className="text-xs font-semibold text-zinc-200 uppercase tracking-wider pl-1">Username</label>
                                 <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-white transition-colors">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-300 group-focus-within:text-white transition-colors">
                                         <User size={18} />
                                     </div>
                                     <input
@@ -248,7 +248,7 @@ const Login = () => {
                                         value={formData.username}
                                         onChange={handleChange}
                                         autoComplete="off"
-                                        className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                                        className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                                         placeholder="johndoe"
                                         required
                                     />
@@ -257,9 +257,9 @@ const Login = () => {
                         )}
 
                         <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider pl-1">Email</label>
+                            <label className="text-xs font-semibold text-zinc-200 uppercase tracking-wider pl-1">Email</label>
                             <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-white transition-colors">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-300 group-focus-within:text-white transition-colors">
                                     <Mail size={18} />
                                 </div>
                                 <input
@@ -268,7 +268,7 @@ const Login = () => {
                                     value={formData.email}
                                     onChange={handleChange}
                                     autoComplete="email"
-                                    className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                                    className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                                     placeholder="name@example.com"
                                     required
                                 />
@@ -276,9 +276,9 @@ const Login = () => {
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider pl-1">Password</label>
+                            <label className="text-xs font-semibold text-zinc-200 uppercase tracking-wider pl-1">Password</label>
                             <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-white transition-colors">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-300 group-focus-within:text-white transition-colors">
                                     <Lock size={18} />
                                 </div>
                                 <input
@@ -287,7 +287,7 @@ const Login = () => {
                                     value={formData.password}
                                     onChange={handleChange}
                                     autoComplete="new-password"
-                                    className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                                    className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                                     placeholder="••••••••"
                                     required
                                 />
@@ -298,7 +298,7 @@ const Login = () => {
                                     <button
                                         type="button"
                                         onClick={openForgotModal}
-                                        className="text-xs text-zinc-500 hover:text-blue-400 transition-colors mt-1"
+                                        className="text-xs text-zinc-300 hover:text-blue-400 transition-colors mt-1"
                                     >
                                         Forgot password?
                                     </button>
@@ -308,9 +308,9 @@ const Login = () => {
 
                         {!isLogin && (
                             <div className="space-y-1.5">
-                                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider pl-1">Confirm Password</label>
+                                <label className="text-xs font-semibold text-zinc-200 uppercase tracking-wider pl-1">Confirm Password</label>
                                 <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-white transition-colors">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-300 group-focus-within:text-white transition-colors">
                                         <Lock size={18} />
                                     </div>
                                     <input
@@ -319,7 +319,7 @@ const Login = () => {
                                         value={formData.passwordConfirm}
                                         onChange={handleChange}
                                         autoComplete="new-password"
-                                        className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                                        className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                                         placeholder="••••••••"
                                         required
                                     />
@@ -342,7 +342,7 @@ const Login = () => {
                     </form>
 
                     <div className="text-center pt-4">
-                        <p className="text-zinc-500 text-sm">
+                        <p className="text-zinc-300 text-sm">
                             {isLogin ? "Don't have an account?" : 'Already have an account?'}
                             <button
                                 onClick={toggleMode}
@@ -364,7 +364,7 @@ const Login = () => {
                         {/* Close button */}
                         <button
                             onClick={closeForgotModal}
-                            className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"
+                            className="absolute top-4 right-4 text-zinc-300 hover:text-white transition-colors"
                         >
                             <X size={20} />
                         </button>
@@ -407,17 +407,17 @@ const Login = () => {
                                 <div className="text-center">
                                     <Mail size={36} className="mx-auto text-blue-400 mb-3" />
                                     <h3 className="text-xl font-bold">Forgot Password?</h3>
-                                    <p className="text-zinc-500 text-sm mt-1">Enter your email and we'll send you a verification code</p>
+                                    <p className="text-zinc-300 text-sm mt-1">Enter your email and we'll send you a verification code</p>
                                 </div>
                                 <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-white transition-colors">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-300 group-focus-within:text-white transition-colors">
                                         <Mail size={18} />
                                     </div>
                                     <input
                                         type="email"
                                         value={forgotEmail}
                                         onChange={(e) => setForgotEmail(e.target.value)}
-                                        className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                                        className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                                         placeholder="name@example.com"
                                         autoFocus
                                     />
@@ -440,7 +440,7 @@ const Login = () => {
                                 <div className="text-center">
                                     <KeyRound size={36} className="mx-auto text-blue-400 mb-3" />
                                     <h3 className="text-xl font-bold">Enter Verification Code</h3>
-                                    <p className="text-zinc-500 text-sm mt-1">
+                                    <p className="text-zinc-300 text-sm mt-1">
                                         We sent a 6-digit code to <span className="text-zinc-300">{forgotEmail}</span>
                                     </p>
                                 </div>
@@ -448,7 +448,7 @@ const Login = () => {
                                     type="text"
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                    className="block w-full py-4 bg-white/5 border border-white/10 rounded-xl text-white text-center text-3xl font-bold tracking-[0.5em] placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                                    className="block w-full py-4 bg-white/5 border border-white/10 rounded-xl text-white text-center text-3xl font-bold tracking-[0.5em] placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                                     placeholder="000000"
                                     maxLength={6}
                                     autoFocus
@@ -464,7 +464,7 @@ const Login = () => {
                                 </button>
                                 <button
                                     onClick={() => { setForgotStep(1); setForgotError(''); setOtp(''); }}
-                                    className="w-full text-zinc-500 hover:text-zinc-300 text-sm transition-colors"
+                                    className="w-full text-zinc-300 hover:text-zinc-300 text-sm transition-colors"
                                 >
                                     Didn't receive it? Go back
                                 </button>
@@ -477,31 +477,31 @@ const Login = () => {
                                 <div className="text-center">
                                     <ShieldCheck size={36} className="mx-auto text-green-400 mb-3" />
                                     <h3 className="text-xl font-bold">Set New Password</h3>
-                                    <p className="text-zinc-500 text-sm mt-1">Choose a strong password for your account</p>
+                                    <p className="text-zinc-300 text-sm mt-1">Choose a strong password for your account</p>
                                 </div>
                                 <div className="space-y-3">
                                     <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-white transition-colors">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-300 group-focus-within:text-white transition-colors">
                                             <Lock size={18} />
                                         </div>
                                         <input
                                             type="password"
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
-                                            className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                                            className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                                             placeholder="New password"
                                             autoFocus
                                         />
                                     </div>
                                     <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-white transition-colors">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-300 group-focus-within:text-white transition-colors">
                                             <Lock size={18} />
                                         </div>
                                         <input
                                             type="password"
                                             value={newPasswordConfirm}
                                             onChange={(e) => setNewPasswordConfirm(e.target.value)}
-                                            className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                                            className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                                             placeholder="Confirm new password"
                                         />
                                     </div>

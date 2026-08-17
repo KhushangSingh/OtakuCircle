@@ -185,9 +185,9 @@ const Navbar = () => {
   const unreadCount = notifications.length;
 
   const getLinkClass = (path) => {
-    const baseClasses = "hidden md:flex items-center gap-2 text-sm xl:text-base font-bold whitespace-nowrap transition-all duration-200 px-3 py-2 rounded-lg relative z-20";
-    const activeClasses = "bg-white/10 text-white shadow-sm border border-white/5";
-    const inactiveClasses = "text-zinc-400 hover:text-white hover:bg-white/5";
+    const baseClasses = "hidden md:flex items-center gap-2 text-sm xl:text-base font-bold whitespace-nowrap transition-all duration-300 px-2 py-2 relative z-20 group";
+    const activeClasses = "text-white after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-blue-400 after:rounded-full";
+    const inactiveClasses = "text-zinc-200 hover:text-white after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-[2px] after:bg-white/50 after:transition-all after:duration-300 hover:after:w-full";
     return `${baseClasses} ${location.pathname === path ? activeClasses : inactiveClasses}`;
   };
 
@@ -210,7 +210,7 @@ const Navbar = () => {
         {/* Search Bar */}
         <div className="relative hidden md:block w-1/4 group" ref={searchRef}>
             <div className={searchInputClass}>
-                <Search className="text-zinc-500 w-5 h-5 mr-3 group-focus-within:text-white transition-colors" />
+                <Search className="text-zinc-300 w-5 h-5 mr-3 group-focus-within:text-white transition-colors" />
                 <input 
                     type="text" 
                     value={searchQuery}
@@ -224,7 +224,7 @@ const Navbar = () => {
             {/* Search Dropdown */}
             {isSearchOpen && (
                 <div className={`absolute top-full mt-3 w-full ${glassStyle}`}>
-                    <div className="px-4 py-3 text-xs font-bold text-zinc-400 uppercase tracking-widest bg-white/5 border-b border-white/5">
+                    <div className="px-4 py-3 text-xs font-bold text-zinc-200 uppercase tracking-widest bg-white/5 border-b border-white/5">
                         Top Matches
                     </div>
                     {searchResults.length > 0 ? searchResults.map(anime => (
@@ -232,11 +232,11 @@ const Navbar = () => {
                             <img src={anime.poster_url} alt={anime.title} className="w-9 h-12 object-cover rounded shadow-md bg-zinc-800" />
                             <div className="flex-1 min-w-0">
                                 <p className="font-semibold text-sm text-white truncate group-hover/item:text-blue-400 transition-colors">{anime.title}</p>
-                                <p className="text-[10px] text-zinc-400 mt-0.5">{anime.type || 'TV'} • {anime.score || 'N/A'}</p>
+                                <p className="text-[10px] text-zinc-200 mt-0.5">{anime.type || 'TV'} • {anime.score || 'N/A'}</p>
                             </div>
                         </div>
                     )) : (
-                        <div className="p-4 text-center text-xs text-zinc-500">No direct title matches found.</div>
+                        <div className="p-4 text-center text-xs text-zinc-300">No direct title matches found.</div>
                     )}
                     
                     <div 
@@ -284,7 +284,7 @@ const Navbar = () => {
                     <div className="relative" ref={notificationsRef}>
                         <button 
                             onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                            className={`relative p-2 rounded-full hover:bg-white/10 transition-colors ${isNotificationsOpen ? 'bg-white/10 text-white' : 'text-zinc-400'}`}
+                            className={`relative p-2 rounded-full hover:bg-white/10 transition-colors ${isNotificationsOpen ? 'bg-white/10 text-white' : 'text-zinc-200'}`}
                         >
                             <Bell className="w-5 h-5" />
                             {unreadCount > 0 && (
@@ -301,13 +301,13 @@ const Navbar = () => {
                                 </div>
                                 <div className="max-h-[400px] overflow-y-auto custom-scrollbar p-3 space-y-2">
                                     {notifications.length === 0 ? (
-                                        <div className="p-6 text-center text-zinc-500 text-sm">No new notifications</div>
+                                        <div className="p-6 text-center text-zinc-300 text-sm">No new notifications</div>
                                     ) : (
                                         notifications.map(n => (
                                             <div key={n._id} className="p-4 rounded-xl bg-white/5 border border-white/5 flex justify-between items-center gap-4 hover:bg-white/10 transition-colors group">
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm text-zinc-300 leading-relaxed line-clamp-2">{n.message}</p>
-                                                    <p className="text-xs text-zinc-500 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
+                                                    <p className="text-xs text-zinc-300 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
                                                 </div>
                                                 <button 
                                                     onClick={(e) => handleViewNotification(n, e)}
@@ -378,7 +378,7 @@ const Navbar = () => {
             
             <button 
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="md:hidden p-2 text-zinc-400 relative z-20 hover:text-white transition-colors"
+                className="md:hidden p-2 text-zinc-200 relative z-20 hover:text-white transition-colors"
             >
                 <Menu size={24} />
             </button>
@@ -403,20 +403,20 @@ const Navbar = () => {
               )}
               {isLoggedIn && (
                   <>
-                      <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                      <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
                           <Home size={32} /> Home
                       </Link>
-                      <Link to="/smart-search" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/smart-search' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                      <Link to="/smart-search" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/smart-search' ? 'text-blue-400' : 'text-zinc-300 hover:text-zinc-300'}`}>
                           <Sparkles size={32} /> Smart Search
                       </Link>
-                      <Link to="/recommendations" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/recommendations' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                      <Link to="/recommendations" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/recommendations' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
                           <Heart size={32} /> For You
                       </Link>
-                      <Link to="/friends" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/friends' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                      <Link to="/friends" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/friends' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
                           <Users size={32} /> Friends
                       </Link>
                       {import.meta.env.VITE_ENABLE_MOVIES === 'true' && (
-                          <Link to="/movies" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/movies' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                          <Link to="/movies" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/movies' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
                               <Film size={32} /> Movies & Shows
                           </Link>
                       )}
