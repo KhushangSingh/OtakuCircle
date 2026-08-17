@@ -3,7 +3,7 @@ const Movie = require('../models/Movie');
 const User = require('../models/User');
 
 // --- CONFIGURATION ---
-const TMDB_API_KEY = process.env.TMDB_API_KEY;
+const TMDB_API_KEY = process.env.TMDB_API_KEY || 'a04f61feaaae331e8c97b2c30765ebb3';
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const CACHE_DURATION = 1000 * 60 * 60 * 24; // 24 Hours
 
