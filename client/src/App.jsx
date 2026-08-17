@@ -8,6 +8,7 @@ import { NotificationProvider } from './components/NotificationProvider';
 import Navbar from './components/Navbar';
 
 // --- Pages ---
+import Home from './pages/Home';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';

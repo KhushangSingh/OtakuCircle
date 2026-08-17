@@ -192,13 +192,14 @@ const Login = () => {
         <div className="h-screen w-full bg-[#0d0d0d] flex relative overflow-hidden font-sans text-white">
             
             {/* FULL PAGE BACKGROUND WITH GRADIENT FADE */}
-            <div className="absolute inset-0 z-0 pointer-events-none">
+            <div className="absolute inset-0 z-0 pointer-events-none bg-[#0d0d0d]">
+                {/* The background image: blurred and 50% opacity */}
                 <div 
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50"
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50 blur-2xl scale-110"
                     style={{ backgroundImage: `url(${heroImage})` }}
                 ></div>
-                {/* Gradient overlay: allows left side to be visible, but right side (form) becomes solid black */}
-                <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-[#0d0d0d]/40 lg:from-transparent via-[#0d0d0d]/90 lg:via-[#0d0d0d]/80 to-[#0d0d0d]"></div>
+                {/* Gradient overlay: Left side is solid black, transitioning to transparent on the right */}
+                <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-[#0d0d0d] via-[#0d0d0d]/90 to-transparent"></div>
             </div>
 
             {/* LEFT SIDE: VISUALS */}
