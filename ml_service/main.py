@@ -6,6 +6,7 @@ Exposes endpoints for:
 """
 import os
 import pickle
+import threading
 import numpy as np
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -44,8 +45,9 @@ def load_resources():
     except Exception as e:
         print(f"Critical Error loading resources: {e}")
 
-# Load on startup
-load_resources()
+# Load in background so the server can start immediately
+# (Render requires a port to be open quickly or it times out)
+threading.Thread(target=load_resources, daemon=True).start()
 
 @app.route('/predict', methods=['POST'])
 def recommend_by_ids():
