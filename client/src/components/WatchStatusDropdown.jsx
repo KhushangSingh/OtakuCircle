@@ -32,10 +32,10 @@ const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded,
                     e.stopPropagation();
                     if (!disabled) setIsOpen(!isOpen);
                 }}
-                className={`w-full flex items-center justify-between gap-1.5 py-2 px-4 rounded-xl text-xs font-bold transition-all shadow-lg border outline-none
+                className={`w-full flex items-center justify-between gap-1.5 py-2 px-4 rounded-xl text-xs font-bold backdrop-blur-sm transition-all shadow-lg border outline-none
                     ${disabled 
                         ? 'bg-green-500/20 border-green-500/50 text-green-400 shadow-green-500/20 cursor-default' 
-                        : 'bg-black/40 hover:bg-black/60 border-white/10 hover:border-white/20 text-zinc-300 cursor-pointer'
+                        : 'bg-white/10 hover:bg-white/20 border-white/30 text-white cursor-pointer'
                     } ${className || ''}`}
             >
                 {disabled ? (

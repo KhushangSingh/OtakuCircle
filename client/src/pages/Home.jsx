@@ -16,7 +16,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
             className="group relative flex-none w-[120px] sm:w-[150px] md:w-[200px] cursor-pointer perspective-1000"
             onClick={onClick}
         >
-            <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-zinc-900 transition-all duration-500 ease-out 
+            <div className="relative aspect-[2/3] rounded-2xl bg-zinc-900 transition-all duration-500 ease-out 
                 transform-gpu backface-hidden
                 group-hover:scale-105 
                 group-hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.25)] 
@@ -26,10 +26,10 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 <img 
                     src={anime.poster_url || 'https://via.placeholder.com/200x300?text=No+Image'} 
                     alt={anime.title} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full rounded-2xl object-cover transition-transform duration-700 group-hover:scale-110"
                     loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
                 
                 {anime.score && (
                     <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
@@ -101,7 +101,7 @@ const AnimeSection = ({ title, data, onAddWatchlist, onAddWatchhistory, onCardCl
                 <h2 className="text-xl md:text-3xl font-bold text-white tracking-tight">{title}</h2>
                 <button 
                     onClick={() => navigate(`/section/${sectionKey}`)} 
-                    className="text-xs font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-widest"
+                    className="text-xs font-bold text-zinc-300 hover:text-white transition-colors uppercase tracking-widest"
                 >
                     {viewMoreLabel} &rarr;
                 </button>

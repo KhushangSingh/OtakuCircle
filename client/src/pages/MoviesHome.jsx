@@ -16,7 +16,7 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
             className="group relative flex-none w-[120px] sm:w-[150px] md:w-[200px] cursor-pointer perspective-1000"
             onClick={onClick}
         >
-            <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-zinc-900 transition-all duration-500 ease-out 
+            <div className="relative aspect-[2/3] rounded-2xl bg-zinc-900 transition-all duration-500 ease-out 
                 transform-gpu backface-hidden
                 group-hover:scale-105 
                 group-hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.25)] 
@@ -26,10 +26,10 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 <img 
                     src={movie.poster_url || 'https://via.placeholder.com/200x300?text=No+Image'} 
                     alt={movie.title} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full rounded-2xl object-cover transition-transform duration-700 group-hover:scale-110"
                     loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
                 
                 {movie.score && (
                     <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
@@ -101,7 +101,7 @@ const MovieSection = ({ title, data, onAddWatchlist, onAddWatchhistory, onCardCl
                 <h2 className="text-xl md:text-3xl font-bold text-white tracking-tight">{title}</h2>
                 <button 
                     onClick={() => navigate(`/movies/section/${sectionKey}`)} 
-                    className="text-xs font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-widest"
+                    className="text-xs font-bold text-zinc-300 hover:text-white transition-colors uppercase tracking-widest"
                 >
                     {viewMoreLabel} &rarr;
                 </button>
@@ -375,6 +375,12 @@ const MoviesHome = () => {
                 <MovieSection id="section-popular-movies" title="Popular Movies" data={homeData.popularMovies} onAddWatchlist={handleAddToWatchlist} onAddWatchhistory={handleAddToWatchhistory} onCardClick={handleCardClick} sectionKey="popularMovies" />
                 <MovieSection id="section-popular-tv" title="Popular TV Shows" data={homeData.popularTv} onAddWatchlist={handleAddToWatchlist} onAddWatchhistory={handleAddToWatchhistory} onCardClick={handleCardClick} sectionKey="popularTv" />
                 <MovieSection id="section-top-rated" title="Top Rated Masterpieces" data={homeData.topRatedMovies} onAddWatchlist={handleAddToWatchlist} onAddWatchhistory={handleAddToWatchhistory} onCardClick={handleCardClick} sectionKey="topRatedMovies" />
+                
+                {/* NEW GENRE SECTIONS */}
+                <MovieSection id="section-action" title="Action & Adventure" data={homeData.actionMovies} onAddWatchlist={handleAddToWatchlist} onAddWatchhistory={handleAddToWatchhistory} onCardClick={handleCardClick} sectionKey="actionMovies" />
+                <MovieSection id="section-scifi" title="Sci-Fi & Fantasy" data={homeData.sciFiMovies} onAddWatchlist={handleAddToWatchlist} onAddWatchhistory={handleAddToWatchhistory} onCardClick={handleCardClick} sectionKey="sciFiMovies" />
+                <MovieSection id="section-comedy" title="Comedy Hits" data={homeData.comedyMovies} onAddWatchlist={handleAddToWatchlist} onAddWatchhistory={handleAddToWatchhistory} onCardClick={handleCardClick} sectionKey="comedyMovies" />
+                <MovieSection id="section-animation" title="Animation" data={homeData.animationMovies} onAddWatchlist={handleAddToWatchlist} onAddWatchhistory={handleAddToWatchhistory} onCardClick={handleCardClick} sectionKey="animationMovies" />
             </div>
         </div>
     );

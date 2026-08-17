@@ -184,10 +184,11 @@ const Navbar = () => {
 
   const unreadCount = notifications.length;
 
-  const getLinkClass = (path) => {
-    const baseClasses = "hidden md:flex items-center gap-2 text-sm xl:text-base font-bold whitespace-nowrap transition-all duration-300 px-2 py-2 relative z-20 group";
-    const activeClasses = "text-white after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-blue-400 after:rounded-full";
-    const inactiveClasses = "text-zinc-200 hover:text-white after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-[2px] after:bg-white/50 after:transition-all after:duration-300 hover:after:w-full";
+  const getLinkClass = (path, showOnTablet = false) => {
+    const displayClass = showOnTablet ? "hidden md:flex" : "hidden lg:flex";
+    const baseClasses = `${displayClass} items-center gap-2 text-sm xl:text-base font-bold whitespace-nowrap transition-all duration-300 px-2 py-2 relative z-20 group`;
+    const activeClasses = "text-white after:content-[''] after:absolute after:bottom-0 after:left-1/4 after:w-1/2 after:h-[2px] after:bg-white after:rounded-full";
+    const inactiveClasses = "text-zinc-200 hover:text-white after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-[2px] after:bg-white/50 after:transition-all after:duration-300 hover:after:w-1/2";
     return `${baseClasses} ${location.pathname === path ? activeClasses : inactiveClasses}`;
   };
 
@@ -201,14 +202,14 @@ const Navbar = () => {
       <div className="w-full px-8 lg:px-12 h-full flex justify-between items-center relative z-10">
         
         {/* Logo */}
-        <a href="/" onClick={handleLogoClick} className="text-2xl md:text-3xl font-extrabold tracking-tighter flex items-center group cursor-pointer">
+        <a href="/" onClick={handleLogoClick} className="text-2xl md:text-xl font-extrabold tracking-tighter flex items-center group cursor-pointer">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400 group-hover:to-white transition-colors pr-2">
                 OtakuCircle
             </span>
         </a>
         
         {/* Search Bar */}
-        <div className="relative hidden md:block w-1/4 group" ref={searchRef}>
+        <div className="relative flex-1 max-w-[120px] sm:max-w-[200px] md:max-w-xs lg:w-1/4 group mx-2 md:mx-4" ref={searchRef}>
             <div className={searchInputClass}>
                 <Search className="text-zinc-300 w-5 h-5 mr-3 group-focus-within:text-white transition-colors" />
                 <input 
@@ -217,7 +218,7 @@ const Navbar = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={handleKeyDown} 
                     placeholder="Search anime..." 
-                    className="bg-transparent border-none outline-none text-sm text-white w-full placeholder-zinc-500 group-focus-within:placeholder-zinc-400"
+                    className="bg-transparent border-none outline-none text-xs sm:text-sm text-white w-full placeholder-zinc-500 group-focus-within:placeholder-zinc-400"
                 />
             </div>
             
@@ -258,20 +259,20 @@ const Navbar = () => {
         <div className="flex items-center gap-4">
             {isLoggedIn && (
                 <div className="hidden md:flex items-center gap-2 mr-4">
-                    <Link to="/" className={getLinkClass('/')}>
+                    <Link to="/" className={getLinkClass('/', true)}>
                         <Home size={16} /> Home
                     </Link>
-                    <Link to="/smart-search" className={getLinkClass('/smart-search')}>
+                    <Link to="/smart-search" className={getLinkClass('/smart-search', false)}>
                         <Sparkles size={16} className={location.pathname === '/smart-search' ? "text-blue-400" : ""} /> Smart Search
                     </Link>
-                    <Link to="/recommendations" className={getLinkClass('/recommendations')}>
+                    <Link to="/recommendations" className={getLinkClass('/recommendations', false)}>
                         <Heart size={16} /> For You
                     </Link>
-                    <Link to="/friends" className={getLinkClass('/friends')}>
+                    <Link to="/friends" className={getLinkClass('/friends', false)}>
                         <Users size={16} /> Friends
                     </Link>
                     {import.meta.env.VITE_ENABLE_MOVIES === 'true' && (
-                        <Link to="/movies" className={getLinkClass('/movies')}>
+                        <Link to="/movies" className={getLinkClass('/movies', true)}>
                             <Film size={16} /> Movies & Shows
                         </Link>
                     )}
@@ -378,7 +379,7 @@ const Navbar = () => {
             
             <button 
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="md:hidden p-2 text-zinc-200 relative z-20 hover:text-white transition-colors"
+                className="lg:hidden p-2 text-zinc-200 relative z-20 hover:text-white transition-colors"
             >
                 <Menu size={24} />
             </button>
@@ -386,7 +387,15 @@ const Navbar = () => {
       </div>
 
       {/* --- MOBILE MENU OVERLAY --- */}
-      <div className={`fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl transition-all duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+      
+      {/* --- OVERLAY BACKGROUND --- */}
+      <div 
+        className={`fixed inset-0 z-[55] bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        onClick={() => setIsMobileMenuOpen(false)}
+      ></div>
+      {/* --- MOBILE/TABLET DRAWER --- */}
+      <div className={`fixed inset-y-0 right-0 w-[65%] sm:w-[50%] md:w-[40%] max-w-sm z-[60] bg-black/95 backdrop-blur-2xl shadow-2xl transition-transform duration-300 ease-in-out lg:hidden border-l border-white/5 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+
           {/* Close button */}
           <button 
               onClick={() => setIsMobileMenuOpen(false)}
@@ -395,37 +404,37 @@ const Navbar = () => {
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </button>
 
-          <div className="flex flex-col items-center justify-center h-full gap-8">
+          <div className="flex flex-col items-center justify-center h-full gap-6">
               {!isLoggedIn && (
-                  <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-3xl font-bold text-white mb-8 hover:text-zinc-300 transition-colors">
+                  <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-bold text-white mb-6 hover:text-zinc-300 transition-colors">
                       Sign In
                   </Link>
               )}
               {isLoggedIn && (
                   <>
-                      <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
-                          <Home size={32} /> Home
+                      <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={`md:hidden flex items-center gap-3 text-xl font-bold transition-colors ${location.pathname === '/' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
+                          <Home size={20} /> Home
                       </Link>
-                      <Link to="/smart-search" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/smart-search' ? 'text-blue-400' : 'text-zinc-300 hover:text-zinc-300'}`}>
-                          <Sparkles size={32} /> Smart Search
+                      <Link to="/smart-search" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-xl font-bold transition-colors ${location.pathname === '/smart-search' ? 'text-blue-400' : 'text-zinc-300 hover:text-zinc-300'}`}>
+                          <Sparkles size={20} /> Smart Search
                       </Link>
-                      <Link to="/recommendations" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/recommendations' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
-                          <Heart size={32} /> For You
+                      <Link to="/recommendations" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-xl font-bold transition-colors ${location.pathname === '/recommendations' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
+                          <Heart size={20} /> For You
                       </Link>
-                      <Link to="/friends" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/friends' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
-                          <Users size={32} /> Friends
+                      <Link to="/friends" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-xl font-bold transition-colors ${location.pathname === '/friends' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
+                          <Users size={20} /> Friends
                       </Link>
                       {import.meta.env.VITE_ENABLE_MOVIES === 'true' && (
-                          <Link to="/movies" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-3xl font-bold transition-colors ${location.pathname === '/movies' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
-                              <Film size={32} /> Movies & Shows
+                          <Link to="/movies" onClick={() => setIsMobileMenuOpen(false)} className={`md:hidden flex items-center gap-3 text-xl font-bold transition-colors ${location.pathname === '/movies' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
+                              <Film size={20} /> Movies & Shows
                           </Link>
                       )}
                       
                       <button 
                           onClick={handleLogout} 
-                          className="flex items-center gap-3 text-3xl font-bold transition-colors text-red-500 hover:text-red-400 mt-4"
+                          className="flex items-center gap-3 text-xl font-bold transition-colors text-red-500 hover:text-red-400 mt-4"
                       >
-                          <LogOut size={32} /> Log Out
+                          <LogOut size={20} /> Log Out
                       </button>
                   </>
               )}

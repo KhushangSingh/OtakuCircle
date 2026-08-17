@@ -42,20 +42,31 @@ const getMoviesHomeData = async (req, res) => {
 
         console.log("🌐 Fetching Fresh Home Data from TMDB API...");
         
-        const fetchTMDB = (endpoint) => axios.get(`${TMDB_BASE_URL}${endpoint}?api_key=${TMDB_API_KEY}`);
+        const fetchTMDB = (endpoint) => {
+            const separator = endpoint.includes('?') ? '&' : '?';
+            return axios.get(`${TMDB_BASE_URL}${endpoint}${separator}api_key=${TMDB_API_KEY}`);
+        };
 
-        const [trending, popularMovies, popularTv, topRatedMovies] = await Promise.all([
+        const [trending, popularMovies, popularTv, topRatedMovies, actionMovies, sciFiMovies, comedyMovies, animationMovies] = await Promise.all([
             fetchTMDB('/trending/all/week'),
             fetchTMDB('/movie/popular'),
             fetchTMDB('/tv/popular'),
-            fetchTMDB('/movie/top_rated')
+            fetchTMDB('/movie/top_rated'),
+            fetchTMDB('/discover/movie?with_genres=28'), // Action
+            fetchTMDB('/discover/movie?with_genres=878'), // Sci-Fi
+            fetchTMDB('/discover/movie?with_genres=35'), // Comedy
+            fetchTMDB('/discover/movie?with_genres=16') // Animation
         ]);
 
         const finalData = {
             trending: formatTMDBMedia(trending.data.results),
             popularMovies: formatTMDBMedia(popularMovies.data.results, 'movie'),
             popularTv: formatTMDBMedia(popularTv.data.results, 'tv'),
-            topRatedMovies: formatTMDBMedia(topRatedMovies.data.results, 'movie')
+            topRatedMovies: formatTMDBMedia(topRatedMovies.data.results, 'movie'),
+            actionMovies: formatTMDBMedia(actionMovies.data.results, 'movie'),
+            sciFiMovies: formatTMDBMedia(sciFiMovies.data.results, 'movie'),
+            comedyMovies: formatTMDBMedia(comedyMovies.data.results, 'movie'),
+            animationMovies: formatTMDBMedia(animationMovies.data.results, 'movie')
         };
 
         homeCache = { data: finalData, lastFetch: now };
