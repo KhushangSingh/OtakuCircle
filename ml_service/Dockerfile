@@ -1,7 +1,7 @@
 FROM python:3.9-slim
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies (cache-bust: 2026-08-17)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
