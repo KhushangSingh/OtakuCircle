@@ -287,8 +287,8 @@ const MoviesHome = () => {
         <div className="min-h-screen bg-[#0d0d0d] text-white font-sans selection:bg-white/20 pb-20 pt-28">
             
             {/* --- HERO HEADER --- */}
-            <div className="w-full px-4 lg:px-8 mb-12 relative z-10 mt-2">
-                <div className="relative p-6 md:p-8 rounded-[32px] overflow-hidden border border-white/10 bg-black shadow-2xl flex flex-col md:flex-row items-center gap-6">
+            <div className="w-full px-4 lg:px-8 mb-12 relative z-50 mt-2">
+                <div className="relative p-6 md:p-8 rounded-[32px] border border-white/10 bg-black shadow-2xl flex flex-col md:flex-row items-center gap-6">
                     
                     <div className="relative z-20 flex-1 max-w-2xl w-full">
                         <div className="flex items-center gap-3 mb-4">
@@ -321,25 +321,26 @@ const MoviesHome = () => {
                             />
                         </div>
                         {isSearchOpen && (
-                            <div 
-                                className="absolute top-full mt-3 w-full bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/10 text-gray-200 rounded-2xl shadow-2xl overflow-y-auto max-h-[300px] z-50 animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/5"
-                                style={{
-                                    scrollbarWidth: 'thin',
-                                    scrollbarColor: '#3f3f46 transparent'
-                                }}
-                            >
+                            <div className="absolute top-full mt-3 w-full bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 text-gray-200 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/5">
                                 <style>{`
                                     .search-results-scrollbar::-webkit-scrollbar { width: 4px; }
                                     .search-results-scrollbar::-webkit-scrollbar-track { background: transparent; }
                                     .search-results-scrollbar::-webkit-scrollbar-thumb { background-color: #3f3f46; border-radius: 4px; }
                                 `}</style>
-                                <div className="px-4 py-3 text-xs font-bold text-zinc-400 uppercase tracking-widest bg-white/5 border-b border-white/5 sticky top-0 z-10 backdrop-blur-md">
+                                <div className="px-4 py-3 text-xs font-bold text-zinc-400 uppercase tracking-widest bg-white/5 border-b border-white/5 backdrop-blur-md">
                                     Top Matches
                                 </div>
-                                <div className="search-results-scrollbar">
+                                <div 
+                                    className="search-results-scrollbar overflow-y-auto"
+                                    style={{
+                                        maxHeight: '260px', /* Approx 3-4 items (item is ~72px high) */
+                                        scrollbarWidth: 'thin',
+                                        scrollbarColor: '#3f3f46 transparent'
+                                    }}
+                                >
                                     {searchResults.length > 0 ? searchResults.map(item => (
                                         <div key={item.tmdb_id} onClick={() => handleSearchResultClick(item.tmdb_id, item.type)} className="flex items-center gap-4 p-3 hover:bg-white/10 cursor-pointer border-b border-white/5 last:border-none transition-colors group/item">
-                                            <img src={item.poster_url || 'https://via.placeholder.com/40x60?text=NA'} alt={item.title} className="w-9 h-12 object-cover rounded shadow-md bg-zinc-800" />
+                                            <img src={item.poster_url || 'https://via.placeholder.com/40x60?text=NA'} alt={item.title} className="w-10 h-14 object-cover rounded shadow-md bg-zinc-800 shrink-0" />
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-semibold text-sm text-white truncate group-hover/item:text-blue-400 transition-colors">{item.title}</p>
                                                 <p className="text-[10px] text-zinc-400 mt-0.5 uppercase">{item.type} • {item.year || 'N/A'}</p>
@@ -352,12 +353,11 @@ const MoviesHome = () => {
                             </div>
                         )}
                     </div>
-
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[32px]">
+                    
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[32px] z-0">
                         <img src={moviesHeroBg} alt="" className="absolute right-0 top-0 w-[60%] h-full object-cover opacity-50" />
                         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-transparent z-10"></div>
                     </div>
-
                 </div>
             </div>
 
