@@ -251,6 +251,24 @@ const getFriendRequests = async (req, res) => {
     }
 };
 
+// @desc    Get Sent Friend Requests
+// @route   GET /api/friends/requests/sent
+const getSentFriendRequests = async (req, res) => {
+    try {
+        const requests = await Notification.find({
+            sender: req.user._id || req.user.id,
+            type: 'FRIEND_REQUEST'
+        })
+        .populate('recipient', 'username _id profilePicture') 
+        .sort({ createdAt: -1 })
+        .lean();
+
+        res.json(requests);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // @desc    Send Friend Request
 const sendFriendRequest = async (req, res) => {
     try {
@@ -287,6 +305,29 @@ const sendFriendRequest = async (req, res) => {
         });
 
         res.json({ message: 'Friend request sent', notificationId: notification._id });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Cancel Sent Friend Request
+// @route   DELETE /api/friends/request/:friendId
+const cancelFriendRequest = async (req, res) => {
+    try {
+        const { friendId } = req.params;
+        const senderId = req.user.id || req.user._id;
+
+        const result = await Notification.findOneAndDelete({
+            sender: senderId,
+            recipient: friendId,
+            type: 'FRIEND_REQUEST'
+        });
+
+        if (!result) {
+            return res.status(404).json({ message: 'Friend request not found' });
+        }
+
+        res.json({ message: 'Friend request cancelled' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -401,11 +442,13 @@ module.exports = {
     getRecommendations, 
     getNotifications, 
     getFriendRequests, 
+    getSentFriendRequests,
     sendFriendRequest, 
     acceptFriendRequest, 
     getFriends, 
     markNotificationAsRead, 
     declineFriendRequest,
+    cancelFriendRequest,
     deleteRecommendation,
     recommendMovie,
     getMovieRecommendations,

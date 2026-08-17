@@ -54,22 +54,35 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                         <span>Watchlist</span>
                     </button>
 
-                    <button 
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onAddWatchhistory(anime);
-                            setWatchedAdded(true);
-                        }}
-                        disabled={watchedAdded}
-                        className={`w-[85%] mx-auto flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-bold backdrop-blur-sm border transition-colors active:scale-95 shadow-lg
+                    <div 
+                        className={`w-[85%] mx-auto relative rounded-full backdrop-blur-sm border transition-colors shadow-lg
                             ${watchedAdded 
                                 ? 'bg-green-500/20 border-green-500/50 text-green-400 shadow-green-500/20' 
                                 : 'bg-white/10 border-white/30 text-white hover:bg-white/20'
                             }`}
                     >
-                        <Check size={16} strokeWidth={3} />
-                        <span>Watched</span>
-                    </button>
+                        <select 
+                            onChange={(e) => {
+                                e.stopPropagation();
+                                if (e.target.value) {
+                                    onAddWatchhistory(anime, e.target.value);
+                                    setWatchedAdded(true);
+                                    e.target.value = "";
+                                }
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            disabled={watchedAdded}
+                            className="appearance-none w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold bg-transparent outline-none cursor-pointer text-center pl-6 pr-4"
+                            style={{ textAlignLast: 'center' }}
+                        >
+                            <option value="" disabled selected hidden>{watchedAdded ? "Added" : "Set Status"}</option>
+                            <option value="Watching" className="bg-[#151515] text-white text-left">Watching</option>
+                            <option value="Watched" className="bg-[#151515] text-white text-left">Watched</option>
+                        </select>
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <Check size={16} strokeWidth={3} />
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -274,12 +287,12 @@ const Home = () => {
         }
     };
 
-    const handleAddToWatchhistory = async (anime) => {
+    const handleAddToWatchhistory = async (anime, statusValue = 'Watched') => {
         const token = localStorage.getItem('token');
         if (!token) { showNotification("Please login first!", "error"); return; }
         try {
             await axios.post(`${API_URL}/anime/watchhistory`, {
-                animeId: anime.mal_id, title: anime.title, poster: anime.poster_url, status: 'Watched'
+                animeId: anime.mal_id, title: anime.title, poster: anime.poster_url, status: statusValue
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Added ${anime.title} to history!`, "success");
         } catch (error) { 

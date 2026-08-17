@@ -155,6 +155,7 @@ const Navbar = () => {
       e.preventDefault();
       // Clear any saved scroll position so Home renders at the top
       sessionStorage.removeItem('otaku_home_scroll');
+      sessionStorage.removeItem('otaku_movies_home_scroll');
       window.scrollTo(0, 0);
       navigate('/');
   };

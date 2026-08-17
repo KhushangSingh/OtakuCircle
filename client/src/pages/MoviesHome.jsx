@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNotification } from '../components/NotificationProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Check, ChevronLeft, ChevronRight, Film } from 'lucide-react';
+import { Plus, Check, ChevronLeft, ChevronRight, Film, Search } from 'lucide-react';
 import moviesHeroBg from '../assets/movies-hero-bg-2.png';
 
 // --- COMPONENT: Movie Card ---
@@ -53,23 +53,36 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                         <Plus size={16} strokeWidth={3} />
                         <span>Watchlist</span>
                     </button>
-
-                    <button 
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onAddWatchhistory(movie);
-                            setWatchedAdded(true);
-                        }}
-                        disabled={watchedAdded}
-                        className={`w-[85%] mx-auto flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-bold backdrop-blur-sm border transition-colors active:scale-95 shadow-lg
+                    {/* Watched Button */}
+                    <div 
+                        className={`w-[85%] mx-auto relative rounded-full backdrop-blur-sm border transition-colors shadow-lg
                             ${watchedAdded 
                                 ? 'bg-green-500/20 border-green-500/50 text-green-400 shadow-green-500/20' 
                                 : 'bg-white/10 border-white/30 text-white hover:bg-white/20'
                             }`}
                     >
-                        <Check size={16} strokeWidth={3} />
-                        <span>Watched</span>
-                    </button>
+                        <select 
+                            onChange={(e) => {
+                                e.stopPropagation();
+                                if (e.target.value) {
+                                    onAddWatchhistory(movie, e.target.value);
+                                    setWatchedAdded(true);
+                                    e.target.value = "";
+                                }
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            disabled={watchedAdded}
+                            className="appearance-none w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold bg-transparent outline-none cursor-pointer text-center pl-6 pr-4"
+                            style={{ textAlignLast: 'center' }}
+                        >
+                            <option value="" disabled selected hidden>{watchedAdded ? "Added" : "Set Status"}</option>
+                            <option value="Watching" className="bg-[#151515] text-white text-left">Watching</option>
+                            <option value="Watched" className="bg-[#151515] text-white text-left">Watched</option>
+                        </select>
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <Check size={16} strokeWidth={3} />
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -105,7 +118,7 @@ const MovieSection = ({ title, data, onAddWatchlist, onAddWatchhistory, onCardCl
             <div className="flex items-end justify-between px-4 lg:px-8 mb-6">
                 <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">{title}</h2>
                 <button 
-                    onClick={() => navigate(`/section/${sectionKey}`)} 
+                    onClick={() => navigate(`/movies/section/${sectionKey}`)} 
                     className="text-xs font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-widest"
                 >
                     {viewMoreLabel} &rarr;
@@ -155,6 +168,13 @@ const MoviesHome = () => {
         trending: [], popularMovies: [], popularTv: [], topRatedMovies: []
     });
     const [loading, setLoading] = useState(true);
+    
+    // Search States
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const searchRef = useRef(null);
+
     const navigate = useNavigate();
     const location = useLocation();
     const { showNotification } = useNotification();
@@ -176,7 +196,7 @@ const MoviesHome = () => {
 
     useEffect(() => {
         const loadPageData = async () => {
-            const savedScroll = sessionStorage.getItem('otaku_home_scroll');
+            const savedScroll = sessionStorage.getItem('otaku_movies_home_scroll');
             await fetchHomeData();
             
             // Scroll logic
@@ -198,6 +218,41 @@ const MoviesHome = () => {
         loadPageData();
     }, [location, fetchHomeData]); // fetchHomeData is now stable due to useCallback
 
+    // Search Logic (Debounced)
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(async () => {
+            const query = searchQuery.trim();
+            if (query.length > 1) {
+                try {
+                    const res = await axios.get(`${API_URL}/movies/search?q=${encodeURIComponent(query)}`);
+                    setSearchResults(res.data);
+                    setIsSearchOpen(true);
+                } catch (error) { 
+                    setSearchResults([]); 
+                }
+            } else {
+                setSearchResults([]);
+                setIsSearchOpen(false);
+            }
+        }, 300); 
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchQuery, API_URL]);
+
+    // Close search dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (searchRef.current && !searchRef.current.contains(event.target)) setIsSearchOpen(false);
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleSearchResultClick = (id, type) => {
+        setIsSearchOpen(false);
+        setSearchQuery('');
+        navigate(`/movies/${type}/${id}`);
+    };
+
     const handleAddToWatchlist = async (movie) => {
         const token = localStorage.getItem('token');
         if (!token) { showNotification("Please login first!", "error"); return; }
@@ -211,12 +266,12 @@ const MoviesHome = () => {
         }
     };
 
-    const handleAddToWatchhistory = async (movie) => {
+    const handleAddToWatchhistory = async (movie, statusValue = 'Watched') => {
         const token = localStorage.getItem('token');
         if (!token) { showNotification("Please login first!", "error"); return; }
         try {
-            await axios.post(`${API_URL}/movie/watchhistory`, {
-                movieId: movie.tmdb_id, title: movie.title, poster: movie.poster_url, status: 'Watched'
+            await axios.post(`${API_URL}/movies/watchhistory`, {
+                movieId: movie.tmdb_id, title: movie.title, poster: movie.poster_url, status: statusValue
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Added ${movie.title} to history!`, "success");
         } catch (error) { 
@@ -225,7 +280,7 @@ const MoviesHome = () => {
     };
 
     const handleCardClick = (tmdb_id, type) => {
-        sessionStorage.setItem('otaku_home_scroll', window.scrollY.toString());
+        sessionStorage.setItem('otaku_movies_home_scroll', window.scrollY.toString());
         navigate(`/movies/${type}/${tmdb_id}`);
     };
 
@@ -270,6 +325,38 @@ const MoviesHome = () => {
                         <p className="text-zinc-400 text-base md:text-lg font-light leading-relaxed">
                             Discover blockbuster hits, trending television series, and critically acclaimed masterpieces.
                         </p>
+                    </div>
+
+                    {/* --- Search Bar --- */}
+                    <div className="relative z-20 hidden md:block w-72 lg:w-96" ref={searchRef}>
+                        <div className="flex items-center bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-5 py-3 transition-all duration-300 focus-within:bg-black/60 focus-within:border-white/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]">
+                            <Search className="text-zinc-500 w-5 h-5 mr-3 transition-colors" />
+                            <input 
+                                type="text" 
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search movies & shows..." 
+                                className="bg-transparent border-none outline-none text-sm text-white w-full placeholder-zinc-500"
+                            />
+                        </div>
+                        {isSearchOpen && (
+                            <div className="absolute top-full mt-3 w-full bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/10 text-gray-200 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/5">
+                                <div className="px-4 py-3 text-xs font-bold text-zinc-400 uppercase tracking-widest bg-white/5 border-b border-white/5">
+                                    Top Matches
+                                </div>
+                                {searchResults.length > 0 ? searchResults.slice(0, 5).map(item => (
+                                    <div key={item.tmdb_id} onClick={() => handleSearchResultClick(item.tmdb_id, item.type)} className="flex items-center gap-4 p-3 hover:bg-white/10 cursor-pointer border-b border-white/5 last:border-none transition-colors group/item">
+                                        <img src={item.poster_url || 'https://via.placeholder.com/40x60?text=NA'} alt={item.title} className="w-9 h-12 object-cover rounded shadow-md bg-zinc-800" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-sm text-white truncate group-hover/item:text-blue-400 transition-colors">{item.title}</p>
+                                            <p className="text-[10px] text-zinc-400 mt-0.5 uppercase">{item.type} • {item.year || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                )) : (
+                                    <div className="p-4 text-center text-xs text-zinc-500">No matches found.</div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[32px]">

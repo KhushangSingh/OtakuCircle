@@ -170,10 +170,29 @@ const addMovieToWatchhistory = async (req, res) => {
     }
 };
 
+// @desc    Search Movies and TV Shows
+// @route   GET /api/movies/search?q=query
+const searchMovies = async (req, res) => {
+    const query = req.query.q;
+    if (!query) return res.status(400).json({ message: "Search query is required" });
+
+    try {
+        const response = await axios.get(`${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+        // Filter out people and items without posters if desired, but definitely filter out people
+        const validResults = response.data.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv');
+        const formatted = formatTMDBMedia(validResults);
+        res.json(formatted);
+    } catch (error) {
+        console.error("❌ TMDB Search Error:", error.message);
+        res.status(500).json({ message: "Search failed", error: error.message });
+    }
+};
+
 module.exports = {
     getMoviesHomeData,
     getMovieById,
     addMovieToWatchlist,
     removeMovieFromWatchlist,
-    addMovieToWatchhistory
+    addMovieToWatchhistory,
+    searchMovies
 };

@@ -4,7 +4,7 @@ import { useNotification } from '../components/NotificationProvider';
 import axios from 'axios';
 import { 
     UserPlus, Search, X, User, MessageSquare, Check, XCircle, Film, Trash2,
-    Users, Compass, MoreVertical, VideoOff, MessageCircle, Info
+    Users, Compass, MoreVertical, VideoOff, MessageCircle, Info, UserMinus
 } from 'lucide-react';
 
 const Friends = () => {
@@ -15,7 +15,9 @@ const Friends = () => {
     const [loading, setLoading] = useState(true);
     const [searchLoading, setSearchLoading] = useState(false);
     const [friendRequests, setFriendRequests] = useState([]);
+    const [sentRequests, setSentRequests] = useState([]);
     const [recommendations, setRecommendations] = useState([]);
+    const [activeRequestTab, setActiveRequestTab] = useState('received'); // 'received' or 'sent'
     
     // Modal State
     const [selectedFriend, setSelectedFriend] = useState(null);
@@ -28,29 +30,42 @@ const Friends = () => {
 
     // --- DATA FETCHING ---
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchFriendsData = async () => {
             try {
-                setLoading(true);
                 const friendsRes = await axios.get(`${API_URL}/friends`, { headers: { Authorization: `Bearer ${token}` } });
                 setFriends(friendsRes.data || []);
-
-                try {
-                    const requestsRes = await axios.get(`${API_URL}/friends/requests`, { headers: { Authorization: `Bearer ${token}` } });
-                    setFriendRequests(requestsRes.data || []);
-                } catch (error) { setFriendRequests([]); }
-
-                try {
-                    const recsRes = await axios.get(`${API_URL}/recommendations/friends`, { headers: { Authorization: `Bearer ${token}` } });
-                    setRecommendations(recsRes.data || []);
-                } catch (error) { setRecommendations([]); }
-
-            } catch (error) {
-                setFriends([]);
-            } finally {
-                setLoading(false);
-            }
+            } catch (error) { console.error(error); }
         };
-        fetchData();
+
+        const fetchRequestsData = async () => {
+            try {
+                const requestsRes = await axios.get(`${API_URL}/friends/requests`, { headers: { Authorization: `Bearer ${token}` } });
+                setFriendRequests(requestsRes.data || []);
+
+                const sentRes = await axios.get(`${API_URL}/friends/requests/sent`, { headers: { Authorization: `Bearer ${token}` } });
+                setSentRequests(sentRes.data || []);
+
+                const recsRes = await axios.get(`${API_URL}/recommendations/friends`, { headers: { Authorization: `Bearer ${token}` } });
+                setRecommendations(recsRes.data || []);
+            } catch (error) { console.error(error); }
+        };
+
+        const initialLoad = async () => {
+            setLoading(true);
+            await Promise.all([fetchFriendsData(), fetchRequestsData()]);
+            setLoading(false);
+        };
+
+        initialLoad();
+
+        // Real-time polling every 10 seconds
+        const interval = setInterval(() => {
+            fetchRequestsData();
+            // Optional: fetchFriendsData() if we want friend status to be real-time too
+            fetchFriendsData(); 
+        }, 10000);
+
+        return () => clearInterval(interval);
     }, [token, API_URL]);
 
     // --- SEARCH ACTIONS ---
@@ -74,11 +89,28 @@ const Friends = () => {
 
     const handleAddFriend = async (friendId) => {
         try {
-            await axios.post(`${API_URL}/friends/request`, { friendId }, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await axios.post(`${API_URL}/friends/request`, { friendId }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification('Request sent!', 'success');
-            setSearchUsers(prev => prev.filter(u => u._id !== friendId));
+            
+            // Add to sentRequests so UI updates immediately
+            const userInSearch = searchUsers.find(u => u._id === friendId);
+            if (userInSearch) {
+                setSentRequests(prev => [{ _id: res.data.notificationId, recipient: userInSearch }, ...prev]);
+            }
         } catch (error) {
             showNotification('Error sending request', 'error');
+        }
+    };
+
+    const handleCancelRequest = async (friendId, notificationId) => {
+        try {
+            await axios.delete(`${API_URL}/friends/request/${friendId}`, { headers: { Authorization: `Bearer ${token}` } });
+            showNotification('Request cancelled', 'success');
+            
+            // Remove from sentRequests
+            setSentRequests(prev => prev.filter(req => req.recipient._id !== friendId));
+        } catch (error) {
+            showNotification('Error cancelling request', 'error');
         }
     };
 
@@ -192,17 +224,30 @@ const Friends = () => {
                                 ) : searchUsers.length > 0 ? (
                                     <div className="p-2 space-y-1">
                                         <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest pl-2 pt-2 pb-1">Results</p>
-                                        {searchUsers.map(user => (
-                                            <div key={user._id} className="flex items-center justify-between p-2 hover:bg-white/5 rounded-xl transition-colors">
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar user={user} size="sm" />
-                                                    <span className="text-sm font-medium text-white">{user.username}</span>
+                                        {searchUsers.map(user => {
+                                            const isFriend = friends.some(f => f._id === user._id);
+                                            const isSent = sentRequests.some(req => req.recipient?._id === user._id);
+                                            
+                                            return (
+                                                <div key={user._id} className="flex items-center justify-between p-2 hover:bg-white/5 rounded-xl transition-colors">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar user={user} size="sm" />
+                                                        <span className="text-sm font-medium text-white">{user.username}</span>
+                                                    </div>
+                                                    {isFriend ? (
+                                                        <span className="text-[10px] uppercase font-bold text-green-500 bg-green-500/20 px-2 py-1 rounded-full">Friends</span>
+                                                    ) : isSent ? (
+                                                        <button onClick={() => handleCancelRequest(user._id)} className="w-8 h-8 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors" title="Cancel Request">
+                                                            <UserMinus size={14} />
+                                                        </button>
+                                                    ) : (
+                                                        <button onClick={() => handleAddFriend(user._id)} className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-colors" title="Send Request">
+                                                            <UserPlus size={14} />
+                                                        </button>
+                                                    )}
                                                 </div>
-                                                <button onClick={() => handleAddFriend(user._id)} className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-colors">
-                                                    <UserPlus size={14} />
-                                                </button>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 ) : (
                                     <div className="p-4 text-zinc-500 text-sm text-center">No users found.</div>
@@ -215,40 +260,79 @@ const Friends = () => {
                 {/* Top Row: Friend Requests & Recommendations */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                     
-                    {/* Friend Requests */}
+                    {/* Friend Requests (Tabbed) */}
                     <div className="bg-white/[0.03] backdrop-blur-md border border-white/5 rounded-3xl p-6 flex flex-col hover:border-white/10 transition-colors">
-                        <div className="flex items-center gap-2 mb-4">
-                            <UserPlus className="text-yellow-500 w-4 h-4" />
-                            <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Friend Requests</h2>
-                            {friendRequests.length > 0 && (
-                                <span className="bg-yellow-500/20 text-yellow-500 text-[10px] px-2 py-0.5 rounded-full ml-auto font-bold">{friendRequests.length}</span>
-                            )}
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <UserPlus className="text-yellow-500 w-4 h-4" />
+                                <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Requests</h2>
+                            </div>
                         </div>
                         
-                        <div className="flex flex-col gap-3 overflow-y-auto max-h-[300px] pr-1 custom-scrollbar">
-                            {friendRequests.length === 0 ? (
-                                <div className="py-8 text-center text-zinc-600 text-sm">No pending requests</div>
+                        {/* Tabs */}
+                        <div className="flex gap-2 mb-4 bg-black/20 p-1 rounded-xl">
+                            <button 
+                                onClick={() => setActiveRequestTab('received')}
+                                className={`flex-1 text-xs font-bold py-1.5 rounded-lg transition-colors ${activeRequestTab === 'received' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                            >
+                                Received ({friendRequests.length})
+                            </button>
+                            <button 
+                                onClick={() => setActiveRequestTab('sent')}
+                                className={`flex-1 text-xs font-bold py-1.5 rounded-lg transition-colors ${activeRequestTab === 'sent' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                            >
+                                Sent ({sentRequests.length})
+                            </button>
+                        </div>
+                        
+                        <div className="flex flex-col gap-3 overflow-y-auto max-h-[250px] pr-1 custom-scrollbar">
+                            {activeRequestTab === 'received' ? (
+                                friendRequests.length === 0 ? (
+                                    <div className="py-8 text-center text-zinc-600 text-sm">No pending requests</div>
+                                ) : (
+                                    friendRequests.map(req => {
+                                        const match = getTasteMatch(req.sender?._id);
+                                        return (
+                                            <div key={req._id} className="flex items-center gap-3 bg-black/20 p-3 rounded-2xl border border-white/5">
+                                                <Avatar user={req.sender} size="md" />
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-white text-sm font-semibold truncate">{req.sender?.username}</p>
+                                                    <p className="text-zinc-500 text-xs truncate">{match}% Taste Match</p>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => handleAcceptRequest(req.sender?._id, req._id)} className="w-8 h-8 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center hover:bg-green-500 hover:text-white transition-colors">
+                                                        <Check size={14} />
+                                                    </button>
+                                                    <button onClick={() => handleDeclineRequest(req._id)} className="w-8 h-8 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors">
+                                                        <X size={14} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )
+                                    })
+                                )
                             ) : (
-                                friendRequests.map(req => {
-                                    const match = getTasteMatch(req.sender?._id);
-                                    return (
-                                        <div key={req._id} className="flex items-center gap-3 bg-black/20 p-3 rounded-2xl border border-white/5">
-                                            <Avatar user={req.sender} size="md" />
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-white text-sm font-semibold truncate">{req.sender?.username}</p>
-                                                <p className="text-zinc-500 text-xs truncate">{match}% Taste Match</p>
+                                sentRequests.length === 0 ? (
+                                    <div className="py-8 text-center text-zinc-600 text-sm">No sent requests</div>
+                                ) : (
+                                    sentRequests.map(req => {
+                                        const match = getTasteMatch(req.recipient?._id);
+                                        return (
+                                            <div key={req._id} className="flex items-center gap-3 bg-black/20 p-3 rounded-2xl border border-white/5">
+                                                <Avatar user={req.recipient} size="md" />
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-white text-sm font-semibold truncate">{req.recipient?.username}</p>
+                                                    <p className="text-zinc-500 text-xs truncate">{match}% Taste Match</p>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => handleCancelRequest(req.recipient?._id, req._id)} className="w-8 h-8 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors" title="Cancel Request">
+                                                        <UserMinus size={14} />
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div className="flex gap-2">
-                                                <button onClick={() => handleAcceptRequest(req.sender?._id, req._id)} className="w-8 h-8 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center hover:bg-green-500 hover:text-white transition-colors">
-                                                    <Check size={14} />
-                                                </button>
-                                                <button onClick={() => handleDeclineRequest(req._id)} className="w-8 h-8 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors">
-                                                    <X size={14} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )
-                                })
+                                        )
+                                    })
+                                )
                             )}
                         </div>
                     </div>
@@ -268,7 +352,7 @@ const Friends = () => {
                                 </div>
                             ) : (
                                 recommendations.map(rec => (
-                                    <div key={rec._id} className="w-[180px] md:w-[200px] flex-none group relative">
+                                    <div key={rec._id} className="w-[140px] md:w-[160px] flex-none group relative">
                                         <button 
                                             onClick={(e) => handleDeleteRecommendation(rec._id, e)}
                                             className="absolute top-2 right-2 z-20 w-7 h-7 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-zinc-400 hover:text-red-400 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-all border border-white/10"
@@ -278,7 +362,7 @@ const Friends = () => {
 
                                         <div 
                                             onClick={() => navigate(rec.anime ? `/anime/${rec.anime.mal_id}` : `/movie/${rec.movie?.tmdbId}`)}
-                                            className="relative w-full h-[220px] rounded-2xl overflow-hidden mb-3 border border-white/5 group-hover:border-white/20 transition-all cursor-pointer shadow-lg"
+                                            className="relative w-full h-[190px] rounded-2xl overflow-hidden mb-3 border border-white/5 group-hover:border-white/20 transition-all cursor-pointer shadow-lg"
                                         >
                                             {(rec.anime?.poster_url || rec.movie?.poster) ? (
                                                 <img src={rec.anime?.poster_url || rec.movie?.poster} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -287,7 +371,7 @@ const Friends = () => {
                                             )}
                                             
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex items-end p-3">
-                                                <p className="text-white font-bold text-sm truncate w-full shadow-black drop-shadow-md">
+                                                <p className="text-white font-bold text-xs truncate w-full shadow-black drop-shadow-md">
                                                     {rec.anime?.title || rec.movie?.title}
                                                 </p>
                                             </div>

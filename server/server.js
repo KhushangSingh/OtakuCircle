@@ -32,6 +32,8 @@ const {
     acceptFriendRequest, 
     getFriends,
     getFriendRequests,
+    getSentFriendRequests,
+    cancelFriendRequest,
     recommendAnime, 
     getRecommendations: getFriendRecommendations, // RENAME THIS to avoid conflict
     getNotifications, 
@@ -89,10 +91,12 @@ app.put('/api/users/email', protect, changeEmail);
 
 // --- SOCIAL & FRIEND ROUTES ---
 app.post('/api/friends/request', protect, sendFriendRequest);
+app.delete('/api/friends/request/:friendId', protect, cancelFriendRequest);
 app.post('/api/friends/accept', protect, acceptFriendRequest);
 app.delete('/api/friends/decline/:notificationId', protect, declineFriendRequest);
 app.get('/api/friends', protect, getFriends);
 app.get('/api/friends/requests', protect, getFriendRequests);
+app.get('/api/friends/requests/sent', protect, getSentFriendRequests);
 
 // --- NOTIFICATIONS ---
 app.get('/api/social/notifications', protect, getNotifications);

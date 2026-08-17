@@ -5,7 +5,8 @@ const {
     getMovieById, 
     addMovieToWatchlist, 
     removeMovieFromWatchlist,
-    addMovieToWatchhistory
+    addMovieToWatchhistory,
+    searchMovies
 } = require('../controllers/movieController');
 const { 
     recommendMovie, 
@@ -16,6 +17,7 @@ const { protect } = require('../middleware/authMiddleware');
 
 // Public routes
 router.get('/home', getMoviesHomeData);
+router.get('/search', searchMovies);
 router.get('/:type/:id', getMovieById);
 
 // Protected routes

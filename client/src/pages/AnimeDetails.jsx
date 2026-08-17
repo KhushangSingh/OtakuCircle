@@ -55,7 +55,7 @@ const AnimeDetails = () => {
         }
     };
 
-    const handleMarkWatched = async () => {
+    const handleMarkWatched = async (statusValue = 'Watched') => {
         try {
             const token = localStorage.getItem('token');
             await axios.post(`${API_URL}/anime/watchhistory`, 
@@ -63,11 +63,11 @@ const AnimeDetails = () => {
                     animeId: anime.mal_id, 
                     title: anime.title, 
                     poster: anime.poster_url,
-                    status: 'Watched'
+                    status: statusValue
                 }, 
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            showNotification("Marked as Watched", "success");
+            showNotification(`Marked as ${statusValue}`, "success");
         } catch (error) {
             showNotification(error.response?.data?.message || "Failed to update", "error");
         }
@@ -214,9 +214,24 @@ const AnimeDetails = () => {
                             <Share2 className="w-4 h-4" /> Recommend
                         </button>
 
-                        <button onClick={handleMarkWatched} className="flex items-center justify-center bg-white/10 backdrop-blur-md text-white border border-white/10 w-10 h-10 rounded-xl hover:bg-green-500/20 hover:text-green-400 transition-all hover:scale-105 active:scale-95">
-                            <Check className="w-5 h-5" strokeWidth={3} />
-                        </button>
+                        <div className="relative inline-block">
+                            <select 
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        handleMarkWatched(e.target.value);
+                                        e.target.value = ""; 
+                                    }
+                                }}
+                                className="appearance-none flex items-center gap-2 bg-white/10 backdrop-blur-md text-white border border-white/10 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm hover:bg-green-500/20 hover:text-green-400 transition-all hover:scale-105 active:scale-95 outline-none cursor-pointer pr-8"
+                            >
+                                <option value="" disabled selected hidden>Set Status</option>
+                                <option value="Watching" className="bg-[#151515] text-white">Watching</option>
+                                <option value="Watched" className="bg-[#151515] text-white">Watched</option>
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
+                                <Check className="w-4 h-4" />
+                            </div>
+                        </div>
                     </div>
 
                     <div className="w-full pr-4">

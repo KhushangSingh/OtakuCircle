@@ -19,6 +19,7 @@ import AnimeSectionMore from './pages/AnimeSectionMore';
 import SmartSearch from './pages/SmartSearch';
 import MoviesHome from './pages/MoviesHome';
 import MovieDetails from './pages/MovieDetails';
+import MovieSectionMore from './pages/MovieSectionMore';
 // Layout Wrapper (Applied to protected routes)
 const MainLayout = () => {
   return (
@@ -92,6 +93,10 @@ function App() {
                   <Route 
                     path="/movies/:type/:id" 
                     element={isAuthenticated ? <MovieDetails /> : <Navigate to="/login" />} 
+                  />
+                  <Route 
+                    path="/movies/section/:section" 
+                    element={isAuthenticated ? <MovieSectionMore /> : <Navigate to="/login" />} 
                   />
                 </>
               )}
