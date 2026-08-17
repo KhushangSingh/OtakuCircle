@@ -79,7 +79,7 @@ function App() {
               />
               <Route 
                 path="/smart-search" 
-                element={<SmartSearch />} 
+                element={isAuthenticated ? <SmartSearch /> : <Navigate to="/login" />} 
               />
               
               {/* --- MOVIES MODULE --- */}
