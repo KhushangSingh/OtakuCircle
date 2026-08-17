@@ -198,21 +198,18 @@ const Login = () => {
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60 blur-lg scale-105"
                     style={{ backgroundImage: `url(${heroImage})` }}
                 ></div>
-                {/* Gradient overlay: Left side is solid black, transitioning to transparent on the right */}
-                <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-[#000000] via-[#050505]/95 to-transparent"></div>
+                {/* Gradient overlay: Left side is solid black (up to ~35%), then fades to transparent */}
+                <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-[#000000] from-0% via-[#000000]/95 via-[35%] to-transparent to-[70%]"></div>
             </div>
 
             {/* LEFT SIDE: VISUALS */}
             <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center overflow-hidden h-full z-10">
                 <div className="relative p-12 max-w-2xl">
-                    <div className="inline-block px-4 py-1.5 mb-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
-                        <span className="text-sm font-bold tracking-widest text-zinc-300 uppercase">Premium Anime Tracker</span>
-                    </div>
                     <h1 className="text-7xl lg:text-[5rem] leading-none font-extrabold tracking-tighter mb-8 bg-gradient-to-br from-white via-blue-200 to-purple-400 bg-clip-text text-transparent drop-shadow-2xl">
                         OtakuCircle
                     </h1>
                     <p className="text-2xl lg:text-3xl text-zinc-300 font-light leading-relaxed drop-shadow-md">
-                        Your personal anime sanctuary. <br/><span className="text-white font-semibold">Track</span> progress, <span className="text-white font-semibold">discover</span> hidden gems, and <span className="text-white font-semibold">connect</span> with a community that gets it.
+                        Your ultimate anime & movie sanctuary. <br/><span className="text-white font-semibold">Track</span> progress, <span className="text-white font-semibold">discover</span> hidden gems, and <span className="text-white font-semibold">connect</span> with a community that gets it.
                     </p>
                 </div>
             </div>
