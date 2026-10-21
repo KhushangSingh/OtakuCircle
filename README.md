@@ -39,6 +39,7 @@ OtakuCircle is built using a modern microservice-inspired architecture, separati
 ### 🔐 Secure & Modern
 * **Authentication:** Secure JWT-based login and registration with password hashing.
 * **Responsive UI:** Fully responsive design built with React and Tailwind CSS.
+* **Design System:** Comprehensive [Design System Documentation (OS-DS)](DESIGN_SYSTEM.md) covering tokens, atomic components, dark canvas ergonomics, and accessibility.
 
 ---
 
