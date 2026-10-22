@@ -275,6 +275,7 @@ const Friends = () => {
                                                 <Avatar user={req.sender} size="md" />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-white text-sm font-semibold truncate">{req.sender?.username}</p>
+                                                    {req.tasteMatch !== null && <p className="text-zinc-500 text-xs truncate">{req.tasteMatch}% Shared Taste</p>}
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <button onClick={() => handleAcceptRequest(req.sender?._id, req._id)} className="w-8 h-8 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center hover:bg-green-500 hover:text-white transition-colors">
@@ -296,6 +297,7 @@ const Friends = () => {
                                                 <Avatar user={req.recipient} size="md" />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-white text-sm font-semibold truncate">{req.recipient?.username}</p>
+                                                    {req.tasteMatch !== null && <p className="text-zinc-500 text-xs truncate">{req.tasteMatch}% Shared Taste</p>}
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <button onClick={() => handleCancelRequest(req.recipient?._id, req._id)} className="w-8 h-8 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors" title="Cancel Request">
@@ -385,6 +387,7 @@ const Friends = () => {
                                         <Avatar user={friend} size="sm" />
                                         <div className="flex-1 min-w-0">
                                             <h3 className="text-white font-semibold text-sm truncate">{friend.username}</h3>
+                                            {friend.tasteMatch !== null && <p className="text-xs font-semibold text-blue-400">{friend.tasteMatch}% Shared Taste</p>}
                                         </div>
                                         <button
                                             onClick={() => handleFriendClick(friend)}

@@ -2,6 +2,46 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const { sendEmail, buildEmailHtml } = require('../utils/emailUtils');
 
+const getHistoryVector = (user) => {
+    const vector = new Map();
+    const addItems = (items, idKey, completedStatuses) => {
+        (Array.isArray(items) ? items : []).forEach(item => {
+            if (item[idKey] === undefined || item[idKey] === null) return;
+            const key = `${idKey}:${item[idKey]}`;
+            const weight = completedStatuses.includes(item.status) ? 1 : 0.6;
+            vector.set(key, Math.max(vector.get(key) || 0, weight));
+        });
+    };
+
+    addItems(user.watchhistory, 'animeId', ['Watched', 'Completed']);
+    addItems(user.movieWatchhistory, 'tmdbId', ['Completed']);
+    return vector;
+};
+
+const calculateHistorySimilarity = (firstUser, secondUser) => {
+    const first = getHistoryVector(firstUser);
+    const second = getHistoryVector(secondUser);
+    if (first.size === 0 || second.size === 0) return null;
+
+    const keys = new Set([...first.keys(), ...second.keys()]);
+    let dot = 0;
+    let firstMagnitude = 0;
+    let secondMagnitude = 0;
+    let sharedItems = 0;
+
+    keys.forEach(key => {
+        const firstWeight = first.get(key) || 0;
+        const secondWeight = second.get(key) || 0;
+        if (firstWeight && secondWeight) sharedItems += 1;
+        dot += firstWeight * secondWeight;
+        firstMagnitude += firstWeight ** 2;
+        secondMagnitude += secondWeight ** 2;
+    });
+
+    if (sharedItems === 0 || firstMagnitude === 0 || secondMagnitude === 0) return 0;
+    return Math.round((dot / (Math.sqrt(firstMagnitude) * Math.sqrt(secondMagnitude))) * 100);
+};
+
 // @desc    Add a friend
 // @route   POST /api/friends/request (Handled by sendFriendRequest, this adds directly)
 const addFriend = async (req, res) => {
@@ -268,6 +308,9 @@ const getNotifications = async (req, res) => {
 // @route   GET /api/friends/requests
 const getFriendRequests = async (req, res) => {
     try {
+        const currentUser = await User.findById(req.user._id || req.user.id)
+            .select('watchhistory movieWatchhistory')
+            .lean();
         const requests = await Notification.find({
             recipient: req.user._id || req.user.id,
             type: 'FRIEND_REQUEST'
@@ -276,7 +319,16 @@ const getFriendRequests = async (req, res) => {
         .sort({ createdAt: -1 })
         .lean();
 
-        res.json(requests);
+        const senderIds = requests.map(request => request.sender?._id).filter(Boolean);
+        const senders = await User.find({ _id: { $in: senderIds } })
+            .select('watchhistory movieWatchhistory')
+            .lean();
+        const historyById = new Map(senders.map(sender => [sender._id.toString(), sender]));
+
+        res.json(requests.map(request => ({
+            ...request,
+            tasteMatch: calculateHistorySimilarity(currentUser, historyById.get(request.sender?._id?.toString()))
+        })));
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -286,6 +338,9 @@ const getFriendRequests = async (req, res) => {
 // @route   GET /api/friends/requests/sent
 const getSentFriendRequests = async (req, res) => {
     try {
+        const currentUser = await User.findById(req.user._id || req.user.id)
+            .select('watchhistory movieWatchhistory')
+            .lean();
         const requests = await Notification.find({
             sender: req.user._id || req.user.id,
             type: 'FRIEND_REQUEST'
@@ -294,7 +349,16 @@ const getSentFriendRequests = async (req, res) => {
         .sort({ createdAt: -1 })
         .lean();
 
-        res.json(requests);
+        const recipientIds = requests.map(request => request.recipient?._id).filter(Boolean);
+        const recipients = await User.find({ _id: { $in: recipientIds } })
+            .select('watchhistory movieWatchhistory')
+            .lean();
+        const historyById = new Map(recipients.map(recipient => [recipient._id.toString(), recipient]));
+
+        res.json(requests.map(request => ({
+            ...request,
+            tasteMatch: calculateHistorySimilarity(currentUser, historyById.get(request.recipient?._id?.toString()))
+        })));
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -462,7 +526,9 @@ const declineFriendRequest = async (req, res) => {
 const getFriends = async (req, res) => {
     try {
         const userId = req.user._id || req.user.id;
-        const user = await User.findById(userId).select('friends');
+        const user = await User.findById(userId)
+            .select('friends watchhistory movieWatchhistory')
+            .lean();
         if (!user) return res.status(404).json({ message: 'User not found' });
         
         const friends = await User.find({ _id: { $in: user.friends } })
@@ -487,7 +553,8 @@ const getFriends = async (req, res) => {
                 username: friend.username,
                 profilePicture: friend.profilePicture, 
                 watchlistCount: watchedList.length,
-                recentWatched: recentWatched
+                recentWatched: recentWatched,
+                tasteMatch: calculateHistorySimilarity(user, friend)
             };
         });
         
