@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, User, Bell, Menu, Sparkles, Home, Heart, Users, Film, Settings, LogOut } from 'lucide-react'; 
+import { Search, User, Bell, Menu, Sparkles, Home, Heart, Users, Film, Settings, LogOut, Shield, FileText } from 'lucide-react'; 
 import axios from 'axios';
 
 const Navbar = () => {
@@ -358,6 +358,26 @@ const Navbar = () => {
                                 >
                                     <Settings size={16} /> Settings
                                 </Link>
+
+                                <div className="border-t border-white/5 my-1"></div>
+
+                                <Link 
+                                    to="/privacy" 
+                                    onClick={() => setIsProfileDropdownOpen(false)}
+                                    className="flex items-center gap-3 px-4 py-2 text-xs text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+                                >
+                                    <Shield size={14} className="text-blue-400" /> Privacy Policy
+                                </Link>
+
+                                <Link 
+                                    to="/terms" 
+                                    onClick={() => setIsProfileDropdownOpen(false)}
+                                    className="flex items-center gap-3 px-4 py-2 text-xs text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+                                >
+                                    <FileText size={14} className="text-zinc-400" /> Terms of Service
+                                </Link>
+
+                                <div className="border-t border-white/5 my-1"></div>
                                 
                                 <button 
                                     onClick={handleLogout}
@@ -430,6 +450,13 @@ const Navbar = () => {
                           </Link>
                       )}
                       
+                      <div className="w-16 border-t border-white/10 my-1"></div>
+                      <Link to="/privacy" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors">
+                          <Shield size={16} className="text-blue-400" /> Privacy Policy
+                      </Link>
+                      <Link to="/terms" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors">
+                          <FileText size={16} /> Terms of Service
+                      </Link>
                       <button 
                           onClick={handleLogout} 
                           className="flex items-center gap-3 text-xl font-bold transition-colors text-red-500 hover:text-red-400 mt-4"

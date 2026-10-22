@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Plus, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import heroImage from '../assets/spotlight-hero-bg.jpg';
+import Footer from '../components/Footer';
 
 // --- COMPONENT: Anime Card ---
 const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
@@ -330,6 +331,7 @@ const Home = () => {
                 <AnimeSection id="section-fantasy" title="Fantasy Worlds" data={homeData.fantasy} onAddWatchlist={handleAddToWatchlist} onAddWatchhistory={handleAddToWatchhistory} onCardClick={handleCardClick} sectionKey="fantasy" />
                 <AnimeSection id="section-romance" title="Romance & Drama" data={homeData.romance} onAddWatchlist={handleAddToWatchlist} onAddWatchhistory={handleAddToWatchhistory} onCardClick={handleCardClick} sectionKey="romance" />
             </div>
+            <Footer />
         </div>
     );
 };

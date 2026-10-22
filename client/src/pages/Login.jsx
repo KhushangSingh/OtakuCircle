@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, Loader, X, KeyRound, ShieldCheck } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import heroImage from '../assets/spotlight-hero-bg.jpg';
@@ -430,7 +430,7 @@ const Login = () => {
                         </form>
                     )}
 
-                    <div className="text-center pt-2">
+                    <div className="text-center pt-2 space-y-4">
                         <p className="text-zinc-400 text-sm">
                             {isLogin ? "Don't have an account?" : 'Already have an account?'}
                             <button onClick={toggleMode}
@@ -438,6 +438,12 @@ const Login = () => {
                                 {isLogin ? 'Sign up' : 'Log in'}
                             </button>
                         </p>
+
+                        <div className="flex items-center justify-center gap-3 text-xs text-zinc-500 pt-2 border-t border-white/5">
+                            <Link to="/privacy" className="hover:text-zinc-300 transition-colors">Privacy Policy</Link>
+                            <span>•</span>
+                            <Link to="/terms" className="hover:text-zinc-300 transition-colors">Terms of Service</Link>
+                        </div>
                     </div>
                 </div>
             </div>

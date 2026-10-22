@@ -21,7 +21,10 @@ import SmartSearch from './pages/SmartSearch';
 import MoviesHome from './pages/MoviesHome';
 import MovieDetails from './pages/MovieDetails';
 import MovieSectionMore from './pages/MovieSectionMore';
-// Layout Wrapper (Applied to protected routes)
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+
+// Layout Wrapper (Applied to routes with Navbar)
 const MainLayout = () => {
   return (
     <>
@@ -46,15 +49,15 @@ function App() {
         <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
           
           <Routes>
-            {/* --- Public Route --- */}
+            {/* --- Public Legal & Auth Routes --- */}
             <Route path="/login" element={<Login />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
 
-            {/* --- Protected Routes (Require Auth) --- */}
+            {/* --- Routes with MainLayout --- */}
             <Route element={<MainLayout />}>
-              <Route 
-                path="/" 
-                element={isAuthenticated ? <Home /> : <Navigate to="/login" />} 
-              />
+              {/* Home is publicly viewable (compliance requirement) */}
+              <Route path="/" element={<Home />} />
               <Route 
                 path="/anime/:id" 
                 element={isAuthenticated ? <AnimeDetails /> : <Navigate to="/login" />} 
