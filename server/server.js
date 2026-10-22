@@ -6,7 +6,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const connectDB = require('./config/db');
 
 // --- IMPORT CONTROLLERS ---
-const { registerUser, loginUser, forgotPassword, verifyOtp, resetPassword } = require('./controllers/authController');
+const { sendRegisterOtp, registerVerify, loginUser, googleAuth, forgotPassword, verifyOtp, resetPassword } = require('./controllers/authController');
 
 const { 
     getAnimes, 
@@ -61,7 +61,7 @@ const authLimiter = rateLimit({
 dotenv.config();
 
 // Verify critical environment variables
-const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET'];
+const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'REFRESH_TOKEN', 'EMAIL_USER'];
 const missingVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 if (missingVars.length > 0) {
     console.error(`❌ FATAL ERROR: Missing required environment variables: ${missingVars.join(', ')}`);
@@ -103,8 +103,14 @@ app.use(mongoSanitize()); // Prevent NoSQL Injection
 
 // --- AUTH ROUTES ---
 app.use('/api/auth', authLimiter);
-app.post('/api/auth/register', registerUser);
+// Registration: 2-step (email OTP verification)
+app.post('/api/auth/send-otp', sendRegisterOtp);
+app.post('/api/auth/register-verify', registerVerify);
+// Login
 app.post('/api/auth/login', loginUser);
+// Google Sign-In / Sign-Up
+app.post('/api/auth/google', googleAuth);
+// Password Reset: 3-step (send OTP → verify → reset)
 app.post('/api/auth/forgot-password', forgotPassword);
 app.post('/api/auth/verify-otp', verifyOtp);
 app.post('/api/auth/reset-password', resetPassword);
