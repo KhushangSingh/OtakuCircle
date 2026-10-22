@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import WatchStatusDropdown from '../components/WatchStatusDropdown';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Check, ArrowLeft } from 'lucide-react';
+import { Plus, Check, ArrowLeft } from '../components/icons';
 import { useNotification } from '../components/NotificationProvider';
 
 // --- SUB-COMPONENT: Anime Card ---
@@ -31,7 +31,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
                 {anime.score && (
                     <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
-                        ★ {anime.score}
+                        ★ {Number(anime.score).toFixed(2)}
                     </div>
                 )}
                 <div className="absolute inset-x-0 bottom-0 p-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 flex flex-col gap-2 z-20">

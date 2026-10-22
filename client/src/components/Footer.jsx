@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Shield, FileText, Mail, Heart, Sparkles, Film } from 'lucide-react';
+import { Shield, FileText, Mail, Heart, Sparkles, Film } from './icons';
 
 const Footer = () => {
     return (

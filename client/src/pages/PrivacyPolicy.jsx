@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Shield, ArrowLeft, Mail, Lock, Database, Eye, RefreshCw, Trash2 } from 'lucide-react';
+import { Shield, ArrowLeft, Mail, Lock, Database, Eye, RefreshCw, Trash2 } from '../components/icons';
 
 const PrivacyPolicy = () => {
     return (

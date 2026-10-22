@@ -5,7 +5,7 @@ import axios from 'axios';
 import { 
     UserPlus, Search, X, User, MessageSquare, Check, XCircle, Film, Trash2,
     Users, Compass, MoreVertical, VideoOff, MessageCircle, Info, UserMinus
-} from 'lucide-react';
+} from '../components/icons';
 
 const Friends = () => {
     const { showNotification } = useNotification();

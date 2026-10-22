@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import WatchStatusDropdown from '../components/WatchStatusDropdown';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Check, ArrowLeft } from 'lucide-react';
+import { Plus, Check, ArrowLeft } from '../components/icons';
 import { useNotification } from '../components/NotificationProvider';
 
 // --- SUB-COMPONENT: Movie Card ---
@@ -32,7 +32,7 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 
                 {movie.score && (
                     <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
-                        ★ {movie.score}
+                        ★ {Number(movie.score).toFixed(2)}
                     </div>
                 )}
 

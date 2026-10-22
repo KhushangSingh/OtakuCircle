@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Settings as SettingsIcon, User, Mail, Lock, ShieldAlert, Bell, KeyRound } from 'lucide-react';
+import { Settings as SettingsIcon, User, Mail, Lock, ShieldAlert, Bell, KeyRound } from '../components/icons';
 
 // ── Pill toggle ──────────────────────────────────────────────────────────────
 const ToggleSwitch = ({ checked, onChange, disabled }) => (

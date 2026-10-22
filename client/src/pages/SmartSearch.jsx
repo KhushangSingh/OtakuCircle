@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import WatchStatusDropdown from '../components/WatchStatusDropdown';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Search, Sparkles, Plus, Check, Star } from 'lucide-react';
+import { Search, Sparkles, Plus, Check, Star } from '../components/icons';
 import { useNotification } from '../components/NotificationProvider';
 
 // --- ANIME CARD COMPONENT ---
@@ -37,7 +37,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 {/* Score Badge */}
                 {anime.score && (
                     <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
-                        ★ {anime.score}
+                        ★ {Number(anime.score).toFixed(2)}
                     </div>
                 )}
 

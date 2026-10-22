@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ChevronRight, Tv, User, Check, PlayCircle, Clock, Zap } from 'lucide-react';
+import { ChevronRight, Tv, User, Check, PlayCircle, Clock, Zap } from '../components/icons';
 
 // --- Reusable Anime Card Component (Unchanged) ---
 const AnimeCard = ({ anime }) => {
@@ -53,7 +53,7 @@ const AnimeCard = ({ anime }) => {
                 
                 {anime.score > 0 && (
                     <div className="absolute top-3 right-3 bg-blue-600/90 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
-                        ★ {anime.score}
+                        ★ {Number(anime.score).toFixed(2)}
                     </div>
                 )}
 

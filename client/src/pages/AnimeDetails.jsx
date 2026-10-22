@@ -5,7 +5,7 @@ import axios from 'axios';
 import { 
     Plus, Star, Play, Info, Calendar, Clock, Check, 
     ArrowLeft, Share2, X, Send 
-} from 'lucide-react';
+} from '../components/icons';
 
 import { useNotification } from '../components/NotificationProvider';
 
@@ -189,7 +189,7 @@ const AnimeDetails = () => {
                     <div className="flex flex-wrap items-center gap-2 mb-6 text-zinc-300 text-xs md:text-sm mt-1">
                         <div className="flex items-center gap-1 bg-yellow-500/10 px-2.5 py-1 rounded-lg border border-yellow-500/20 text-yellow-400">
                             <Star className="w-3.5 h-3.5 fill-current" />
-                            <span className="font-extrabold">{anime.score}</span>
+                            <span className="font-extrabold">{Number(anime.score).toFixed(2)}</span>
                         </div>
                         <div className="flex gap-2">
                             {anime.genres && anime.genres.slice(0, 4).map((g, i) => (

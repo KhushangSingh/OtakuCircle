@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, User, Bell, Menu, Sparkles, Home, Heart, Users, Film, Settings, LogOut, Shield, FileText } from 'lucide-react'; 
+import { Search, User, Bell, Menu, Sparkles } from './icons';
 import axios from 'axios';
 
 const Navbar = () => {
@@ -233,7 +233,7 @@ const Navbar = () => {
                             <img src={anime.poster_url} alt={anime.title} className="w-9 h-12 object-cover rounded shadow-md bg-zinc-800" />
                             <div className="flex-1 min-w-0">
                                 <p className="font-semibold text-sm text-white truncate group-hover/item:text-blue-400 transition-colors">{anime.title}</p>
-                                <p className="text-[10px] text-zinc-200 mt-0.5">{anime.type || 'TV'} • {anime.score || 'N/A'}</p>
+                                <p className="text-[10px] text-zinc-200 mt-0.5">{anime.type || 'TV'} • {anime.score ? Number(anime.score).toFixed(2) : 'N/A'}</p>
                             </div>
                         </div>
                     )) : (
@@ -260,20 +260,20 @@ const Navbar = () => {
             {isLoggedIn && (
                 <div className="hidden md:flex items-center gap-2 mr-4">
                     <Link to="/" className={getLinkClass('/', true)}>
-                        <Home size={16} /> Home
+                        Home
                     </Link>
                     <Link to="/smart-search" className={getLinkClass('/smart-search', false)}>
-                        <Sparkles size={16} className={location.pathname === '/smart-search' ? "text-blue-400" : ""} /> Smart Search
+                        Smart Search
                     </Link>
                     <Link to="/recommendations" className={getLinkClass('/recommendations', false)}>
-                        <Heart size={16} /> For You
+                        For You
                     </Link>
                     <Link to="/friends" className={getLinkClass('/friends', false)}>
-                        <Users size={16} /> Friends
+                        Friends
                     </Link>
                     {import.meta.env.VITE_ENABLE_MOVIES === 'true' && (
                         <Link to="/movies" className={getLinkClass('/movies', true)}>
-                            <Film size={16} /> Movies & Shows
+                            Movies & Shows
                         </Link>
                     )}
                 </div>
@@ -346,17 +346,17 @@ const Navbar = () => {
                                 <Link 
                                     to={`/profile/${localStorage.getItem('username')}`} 
                                     onClick={() => setIsProfileDropdownOpen(false)}
-                                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-300 hover:text-white hover:bg-white/10 transition-colors"
+                                    className="flex items-center px-4 py-2.5 text-sm text-zinc-300 hover:text-white hover:bg-white/10 transition-colors"
                                 >
-                                    <User size={16} /> Profile
+                                    Profile
                                 </Link>
 
                                 <Link 
                                     to="/settings" 
                                     onClick={() => setIsProfileDropdownOpen(false)}
-                                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-300 hover:text-white hover:bg-white/10 transition-colors"
+                                    className="flex items-center px-4 py-2.5 text-sm text-zinc-300 hover:text-white hover:bg-white/10 transition-colors"
                                 >
-                                    <Settings size={16} /> Settings
+                                    Settings
                                 </Link>
 
                                 <div className="border-t border-white/5 my-1"></div>
@@ -364,26 +364,26 @@ const Navbar = () => {
                                 <Link 
                                     to="/privacy" 
                                     onClick={() => setIsProfileDropdownOpen(false)}
-                                    className="flex items-center gap-3 px-4 py-2 text-xs text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+                                    className="flex items-center px-4 py-2 text-xs text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
                                 >
-                                    <Shield size={14} className="text-blue-400" /> Privacy Policy
+                                    Privacy Policy
                                 </Link>
 
                                 <Link 
                                     to="/terms" 
                                     onClick={() => setIsProfileDropdownOpen(false)}
-                                    className="flex items-center gap-3 px-4 py-2 text-xs text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+                                    className="flex items-center px-4 py-2 text-xs text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
                                 >
-                                    <FileText size={14} className="text-zinc-400" /> Terms of Service
+                                    Terms of Service
                                 </Link>
 
                                 <div className="border-t border-white/5 my-1"></div>
                                 
                                 <button 
                                     onClick={handleLogout}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors text-left"
+                                    className="w-full flex items-center px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors text-left"
                                 >
-                                    <LogOut size={16} /> Log Out
+                                    Log Out
                                 </button>
                             </div>
                         )}
@@ -433,35 +433,35 @@ const Navbar = () => {
               {isLoggedIn && (
                   <>
                       <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={`md:hidden flex items-center gap-3 text-xl font-bold transition-colors ${location.pathname === '/' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
-                          <Home size={20} /> Home
+                          Home
                       </Link>
                       <Link to="/smart-search" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-xl font-bold transition-colors ${location.pathname === '/smart-search' ? 'text-blue-400' : 'text-zinc-300 hover:text-zinc-300'}`}>
-                          <Sparkles size={20} /> Smart Search
+                          Smart Search
                       </Link>
                       <Link to="/recommendations" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-xl font-bold transition-colors ${location.pathname === '/recommendations' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
-                          <Heart size={20} /> For You
+                          For You
                       </Link>
                       <Link to="/friends" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-xl font-bold transition-colors ${location.pathname === '/friends' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
-                          <Users size={20} /> Friends
+                          Friends
                       </Link>
                       {import.meta.env.VITE_ENABLE_MOVIES === 'true' && (
                           <Link to="/movies" onClick={() => setIsMobileMenuOpen(false)} className={`md:hidden flex items-center gap-3 text-xl font-bold transition-colors ${location.pathname === '/movies' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
-                              <Film size={20} /> Movies & Shows
+                              Movies & Shows
                           </Link>
                       )}
                       
                       <div className="w-16 border-t border-white/10 my-1"></div>
                       <Link to="/privacy" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors">
-                          <Shield size={16} className="text-blue-400" /> Privacy Policy
+                          Privacy Policy
                       </Link>
                       <Link to="/terms" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors">
-                          <FileText size={16} /> Terms of Service
+                          Terms of Service
                       </Link>
                       <button 
                           onClick={handleLogout} 
                           className="flex items-center gap-3 text-xl font-bold transition-colors text-red-500 hover:text-red-400 mt-4"
                       >
-                          <LogOut size={20} /> Log Out
+                          Log Out
                       </button>
                   </>
               )}

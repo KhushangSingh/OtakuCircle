@@ -5,7 +5,7 @@ import axios from 'axios';
 import { 
     Plus, Star, Play, Info, Calendar, Clock, Check, ArrowLeft,
     Share2, X, Send
-} from 'lucide-react';
+} from '../components/icons';
 
 import { useNotification } from '../components/NotificationProvider';
 
@@ -202,7 +202,7 @@ const MovieDetails = () => {
                         {movie.vote_average ? (
                             <div className="flex items-center gap-1 bg-yellow-500/10 px-2.5 py-1 rounded-lg border border-yellow-500/20 text-yellow-400">
                                 <Star className="w-3.5 h-3.5 fill-current" />
-                                <span className="font-extrabold">{movie.vote_average.toFixed(1)}</span>
+                                <span className="font-extrabold">{Number(movie.vote_average).toFixed(2)}</span>
                             </div>
                         ) : null}
                         

@@ -3,7 +3,7 @@ import WatchStatusDropdown from '../components/WatchStatusDropdown';
 import { useNotification } from '../components/NotificationProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Check, ChevronLeft, ChevronRight, Film, Search } from 'lucide-react';
+import { Plus, Check, ChevronLeft, ChevronRight, Film, Search } from '../components/icons';
 import moviesHeroBg from '../assets/movies-hero-bg-2.png';
 
 // --- COMPONENT: Movie Card ---
@@ -35,7 +35,7 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 
                 {movie.score && (
                     <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
-                        ★ {movie.score}
+                        ★ {Number(movie.score).toFixed(2)}
                     </div>
                 )}
 

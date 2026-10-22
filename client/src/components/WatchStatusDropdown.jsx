@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
+import { ChevronDown, Check } from './icons';
 
 const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded, className, wrapperClass, direction = 'down' }) => {
     const [isOpen, setIsOpen] = useState(false);

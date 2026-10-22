@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FileText, ArrowLeft, CheckCircle, AlertTriangle, ShieldCheck, Mail } from 'lucide-react';
+import { FileText, ArrowLeft, CheckCircle, AlertTriangle, ShieldCheck, Mail } from '../components/icons';
 
 const TermsOfService = () => {
     return (

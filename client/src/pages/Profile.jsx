@@ -8,7 +8,7 @@ import {
 import { 
     Trash2, X, Activity, Film, Tv, 
     LogOut, CheckCircle, User, Pencil, TrendingUp, Clock, Star, Zap, Users, Trophy, Award, Crown, Target
-} from 'lucide-react';
+} from '../components/icons';
 import WatchStatusDropdown from '../components/WatchStatusDropdown';
 
 const Profile = () => {
@@ -446,7 +446,7 @@ const Profile = () => {
                                                                     {item.status}
                                                                 </span>
                                                                 {item.score > 0 && (
-                                                                    <span className="text-[10px] font-bold text-yellow-400 flex items-center gap-1"><Star size={10} fill="currentColor"/>{item.score}</span>
+                                                                    <span className="text-[10px] font-bold text-yellow-400 flex items-center gap-1"><Star size={10} fill="currentColor"/>{Number(item.score).toFixed(2)}</span>
                                                                 )}
                                                             </div>
                                                         </div>

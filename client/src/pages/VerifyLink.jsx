@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ShieldCheck, XCircle, Loader } from 'lucide-react';
+import { ShieldCheck, XCircle, Loader } from '../components/icons';
 
 /**
  * VerifyLink — handles the one-click email verification link for linking

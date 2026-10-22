@@ -3,7 +3,7 @@ import WatchStatusDropdown from '../components/WatchStatusDropdown';
 import { useNotification } from '../components/NotificationProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Check, ChevronLeft, ChevronRight } from '../components/icons';
 import heroImage from '../assets/spotlight-hero-bg.jpg';
 import Footer from '../components/Footer';
 
@@ -36,7 +36,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 
                 {anime.score && (
                     <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
-                        ★ {anime.score}
+                        ★ {Number(anime.score).toFixed(2)}
                     </div>
                 )}
 
