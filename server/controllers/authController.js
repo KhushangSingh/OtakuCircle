@@ -20,6 +20,14 @@ const makeOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 /** Generate a cryptographically secure URL-safe token for email links */
 const makeSecureToken = () => crypto.randomBytes(32).toString('hex');
 
+const formatGoogleUsername = (name = '') => {
+    const words = name.trim().split(/\s+/).filter(Boolean);
+    const capitalize = (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    if (words.length === 0) return 'Otaku';
+    if (words.length === 1) return capitalize(words[0]);
+    return `${capitalize(words[0])} ${capitalize(words[words.length - 1])}`;
+};
+
 /**
  * Send a styled OTP email (register / reset flows).
  */
@@ -288,11 +296,11 @@ const googleAuth = async (req, res) => {
             // For 'google' or 'both' — just log in normally
         } else {
             // --- NEW USER via Google ---
-            const baseUsername = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+            const baseUsername = formatGoogleUsername(name);
             let username = baseUsername;
             let suffix = 1;
             while (await User.findOne({ username })) {
-                username = `${baseUsername}${suffix++}`;
+                username = `${baseUsername} ${suffix++}`;
             }
             user = await User.create({
                 username,

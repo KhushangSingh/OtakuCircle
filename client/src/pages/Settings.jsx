@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Settings as SettingsIcon, User, Mail, Lock, ShieldAlert, Bell, KeyRound } from '../components/icons';
+import { Settings as SettingsIcon, User, Mail, Lock, ShieldAlert, Bell, KeyRound, X, Pencil } from '../components/icons';
 
 // ── Pill toggle ──────────────────────────────────────────────────────────────
 const ToggleSwitch = ({ checked, onChange, disabled }) => (
@@ -52,6 +52,9 @@ const Settings = () => {
     const [loading, setLoading] = useState(true);
     const [editingField, setEditingField] = useState(null);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [showAvatarModal, setShowAvatarModal] = useState(false);
+    const [avatarOptions, setAvatarOptions] = useState([]);
+    const [loadingAvatars, setLoadingAvatars] = useState(false);
 
     // ── Username ──────────────────────────────────────────────────────────────
     const [usernameData, setUsernameData] = useState('');
@@ -116,6 +119,45 @@ const Settings = () => {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     const toast = (type, text) => setMessage({ type, text });
+
+    const handleOpenAvatarModal = async () => {
+        setShowAvatarModal(true);
+        if (avatarOptions.length > 0) return;
+        setLoadingAvatars(true);
+        try {
+            const query = `{
+                Page(perPage: 20) {
+                    characters(sort: FAVOURITES_DESC) {
+                        id
+                        name { full }
+                        image { large }
+                    }
+                }
+            }`;
+            const res = await axios.post('https://graphql.anilist.co', { query });
+            setAvatarOptions(res.data.data.Page.characters);
+        } catch (error) {
+            console.error('Failed to fetch avatars:', error);
+            toast('error', 'Failed to load avatars');
+        } finally {
+            setLoadingAvatars(false);
+        }
+    };
+
+    const handleAvatarUpdate = async (imageUrl) => {
+        try {
+            const res = await axios.put(
+                `${API_URL}/users/profile`,
+                { profilePicture: imageUrl },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setUser(res.data);
+            setShowAvatarModal(false);
+            toast('success', 'Profile picture updated');
+        } catch (error) {
+            toast('error', error.response?.data?.message || 'Failed to update profile picture');
+        }
+    };
 
     const cancelEdit = () => {
         setEditingField(null);
@@ -456,6 +498,33 @@ const Settings = () => {
                     </div>
                 </div>
 
+                {/* ── Profile picture card ──────────────────────────────── */}
+                <div className="bg-[#151515] border border-white/5 rounded-2xl p-4 md:p-6 shadow-xl">
+                    <h2 className="text-base font-bold text-white flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
+                        <User className="text-blue-400" size={18} /> Profile Picture
+                    </h2>
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 min-w-0">
+                            <div className="w-16 h-16 rounded-full p-0.5 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shrink-0">
+                                {user.profilePicture ? (
+                                    <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover rounded-full bg-[#1a1a1a]" />
+                                ) : (
+                                    <div className="w-full h-full bg-[#1a1a1a] rounded-full flex items-center justify-center text-xl font-black text-white">
+                                        {user.username.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-white">Choose an anime character avatar</p>
+                                <p className="text-xs text-zinc-500">This picture appears on your profile and social interactions.</p>
+                            </div>
+                        </div>
+                        <button type="button" onClick={handleOpenAvatarModal} className="shrink-0 px-3 py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-lg transition-colors">
+                            <Pencil size={14} className="inline mr-1.5" /> Change
+                        </button>
+                    </div>
+                </div>
+
                 {/* ── Email Preferences card ─────────────────────────────── */}
                 <div className="bg-[#151515] border border-white/5 rounded-2xl p-4 md:p-6 shadow-xl">
                     <h2 className="text-base font-bold text-white flex items-center gap-2 border-b border-white/5 pb-3 mb-3">
@@ -539,6 +608,36 @@ const Settings = () => {
                         </div>
                     </div>
                 </div>
+
+                {showAvatarModal && (
+                    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-6 animate-in fade-in duration-300">
+                        <div className="bg-[#151515] rounded-[32px] shadow-2xl max-w-3xl w-full p-8 md:p-10 max-h-[85vh] flex flex-col border border-white/5">
+                            <div className="flex justify-between items-center mb-8">
+                                <div>
+                                    <h3 className="text-3xl font-black text-white">Select Avatar</h3>
+                                    <p className="text-zinc-400 mt-1 font-medium">Choose from top trending characters</p>
+                                </div>
+                                <button type="button" onClick={() => setShowAvatarModal(false)} className="p-3 bg-white/5 hover:bg-white/10 rounded-full transition-colors"><X size={24} className="text-white" /></button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-4">
+                                {loadingAvatars ? (
+                                    <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" /></div>
+                                ) : (
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-6">
+                                        {avatarOptions.map(char => (
+                                            <button type="button" key={char.id} className="relative group cursor-pointer text-left" onClick={() => handleAvatarUpdate(char.image.large)}>
+                                                <div className="w-full aspect-square rounded-2xl overflow-hidden shadow-lg group-hover:shadow-blue-500/20 transition-all group-hover:scale-105 group-hover:-translate-y-1">
+                                                    <img src={char.image.large} className="w-full h-full object-cover" alt={char.name?.full || 'Avatar'} />
+                                                </div>
+                                                <p className="text-center text-[10px] font-bold text-zinc-400 mt-2 truncate group-hover:text-white transition-colors">{char.name?.full}</p>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* ── Danger Zone card ──────────────────────────────────── */}
                 <div className="bg-[#151515] border border-red-900/30 rounded-2xl p-4 md:p-6 shadow-xl relative overflow-hidden">

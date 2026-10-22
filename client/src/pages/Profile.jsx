@@ -6,8 +6,8 @@ import {
     RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
 import { 
-    Trash2, X, Activity, Film, Tv, 
-    LogOut, CheckCircle, User, Pencil, TrendingUp, Clock, Star, Zap, Users, Trophy, Award, Crown, Target
+    Trash2, Activity, Film, Tv,
+    LogOut, CheckCircle, User, TrendingUp, Clock, Star, Zap, Users, Trophy, Award, Crown, Target
 } from '../components/icons';
 import WatchStatusDropdown from '../components/WatchStatusDropdown';
 
@@ -34,9 +34,6 @@ const Profile = () => {
     });
 
     // Modals
-    const [showAvatarModal, setShowAvatarModal] = useState(false);
-    const [avatarOptions, setAvatarOptions] = useState([]);
-    const [loadingAvatars, setLoadingAvatars] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState({ show: false, animeId: null, type: null, title: '' });
     
     // Auth
@@ -176,37 +173,6 @@ const Profile = () => {
     }, [username, API_URL, token]);
 
     // --- HANDLERS ---
-    const handleOpenAvatarModal = async () => {
-        setShowAvatarModal(true);
-        if (avatarOptions.length === 0) {
-            setLoadingAvatars(true);
-            try {
-                const query = `
-                {
-                  Page(perPage: 20) {
-                    characters(sort: FAVOURITES_DESC) {
-                      id
-                      name { full }
-                      image { large }
-                    }
-                  }
-                }`;
-                const res = await axios.post('https://graphql.anilist.co', { query });
-                setAvatarOptions(res.data.data.Page.characters);
-            } catch (error) { console.error("Failed to fetch avatars"); } 
-            finally { setLoadingAvatars(false); }
-        }
-    };
-
-    const handleAvatarUpdate = async (imageUrl) => {
-        try {
-            await axios.put(`${API_URL}/users/profile`, { profilePicture: imageUrl }, { headers: { Authorization: `Bearer ${token}` } });
-            setUser(prev => ({ ...prev, profilePicture: imageUrl }));
-            setShowAvatarModal(false);
-            setMessage({ type: 'success', text: 'Profile updated!' });
-        } catch (error) { setMessage({ type: 'error', text: 'Failed to update avatar' }); }
-    };
-
     const handleLogout = () => { localStorage.clear(); navigate('/login'); };
 
     const handleDeleteClick = (animeId, type, title) => { setDeleteConfirm({ show: true, animeId, type, title }); };
@@ -300,11 +266,6 @@ const Profile = () => {
                                     <div className="w-full h-full bg-[#1a1a1a] rounded-full border-4 border-[#101010] flex items-center justify-center text-4xl md:text-5xl font-black text-white">{user.username.charAt(0).toUpperCase()}</div>
                                 }
                             </div>
-                            {isOwnProfile && (
-                                <button onClick={handleOpenAvatarModal} className="absolute bottom-2 right-2 p-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg transition-all hover:scale-110 active:scale-95 z-20 border-2 border-[#101010]">
-                                    <Pencil size={16} />
-                                </button>
-                            )}
                         </div>
 
                         {/* User Info */}
@@ -507,37 +468,7 @@ const Profile = () => {
                     </div>
             </div>
 
-            {/* Modals (Avatar, Delete, Confirm) */}
-            {showAvatarModal && (
-                <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-6 animate-in fade-in duration-300">
-                    <div className="bg-[#151515] rounded-[32px] shadow-2xl max-w-3xl w-full p-8 md:p-10 max-h-[85vh] flex flex-col border border-white/5">
-                        <div className="flex justify-between items-center mb-8">
-                            <div>
-                                <h3 className="text-3xl font-black text-white">Select Avatar</h3>
-                                <p className="text-zinc-400 mt-1 font-medium">Choose from top trending characters</p>
-                            </div>
-                            <button onClick={() => setShowAvatarModal(false)} className="p-3 bg-white/5 hover:bg-white/10 rounded-full transition-colors"><X size={24} className="text-white" /></button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-4">
-                            {loadingAvatars ? (
-                                <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div></div>
-                            ) : (
-                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-6">
-                                    {avatarOptions.map(char => (
-                                        <div key={char.id} className="relative group cursor-pointer" onClick={() => handleAvatarUpdate(char.image.large)}>
-                                            <div className="w-full aspect-square rounded-2xl overflow-hidden shadow-lg group-hover:shadow-blue-500/20 transition-all group-hover:scale-105 group-hover:-translate-y-1">
-                                                <img src={char.image.large} className="w-full h-full object-cover" alt={char.name?.full || "Avatar"} />
-                                            </div>
-                                            <p className="text-center text-[10px] font-bold text-zinc-400 mt-2 truncate group-hover:text-white transition-colors">{char.name?.full}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
+            {/* Modals (Delete, Confirm) */}
             {deleteConfirm.show && (
                 <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-6">
                     <div className="bg-[#151515] rounded-[32px] border border-white/5 shadow-2xl max-w-md w-full p-10 text-center">
