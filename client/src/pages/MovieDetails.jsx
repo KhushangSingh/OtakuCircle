@@ -158,9 +158,9 @@ const MovieDetails = () => {
             {/* BACK BUTTON */}
             <button 
                 onClick={() => navigate(-1)}
-                className="absolute top-20 left-6 lg:left-12 z-50 p-2 lg:p-3 bg-black/40 hover:bg-black/80 backdrop-blur-md rounded-full border border-white/10 text-white transition-all shadow-xl group"
+            className="absolute top-20 left-6 lg:left-12 z-50 p-2 lg:p-3 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-white transition-colors shadow-xl"
             >
-                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                <ArrowLeft size={20} />
             </button>
 
             {/* BACKGROUND POSTER LAYER */}
@@ -200,7 +200,7 @@ const MovieDetails = () => {
                     
                     <div className="flex flex-wrap items-center gap-2 mb-6 text-zinc-300 text-xs md:text-sm mt-1">
                         {movie.vote_average ? (
-                            <div className="flex items-center gap-1 bg-yellow-500/10 px-2.5 py-1 rounded-lg border border-yellow-500/20 text-yellow-400">
+                            <div className="flex items-center gap-1 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg border border-blue-400 shadow-lg shadow-blue-900/40">
                                 <Star className="w-3.5 h-3.5 fill-current" />
                                 <span className="font-extrabold">{Number(movie.vote_average).toFixed(2)}</span>
                             </div>
@@ -217,28 +217,24 @@ const MovieDetails = () => {
 
                     {/* Action Buttons */}
                     <div className="flex flex-wrap gap-3 mb-6">
-                        <button onClick={handleWatchTrailer} className="flex items-center gap-1.5 bg-white text-black px-4 py-2.5 rounded-xl font-black text-xs md:text-sm hover:bg-zinc-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95">
+                        <button onClick={handleWatchTrailer} className="flex items-center gap-1.5 bg-white text-black px-3.5 py-2 rounded-xl font-black text-xs md:text-sm hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.3)] active:scale-95">
                             <Play className="w-4 h-4 fill-black" /> Trailer
                         </button>
-                        <button onClick={handleAddToList} className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md text-white border border-white/10 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm hover:bg-white/20 transition-all hover:scale-105 active:scale-95">
+                        <button onClick={handleAddToList} className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md text-white border border-white/10 px-3.5 py-2 rounded-xl font-bold text-xs md:text-sm hover:bg-white/20 transition-colors active:scale-95">
                             <Plus className="w-4 h-4" /> Watchlist
                         </button>
 
-                        {/* Recommend Button */}
+                        <WatchStatusDropdown
+                            currentStatus={null}
+                            onStatusChange={handleMarkWatched}
+                            wrapperClass="w-36 shrink-0"
+                        />
                         <button 
                             onClick={openRecModal}
-                            className="flex items-center gap-1.5 bg-purple-500/20 text-purple-200 border border-purple-500/30 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm hover:bg-purple-500/30 transition-all hover:scale-105 active:scale-95"
+                            className="flex items-center gap-1.5 bg-purple-500/20 text-purple-200 border border-purple-500/30 px-3.5 py-2 rounded-xl font-bold text-xs md:text-sm hover:bg-purple-500/30 transition-colors active:scale-95"
                         >
                             <Share2 className="w-4 h-4" /> Recommend
                         </button>
-
-                        <WatchStatusDropdown 
-                            currentStatus={null}
-                            onStatusChange={(status) => {
-                                handleMarkWatched(status);
-                            }}
-                            wrapperClass="w-40 shrink-0"
-                        />
                     </div>
 
                     <div className="w-full pr-4">

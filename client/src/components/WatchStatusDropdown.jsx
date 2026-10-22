@@ -1,9 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Check } from './icons';
 
 const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded, className, wrapperClass, direction = 'down' }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const buttonRef = useRef(null);
+    const [menuPosition, setMenuPosition] = useState(null);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -21,6 +24,19 @@ const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded,
         setIsOpen(false);
     };
 
+    const toggleMenu = (e) => {
+        e.stopPropagation();
+        if (disabled) return;
+        if (!isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            setMenuPosition({
+                left: rect.left + rect.width / 2,
+                top: direction === 'up' ? rect.top - 8 : rect.bottom + 8
+            });
+        }
+        setIsOpen((open) => !open);
+    };
+
     const displayText = isAdded ? "Added" : (currentStatus || "Watch Status");
 
     return (
@@ -28,10 +44,8 @@ const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded,
             <button 
                 type="button"
                 disabled={disabled}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    if (!disabled) setIsOpen(!isOpen);
-                }}
+                ref={buttonRef}
+                onClick={toggleMenu}
                 className={`w-full flex items-center justify-between gap-1.5 py-2 px-4 rounded-xl text-xs font-bold backdrop-blur-sm transition-all shadow-lg border outline-none
                     ${disabled 
                         ? 'bg-green-500/20 border-green-500/50 text-green-400 shadow-green-500/20 cursor-default' 
@@ -51,8 +65,15 @@ const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded,
                 )}
             </button>
 
-            {isOpen && !disabled && (
-                <div className={`absolute left-1/2 -translate-x-1/2 w-32 py-2 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl z-[100] overflow-hidden transform animate-in fade-in ${direction === 'up' ? 'bottom-full mb-2 origin-bottom slide-in-from-bottom-2' : 'top-full mt-2 origin-top slide-in-from-top-2'}`}>
+            {isOpen && !disabled && createPortal(
+                <div
+                    className="fixed left-0 w-32 py-2 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl z-[9999] overflow-hidden transform -translate-x-1/2 animate-in fade-in"
+                    style={{
+                        left: menuPosition?.left || 0,
+                        top: direction === 'up' ? 'auto' : menuPosition?.top || 0,
+                        bottom: direction === 'up' && menuPosition ? window.innerHeight - menuPosition.top : 'auto'
+                    }}
+                >
                     <button
                         type="button"
                         onClick={(e) => handleSelect(e, 'Watching')}
@@ -67,7 +88,8 @@ const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded,
                     >
                         Watched
                     </button>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

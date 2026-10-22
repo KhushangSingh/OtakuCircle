@@ -36,7 +36,7 @@ const getMoviesHomeData = async (req, res) => {
         const tmdbApiKey = getTMDBApiKey();
         if (!tmdbApiKey) {
             console.error("❌ TMDB_API_KEY is not configured in environment variables");
-            return res.status(503).json({ message: "Movie service is temporarily unavailable." });
+                return res.status(503).json({ message: "Movie service is temporarily unavailable. Configure TMDB_API_KEY on the server." });
         }
 
         const now = Date.now();

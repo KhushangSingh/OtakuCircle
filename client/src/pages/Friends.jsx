@@ -241,7 +241,7 @@ const Friends = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                     
                     {/* Friend Requests (Tabbed) */}
-                    <div className="lg:order-3 bg-white/[0.03] backdrop-blur-md border border-white/5 rounded-3xl p-5 flex flex-col hover:border-white/10 transition-colors">
+                    <div className="lg:order-3 bg-white/[0.03] backdrop-blur-md border border-white/5 rounded-3xl p-5 flex flex-col">
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
                                 <UserPlus className="text-yellow-500 w-4 h-4" />
@@ -312,7 +312,7 @@ const Friends = () => {
                     </div>
 
                     {/* Recommendations */}
-                    <div className="lg:order-2 bg-white/[0.03] backdrop-blur-md border border-white/5 rounded-3xl p-5 flex flex-col hover:border-white/10 transition-colors">
+                    <div className="lg:order-2 bg-white/[0.03] backdrop-blur-md border border-white/5 rounded-3xl p-5 flex flex-col">
                         <div className="flex items-center gap-2 mb-4">
                             <MessageSquare className="text-blue-500 w-4 h-4" />
                             <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Recommendations</h2>
@@ -321,7 +321,6 @@ const Friends = () => {
                         <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
                             {recommendations.length === 0 ? (
                                 <div className="w-full py-16 flex flex-col items-center justify-center text-zinc-600">
-                                    <Film size={24} className="mb-2 opacity-50"/>
                                     <p className="text-sm">No recommendations yet.</p>
                                 </div>
                             ) : (
@@ -367,7 +366,7 @@ const Friends = () => {
                     </div>
 
                 {/* My Friends */}
-                <div className="lg:order-1 bg-white/[0.03] backdrop-blur-md border border-white/5 rounded-3xl p-5 flex flex-col hover:border-white/10 transition-colors">
+                <div className="lg:order-1 bg-white/[0.03] backdrop-blur-md border border-white/5 rounded-3xl p-5 flex flex-col">
                     <div className="flex items-center gap-2 mb-6">
                         <Users className="text-purple-500 w-4 h-4" />
                         <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">My Friends</h2>
@@ -383,11 +382,11 @@ const Friends = () => {
                     ) : (
                         <div className="flex flex-col gap-2">
                             {friends.map(friend => (
-                                    <div key={friend._id} className="flex items-center gap-3 rounded-2xl border border-white/5 bg-black/20 p-3 hover:bg-white/[0.06] transition-colors">
+                                    <div key={friend._id} className="flex items-center gap-3 rounded-2xl border border-white/5 bg-black/20 p-3">
                                         <Avatar user={friend} size="sm" />
                                         <div className="flex-1 min-w-0">
                                             <h3 className="text-white font-semibold text-sm truncate">{friend.username}</h3>
-                                            {friend.tasteMatch !== null && <p className="text-xs font-semibold text-blue-400">{friend.tasteMatch}% Shared Taste</p>}
+                                            {friend.tasteMatch !== null && <p className="text-[10px] font-medium text-blue-400/80">{friend.tasteMatch}% Shared Taste</p>}
                                         </div>
                                         <button
                                             onClick={() => handleFriendClick(friend)}

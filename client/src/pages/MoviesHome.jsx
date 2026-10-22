@@ -174,7 +174,7 @@ const MoviesHome = () => {
             setHomeData(res.data);
         } catch (error) {
             console.error("Error fetching home data:", error);
-            showNotification("Failed to load movie data", "error");
+            showNotification(error.response?.data?.message || "Failed to load movie data", "error");
         } finally {
             setLoading(false);
         }
@@ -243,12 +243,13 @@ const MoviesHome = () => {
         const token = localStorage.getItem('token');
         if (!token) { showNotification("Please login first!", "error"); return; }
         try {
-            await axios.post(`${API_URL}/movie/watchlist`, {
-                movieId: movie.tmdb_id, title: movie.title, poster: movie.poster_url
+            await axios.post(`${API_URL}/movies/watchlist`, {
+                tmdbId: movie.tmdb_id, title: movie.title, poster: movie.poster_url,
+                mediaType: movie.type
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Added ${movie.title} to your watchlist!`, "success");
         } catch (error) { 
-            showNotification(error.response?.data?.message || "Error", "error"); 
+            showNotification(error.response?.data?.message || "Movie service failed to save this item", "error");
         }
     };
 
@@ -257,7 +258,8 @@ const MoviesHome = () => {
         if (!token) { showNotification("Please login first!", "error"); return; }
         try {
             await axios.post(`${API_URL}/movies/watchhistory`, {
-                movieId: movie.tmdb_id, title: movie.title, poster: movie.poster_url, status: statusValue
+                tmdbId: movie.tmdb_id, title: movie.title, poster: movie.poster_url,
+                mediaType: movie.type, status: statusValue
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Added ${movie.title} to history!`, "success");
         } catch (error) { 
