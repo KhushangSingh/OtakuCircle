@@ -248,7 +248,7 @@ const Login = () => {
             <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center overflow-hidden h-full z-10">
                 <div className="relative p-12 max-w-2xl">
                     <h1 
-                        className="text-6xl sm:text-7xl lg:text-8xl xl:text-[7.2rem] leading-none font-extrabold tracking-tighter mb-8 text-white select-none drop-shadow-[0_0_25px_rgba(255,255,255,0.3)]"
+                        className="text-6xl sm:text-7xl lg:text-8xl xl:text-[7rem] leading-none font-extrabold tracking-tight mb-8 text-white select-none drop-shadow-[0_0_25px_rgba(255,255,255,0.3)] inline-block pr-8 pb-3"
                         style={{
                             background: 'linear-gradient(to bottom, #ffffff, #e4e4e7)',
                             WebkitBackgroundClip: 'text',
@@ -272,7 +272,7 @@ const Login = () => {
                         <h2 className="text-3xl font-bold text-white mb-2">
                             {isLogin ? 'Welcome back' : regStep === 'otp' ? 'Verify your email' : 'Create an account'}
                         </h2>
-                        <p className="text-zinc-400">
+                        <p className="text-zinc-300 text-sm">
                             {isLogin ? 'Enter your details to access your lists.' 
                              : regStep === 'otp' ? `We sent a code to ${formData.email}` 
                              : 'Start your journey with us today.'}
@@ -286,7 +286,7 @@ const Login = () => {
                         </div>
                     )}
 
-                    {/* ===== GOOGLE BUTTON (Login & Signup form step) ===== */}
+                    {/* ===== GOOGLE BUTTON (Solid White Pill) ===== */}
                     {(isLogin || (!isLogin && regStep === 'form')) && (
                         <div className="space-y-4">
                             <div className="flex justify-center">
@@ -296,12 +296,12 @@ const Login = () => {
                                     shape="pill"
                                     width="384"
                                     text={isLogin ? 'signin_with' : 'signup_with'}
-                                    theme="filled_black"
+                                    theme="outline"
                                 />
                             </div>
                             <div className="relative flex items-center">
                                 <div className="flex-grow border-t border-white/10"></div>
-                                <span className="flex-shrink-0 mx-4 text-zinc-500 text-xs font-bold uppercase tracking-wider">or</span>
+                                <span className="flex-shrink-0 mx-4 text-zinc-300 text-xs font-bold uppercase tracking-widest">or</span>
                                 <div className="flex-grow border-t border-white/10"></div>
                             </div>
                         </div>
@@ -332,7 +332,7 @@ const Login = () => {
                                 </div>
                                 <div className="flex justify-end">
                                     <button type="button" onClick={openForgotModal}
-                                        className="text-xs text-zinc-400 hover:text-blue-400 transition-colors mt-1">
+                                        className="text-xs text-zinc-300 hover:text-white transition-colors font-medium mt-1 drop-shadow-sm">
                                         Forgot password?
                                     </button>
                                 </div>
@@ -424,25 +424,25 @@ const Login = () => {
                                 {loading ? <Loader className="animate-spin" size={20} /> : <><span>Verify &amp; Create Account</span><ShieldCheck size={18} /></>}
                             </button>
                             <button type="button" onClick={() => { setRegStep('form'); setError(''); setRegOtp(''); }}
-                                className="w-full text-zinc-400 hover:text-white text-sm transition-colors">
+                                className="w-full text-zinc-300 hover:text-white text-sm transition-colors font-medium">
                                 Wrong email? Go back
                             </button>
                         </form>
                     )}
 
                     <div className="text-center pt-2 space-y-4">
-                        <p className="text-zinc-400 text-sm">
+                        <p className="text-zinc-200 text-sm font-medium drop-shadow-sm">
                             {isLogin ? "Don't have an account?" : 'Already have an account?'}
                             <button onClick={toggleMode}
-                                className="ml-2 text-white font-semibold hover:text-blue-400 transition-colors">
+                                className="ml-2 text-white font-bold hover:text-blue-400 transition-colors">
                                 {isLogin ? 'Sign up' : 'Log in'}
                             </button>
                         </p>
 
-                        <div className="flex items-center justify-center gap-3 text-xs text-zinc-500 pt-2 border-t border-white/5">
-                            <Link to="/privacy" className="hover:text-zinc-300 transition-colors">Privacy Policy</Link>
-                            <span>•</span>
-                            <Link to="/terms" className="hover:text-zinc-300 transition-colors">Terms of Service</Link>
+                        <div className="flex items-center justify-center gap-3 text-xs text-zinc-300 font-medium pt-3 border-t border-white/10 drop-shadow-sm">
+                            <Link to="/privacy" className="hover:text-white transition-colors underline-offset-2 hover:underline">Privacy Policy</Link>
+                            <span className="text-zinc-500">•</span>
+                            <Link to="/terms" className="hover:text-white transition-colors underline-offset-2 hover:underline">Terms of Service</Link>
                         </div>
                     </div>
                 </div>
