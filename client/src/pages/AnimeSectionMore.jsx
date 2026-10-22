@@ -4,11 +4,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Plus, Check, ArrowLeft } from '../components/icons';
 import { useNotification } from '../components/NotificationProvider';
+import { useMediaStatus } from '../contexts/MediaStatusContext';
 
 // --- SUB-COMPONENT: Anime Card ---
 const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
-    const [watchlistAdded, setWatchlistAdded] = useState(false);
-    const [watchedAdded, setWatchedAdded] = useState(false);
+    const { animeStatuses, animeWatchlist, setAnimeStatus, setAnimeInWatchlist } = useMediaStatus();
+    const currentStatus = animeStatuses[anime.mal_id];
+    const watchlistAdded = Boolean(animeWatchlist[anime.mal_id]);
 
     return (
         <div 
@@ -38,8 +40,9 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                     <button 
                         onClick={(e) => {
                             e.stopPropagation();
-                            onAddWatchlist(anime);
-                            setWatchlistAdded(true);
+                            Promise.resolve(onAddWatchlist(anime)).then((success) => {
+                                if (success) setAnimeInWatchlist(anime.mal_id);
+                            });
                         }}
                         disabled={watchlistAdded}
                         className={`w-full flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold backdrop-blur-xl border transition-all active:scale-95 shadow-lg
@@ -49,11 +52,11 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                         <span>Watchlist</span>
                     </button>
                     <WatchStatusDropdown 
-                        isAdded={watchedAdded}
-                        disabled={watchedAdded}
+                        currentStatus={currentStatus}
                         onStatusChange={(status) => {
-                            onAddWatchhistory(anime, status);
-                            setWatchedAdded(true);
+                            Promise.resolve(onAddWatchhistory(anime, status)).then((success) => {
+                                if (success) setAnimeStatus(anime.mal_id, status);
+                            });
                         }}
                         wrapperClass="w-[85%] mx-auto"
                         className="rounded-full"
@@ -147,8 +150,10 @@ const AnimeSectionMore = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             showNotification("Added to Watchlist", "success");
+            return true;
         } catch (error) {
             showNotification("Failed to add", "error");
+            return false;
         }
     };
 
@@ -163,6 +168,7 @@ const AnimeSectionMore = () => {
             showNotification(`Marked ${anime.title} as ${statusValue}`, "success");
         } catch (err) {
             showNotification(err.response?.data?.message || "Failed to add", "error");
+            return false;
         }
     };
 

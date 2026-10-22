@@ -8,11 +8,13 @@ import {
 } from '../components/icons';
 
 import { useNotification } from '../components/NotificationProvider';
+import { useMediaStatus } from '../contexts/MediaStatusContext';
 
 const AnimeDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { showNotification } = useNotification();
+    const { animeStatuses, animeWatchlist, setAnimeStatus, setAnimeInWatchlist } = useMediaStatus();
     const [anime, setAnime] = useState(null);
 
     // Modal State
@@ -52,6 +54,7 @@ const AnimeDetails = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             showNotification("Added to Watchlist", "success");
+            setAnimeInWatchlist(anime.mal_id);
         } catch (error) {
             showNotification(error.response?.data?.message || "Failed to add", "error");
         }
@@ -71,6 +74,7 @@ const AnimeDetails = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             showNotification(`Marked as ${statusValue}`, "success");
+            setAnimeStatus(anime.mal_id, statusValue);
         } catch (error) {
             showNotification(error.response?.data?.message || "Failed to update", "error");
         }
@@ -205,8 +209,8 @@ const AnimeDetails = () => {
                         <button onClick={handleWatchTrailer} className="flex items-center gap-1.5 bg-white text-black px-4 py-2.5 rounded-xl font-black text-xs md:text-sm hover:bg-zinc-200 transition-all shadow-[0_0_15px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95">
                             <Play className="w-4 h-4 fill-black" /> Trailer
                         </button>
-                        <button onClick={handleAddToList} className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md text-white border border-white/10 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm hover:bg-white/20 transition-all hover:scale-105 active:scale-95">
-                            <Plus className="w-4 h-4" /> Watchlist
+                        <button onClick={handleAddToList} disabled={Boolean(animeWatchlist[anime.mal_id])} className={`flex items-center gap-1.5 backdrop-blur-md px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all active:scale-95 ${animeWatchlist[anime.mal_id] ? 'bg-blue-500/20 text-blue-300 border border-blue-400/40 cursor-default' : 'bg-white/10 text-white border border-white/10 hover:bg-white/20 hover:scale-105'}`}>
+                            <Plus className="w-4 h-4" /> {animeWatchlist[anime.mal_id] ? 'In Watchlist' : 'Watchlist'}
                         </button>
                         
                         {/* Recommend Button */}
@@ -218,7 +222,7 @@ const AnimeDetails = () => {
                         </button>
 
                         <WatchStatusDropdown 
-                            currentStatus={null}
+                            currentStatus={animeStatuses[anime.mal_id]}
                             onStatusChange={(status) => {
                                 handleMarkWatched(status);
                             }}

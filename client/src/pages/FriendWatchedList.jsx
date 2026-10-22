@@ -30,7 +30,7 @@ const AnimeCard = ({ anime }) => {
 
     return (
         <div className="group relative cursor-pointer flex-none">
-            <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-zinc-900 transition-all duration-500 ease-out 
+            <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-zinc-900 transition-all duration-300 ease-out
                 transform-gpu backface-hidden
                 group-hover:scale-105 
                 group-hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.25)] 
@@ -41,7 +41,7 @@ const AnimeCard = ({ anime }) => {
                     <img 
                         src={anime.poster} 
                         alt={anime.title} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         loading="lazy"
                     />
                 ) : (
@@ -58,14 +58,14 @@ const AnimeCard = ({ anime }) => {
                 )}
 
                 <div className="absolute bottom-3 left-3 right-3">
-                    <div className={`flex items-center gap-2 text-xs font-bold backdrop-blur-md border px-3 py-2 rounded-lg ${statusStyle.bg}`}>
+                    <div className={`flex items-center gap-1.5 text-[11px] font-bold backdrop-blur-md border px-2 py-1.5 rounded-md ${statusStyle.bg}`}>
                         {statusStyle.icon}
                         <span>{anime.status || 'Watched'}</span>
                     </div>
                 </div>
             </div>
-            <div className="mt-4 px-1 space-y-1 transition-opacity duration-300 group-hover:opacity-80">
-                <h3 className="text-xs sm:text-sm md:text-base font-bold text-gray-100 truncate leading-tight">
+            <div className="mt-2 px-1 space-y-1 transition-opacity duration-300 group-hover:opacity-80">
+                <h3 className="text-xs sm:text-sm font-bold text-gray-100 truncate leading-tight">
                     {anime.title}
                 </h3>
             </div>
@@ -114,21 +114,21 @@ const FriendWatchedList = () => {
 
     return (
         // Added pt-32 to fix navbar overlap
-        <div className="min-h-screen bg-[#0d0d0d] text-white font-sans pb-20 pt-32">
+        <div className="min-h-screen bg-[#0d0d0d] text-white font-sans pb-16 pt-24">
             
             <div className="w-full px-4 lg:px-8">
                 
                 {/* --- TOP NAVIGATION BAR --- */}
-                <div className="flex justify-between items-center mb-12">
+                <div className="flex justify-between items-center mb-7">
                     {/* Left: Smaller Profile Text */}
-                    <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white/90 select-none">
-                        Profile
+                    <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white/90 select-none">
+                        Watch History
                     </h2>
 
                     {/* Right: Back Button */}
                     <button 
                         onClick={() => navigate(-1)}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all hover:scale-105 active:scale-95 group"
+                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all active:scale-95 group"
                     >
                         <span className="font-bold text-sm tracking-wide text-zinc-300 group-hover:text-white">Back</span>
                         <ChevronRight size={16} className="text-zinc-300 group-hover:text-white group-hover:translate-x-1 transition-transform" />
@@ -136,7 +136,7 @@ const FriendWatchedList = () => {
                 </div>
 
                 {/* --- PROFILE IDENTITY SECTION --- */}
-                <div className="flex flex-col md:flex-row items-center md:items-end gap-8 mb-12">
+                <div className="flex flex-col md:flex-row items-center md:items-end gap-5 mb-7">
                     
                     {/* AVATAR: Smaller Size */}
                     <div className="relative shrink-0 group">
@@ -145,10 +145,10 @@ const FriendWatchedList = () => {
                             <img 
                                 src={userData.profilePicture} 
                                 alt={username} 
-                                className="relative w-28 h-28 md:w-36 md:h-36 rounded-[2rem] object-cover shadow-2xl z-10" 
+                                className="relative w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover shadow-2xl z-10"
                             />
                         ) : (
-                            <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-[2rem] bg-gradient-to-br from-zinc-800 to-zinc-700 flex items-center justify-center text-zinc-400 shadow-2xl z-10">
+                            <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-700 flex items-center justify-center text-zinc-400 shadow-2xl z-10">
                                 <User size={48} />
                             </div>
                         )}
@@ -157,7 +157,7 @@ const FriendWatchedList = () => {
                     {/* USER INFO */}
                     <div className="flex-1 text-center md:text-left pb-1">
                         {/* Name: Smaller Font */}
-                        <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white mb-4 leading-none">
+                        <h1 className="text-2xl md:text-4xl font-black tracking-tight text-white mb-3 leading-none">
                             {username}
                         </h1>
                         
@@ -178,7 +178,7 @@ const FriendWatchedList = () => {
                 </div>
 
                 {/* --- THICKER SEPARATOR LINE --- */}
-                <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-white/15 to-transparent mb-12 rounded-full"></div>
+                <div className="w-full h-px bg-gradient-to-r from-transparent via-white/15 to-transparent mb-7 rounded-full"></div>
 
                 {/* --- CONTENT GRID --- */}
                 {watched.length === 0 ? (
@@ -192,7 +192,7 @@ const FriendWatchedList = () => {
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-6 gap-y-10 animate-fade-in-up">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-x-4 gap-y-7 animate-fade-in-up">
                         {watched.map((item, idx) => (
                             <AnimeCard key={idx} anime={item} />
                         ))}

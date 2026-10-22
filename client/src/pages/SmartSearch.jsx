@@ -5,12 +5,14 @@ import axios from 'axios';
 import { Search, Plus, Check, Star } from '../components/icons';
 import SearchBar from '../components/SearchBar';
 import { useNotification } from '../components/NotificationProvider';
+import { useMediaStatus } from '../contexts/MediaStatusContext';
 
 // --- ANIME CARD COMPONENT ---
 // Reused design from Home/Recommendations for UI consistency
 const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
-    const [watchlistAdded, setWatchlistAdded] = useState(false);
-    const [watchedAdded, setWatchedAdded] = useState(false);
+    const { animeStatuses, animeWatchlist, setAnimeStatus, setAnimeInWatchlist } = useMediaStatus();
+    const currentStatus = animeStatuses[anime.mal_id];
+    const watchlistAdded = Boolean(animeWatchlist[anime.mal_id]);
 
     return (
         <div 
@@ -49,8 +51,9 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                     <button 
                         onClick={(e) => {
                             e.stopPropagation();
-                            onAddWatchlist(e, anime);
-                            setWatchlistAdded(true);
+                            Promise.resolve(onAddWatchlist(e, anime)).then((success) => {
+                                if (success) setAnimeInWatchlist(anime.mal_id);
+                            });
                         }}
                         disabled={watchlistAdded}
                         className={`w-[85%] mx-auto flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-bold backdrop-blur-sm border transition-colors active:scale-95 shadow-lg
@@ -65,11 +68,11 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
 
                     {/* Watched Button */}
                     <WatchStatusDropdown 
-                        isAdded={watchedAdded}
-                        disabled={watchedAdded}
+                        currentStatus={currentStatus}
                         onStatusChange={(status) => {
-                            onAddWatchhistory(anime, status);
-                            setWatchedAdded(true);
+                            Promise.resolve(onAddWatchhistory(null, anime, status)).then((success) => {
+                                if (success) setAnimeStatus(anime.mal_id, status);
+                            });
                         }}
                         wrapperClass="w-[85%] mx-auto"
                         className="rounded-full"
@@ -138,7 +141,7 @@ const SmartSearch = () => {
     const handleCardClick = (id) => navigate(`/anime/${id}`);
     
     const handleAddToWatchlist = async (e, anime) => {
-        e.stopPropagation();
+        if (e) e.stopPropagation();
         const token = localStorage.getItem('token');
         if (!token) { showNotification("Login required", "error"); return; }
         try {
@@ -146,11 +149,12 @@ const SmartSearch = () => {
                 animeId: anime.mal_id, title: anime.title, poster: anime.poster_url
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Added ${anime.title}`, "success");
-        } catch(err) { showNotification("Failed to add", "error"); }
+            return true;
+        } catch(err) { showNotification("Failed to add", "error"); return false; }
     };
 
     const handleAddToWatchhistory = async (e, anime, statusValue = 'Watched') => {
-        e.stopPropagation();
+        if (e) e.stopPropagation();
         const token = localStorage.getItem('token');
         if (!token) { showNotification("Login required", "error"); return; }
         try {
@@ -158,7 +162,8 @@ const SmartSearch = () => {
                 animeId: anime.mal_id, title: anime.title, poster: anime.poster_url, status: statusValue
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Marked ${anime.title} as ${statusValue}`, "success");
-        } catch(err) { showNotification("Failed to update", "error"); }
+            return true;
+        } catch(err) { showNotification("Failed to update", "error"); return false; }
     };
 
     return (

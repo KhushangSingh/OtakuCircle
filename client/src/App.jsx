@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 
 // --- Contexts ---
 import { NotificationProvider } from './components/NotificationProvider';
+import { MediaStatusProvider } from './contexts/MediaStatusContext';
 
 // --- Components ---
 import Navbar from './components/Navbar';
@@ -47,7 +48,8 @@ function App() {
   return (
     <NotificationProvider>
       <BrowserRouter>
-        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+        <MediaStatusProvider>
+          <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
           
           <Routes>
             {/* --- Public Legal & Auth Routes --- */}
@@ -114,7 +116,8 @@ function App() {
             </Route>
           </Routes>
 
-        </div>
+          </div>
+        </MediaStatusProvider>
       </BrowserRouter>
     </NotificationProvider>
   );

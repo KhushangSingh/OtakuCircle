@@ -6,11 +6,13 @@ import axios from 'axios';
 import { Plus, Check, ChevronLeft, ChevronRight } from '../components/icons';
 import heroImage from '../assets/spotlight-hero-bg-converted.webp';
 import Footer from '../components/Footer';
+import { useMediaStatus } from '../contexts/MediaStatusContext';
 
 // --- COMPONENT: Anime Card ---
 const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
-    const [watchlistAdded, setWatchlistAdded] = useState(false);
-    const [watchedAdded, setWatchedAdded] = useState(false);
+    const { animeStatuses, animeWatchlist, setAnimeStatus, setAnimeInWatchlist } = useMediaStatus();
+    const currentStatus = animeStatuses[anime.mal_id];
+    const watchlistAdded = Boolean(animeWatchlist[anime.mal_id]);
 
     return (
         <div 
@@ -44,8 +46,9 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                     <button 
                         onClick={(e) => {
                             e.stopPropagation();
-                            onAddWatchlist(anime);
-                            setWatchlistAdded(true);
+                            Promise.resolve(onAddWatchlist(anime)).then((success) => {
+                                if (success) setAnimeInWatchlist(anime.mal_id);
+                            });
                         }}
                         disabled={watchlistAdded}
                         className={`w-[85%] mx-auto flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-bold backdrop-blur-sm border transition-colors active:scale-95 shadow-lg
@@ -59,11 +62,11 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                     </button>
 
                     <WatchStatusDropdown 
-                        isAdded={watchedAdded}
-                        disabled={watchedAdded}
+                        currentStatus={currentStatus}
                         onStatusChange={(status) => {
-                            onAddWatchhistory(anime, status);
-                            setWatchedAdded(true);
+                            Promise.resolve(onAddWatchhistory(anime, status)).then((success) => {
+                                if (success) setAnimeStatus(anime.mal_id, status);
+                            });
                         }}
                         wrapperClass="w-[85%] mx-auto"
                         className="rounded-full"
@@ -151,16 +154,27 @@ const SpotlightHero = ({ backgroundImage, onExplore }) => {
     const [scrollY, setScrollY] = useState(0);
 
     useEffect(() => {
-        const handleScroll = () => setScrollY(window.scrollY);
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
+        let frameId = null;
+        const handleScroll = () => {
+            if (frameId !== null) return;
+            frameId = window.requestAnimationFrame(() => {
+                setScrollY(window.scrollY);
+                frameId = null;
+            });
+        };
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+            if (frameId !== null) window.cancelAnimationFrame(frameId);
+        };
     }, []);
 
     const maxScroll = 500; 
     const progress = Math.min(scrollY / maxScroll, 1);
-    const scale = 1 - (progress * 0.2); 
-    const opacity = 1 - progress; 
-    const yOffset = scrollY * 0.5; 
+    const easedProgress = progress * progress * (3 - 2 * progress);
+    const scale = 1 - (easedProgress * 0.08);
+    const opacity = 1 - easedProgress;
+    const yOffset = -(easedProgress * 80);
 
     return (
         <div 
@@ -173,7 +187,7 @@ const SpotlightHero = ({ backgroundImage, onExplore }) => {
             <div 
                 className="relative z-20 text-center px-4 max-w-6xl mx-auto"
                 style={{
-                    transform: `translateY(${yOffset}px) scale(${scale})`,
+                    transform: `translate3d(0, ${yOffset}px, 0) scale(${scale})`,
                     opacity: opacity,
                     willChange: 'transform, opacity',
                     pointerEvents: opacity <= 0 ? 'none' : 'auto' 
@@ -268,8 +282,10 @@ const Home = () => {
                 animeId: anime.mal_id, title: anime.title, poster: anime.poster_url
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Added ${anime.title} to your watchlist!`, "success");
+            return true;
         } catch (error) { 
-            showNotification(error.response?.data?.message || "Error", "error"); 
+            showNotification(error.response?.data?.message || "Error", "error");
+            return false;
         }
     };
 
@@ -281,8 +297,10 @@ const Home = () => {
                 animeId: anime.mal_id, title: anime.title, poster: anime.poster_url, status: statusValue
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Added ${anime.title} to history!`, "success");
+            return true;
         } catch (error) { 
-            showNotification(error.response?.data?.message || "Error", "error"); 
+            showNotification(error.response?.data?.message || "Error", "error");
+            return false;
         }
     };
 

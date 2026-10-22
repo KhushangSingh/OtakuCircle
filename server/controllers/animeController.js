@@ -202,14 +202,16 @@ const addToWatchhistory = async (req, res) => {
         const isEntryExist = user.watchhistory.find(item => item.animeId === Number(animeId));
         
         if (isEntryExist) {
-            return res.status(400).json({ message: 'Anime already in your watchhistory' });
+            isEntryExist.status = status || isEntryExist.status;
+            if (title) isEntryExist.title = title;
+            if (poster) isEntryExist.poster = poster;
+        } else {
+            user.watchhistory.push({
+                animeId, title, poster,
+                status: status || 'Watching',
+                review: review || ''
+            });
         }
-        
-        user.watchhistory.push({ 
-            animeId, title, poster, 
-            status: status || 'Watching', 
-            review: review || '' 
-        });
         
         // Remove from watchlist if it exists there
         user.watchlist = user.watchlist.filter(item => item.animeId !== Number(animeId));

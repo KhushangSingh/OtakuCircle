@@ -406,9 +406,9 @@ const Friends = () => {
             {/* --- FROZEN GLASS MODAL (EXISTING) --- */}
             {selectedFriend && friendDetails && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={closeModal}>
-                    <div className="relative w-full max-w-5xl h-[85vh] md:h-[600px] flex flex-col md:flex-row overflow-hidden shadow-2xl rounded-[32px] border border-white/10 bg-[#111] backdrop-blur-3xl" onClick={(e) => e.stopPropagation()}>
-                        <button onClick={closeModal} className="absolute top-5 right-5 z-50 p-2.5 bg-white/5 hover:bg-white/20 text-white/70 hover:text-white backdrop-blur-md rounded-full border border-white/10 transition-all duration-300 group">
-                            <X size={20} className="group-hover:rotate-90 transition-transform duration-300" />
+                    <div className="relative w-full max-w-3xl h-[min(76vh,520px)] flex flex-col md:flex-row overflow-hidden shadow-2xl rounded-2xl border border-white/10 bg-[#111] backdrop-blur-3xl" onClick={(e) => e.stopPropagation()}>
+                        <button onClick={closeModal} className="absolute top-3 right-3 z-50 p-2 bg-white/5 hover:bg-white/20 text-white/70 hover:text-white backdrop-blur-md rounded-full border border-white/10 transition-all duration-300 group">
+                            <X size={16} className="group-hover:rotate-90 transition-transform duration-300" />
                         </button>
 
                         {loadingDetails ? (
@@ -418,22 +418,22 @@ const Friends = () => {
                         ) : (
                             <>
                                 {/* Profile Sidebar */}
-                                <div className="w-full md:w-[35%] relative flex flex-col items-center justify-center p-8 border-b md:border-b-0 md:border-r border-white/5 bg-white/[0.02]">
+                                <div className="w-full md:w-[34%] relative flex flex-col items-center justify-center p-5 border-b md:border-b-0 md:border-r border-white/5 bg-white/[0.02]">
                                     <div className="relative z-10 flex flex-col items-center text-center w-full">
-                                        <div className="p-1 rounded-full border border-white/10 shadow-xl mb-4 bg-black/50">
-                                            <Avatar user={friendDetails} size="xl" className="w-32 h-32" />
+                                        <div className="p-1 rounded-full border border-white/10 shadow-xl mb-3 bg-black/50">
+                                            <Avatar user={friendDetails} size="xl" className="w-20 h-20" />
                                         </div>
-                                        <h2 className="text-3xl font-bold text-white tracking-tight drop-shadow-md">{friendDetails.username}</h2>
+                                        <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-md truncate max-w-full">{friendDetails.username}</h2>
                                         
-                                        <div className="grid grid-cols-3 gap-3 w-full mt-8">
+                                        <div className="grid grid-cols-3 gap-2 w-full mt-5">
                                             {[
-                                                { label: 'Anime', value: friendDetails.watchlist?.length || 0 },
-                                                { label: 'Friends', value: friendDetails.friends?.length || 0 },
-                                                { label: 'History', value: friendDetails.watchhistory?.length || 0 }
+                                                { label: 'Completed', value: friendDetails.watchhistory?.filter(item => item.status === 'Watched' || item.status === 'Completed').length || 0 },
+                                                { label: 'Watching', value: friendDetails.watchhistory?.filter(item => item.status === 'Watching').length || 0 },
+                                                { label: 'Plan to Watch', value: friendDetails.watchlist?.length || 0 }
                                             ].map((stat, i) => (
-                                                <div key={i} className="bg-black/40 border border-white/5 p-3 rounded-xl text-center">
-                                                    <p className="text-xl font-bold text-white">{stat.value}</p>
-                                                    <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mt-1">{stat.label}</p>
+                                                <div key={i} className="bg-black/40 border border-white/5 p-2 rounded-lg text-center">
+                                                    <p className="text-base font-bold text-white">{stat.value}</p>
+                                                    <p className="text-[9px] text-zinc-500 uppercase tracking-wide font-bold mt-1">{stat.label}</p>
                                                 </div>
                                             ))}
                                         </div>
@@ -441,8 +441,8 @@ const Friends = () => {
                                 </div>
 
                                 {/* Recently Watched List */}
-                                <div className="w-full md:w-[65%] px-8 pb-6 pt-20 flex flex-col h-full overflow-hidden bg-black/20">
-                                    <div className="flex items-center justify-between mb-4 px-1 shrink-0">
+                                <div className="w-full md:w-[66%] px-5 pb-5 pt-12 flex flex-col h-full overflow-hidden bg-black/20">
+                                    <div className="flex items-center justify-between mb-3 px-1 shrink-0">
                                         <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Recently Watched</h3>
                                         {friendDetails.watchhistory && friendDetails.watchhistory.length > 0 && (
                                             <button className="text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors" onClick={() => navigate(`/friends/${friendDetails.username}/watched`)}>See All</button>
@@ -451,11 +451,11 @@ const Friends = () => {
                                     <div className="flex-1 flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-2">
                                         {friendDetails.watchhistory && friendDetails.watchhistory.length > 0 ? (
                                             friendDetails.watchhistory.slice().reverse().map((item, idx) => (
-                                                <div key={idx} className="group flex items-center gap-4 p-3 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-all cursor-default shrink-0">
-                                                    {item.poster ? <img src={item.poster} className="w-10 h-14 object-cover rounded-lg" /> : <div className="w-10 h-14 bg-zinc-800 rounded-lg"></div>}
+                                                <div key={idx} className="group flex items-center gap-3 p-2 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 transition-all cursor-default shrink-0">
+                                                    {item.poster ? <img src={item.poster} className="w-8 h-11 object-cover rounded-md" /> : <div className="w-8 h-11 bg-zinc-800 rounded-md"></div>}
                                                     <div className="flex-1 min-w-0 flex flex-col justify-center">
-                                                        <p className="font-bold text-white text-sm truncate">{item.title}</p>
-                                                        <p className="text-xs text-zinc-500 mt-0.5 font-medium">{item.status}</p>
+                                                        <p className="font-bold text-white text-xs truncate">{item.title}</p>
+                                                        <p className="text-[11px] text-zinc-500 mt-0.5 font-medium">{item.status}</p>
                                                     </div>
                                                 </div>
                                             ))
