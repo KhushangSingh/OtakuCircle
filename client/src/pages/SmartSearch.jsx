@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import WatchStatusDropdown from '../components/WatchStatusDropdown';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Search, Sparkles, Plus, Check, Star } from '../components/icons';
+import { Search, Plus, Check, Star } from '../components/icons';
 import SearchBar from '../components/SearchBar';
 import { useNotification } from '../components/NotificationProvider';
 
@@ -172,11 +172,6 @@ const SmartSearch = () => {
                     
                     {/* LEFT COLUMN: Text Content */}
                     <div className="w-full lg:w-1/2 flex flex-col items-start text-left">
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-xs font-bold tracking-widest text-zinc-300 uppercase mt-4 mb-6 shadow-sm">
-                            <Sparkles size={16} className="text-blue-400" />
-                            <span>AI Discovery Engine</span>
-                        </div>
-                        
                         <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tighter text-white mb-6 leading-tight">
                             Search by <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60">

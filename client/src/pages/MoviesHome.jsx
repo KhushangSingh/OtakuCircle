@@ -3,7 +3,7 @@ import WatchStatusDropdown from '../components/WatchStatusDropdown';
 import { useNotification } from '../components/NotificationProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Check, ChevronLeft, ChevronRight, Film } from '../components/icons';
+import { Plus, Check, ChevronLeft, ChevronRight } from '../components/icons';
 import SearchBar from '../components/SearchBar';
 import moviesHeroBg from '../assets/movies-hero-bg-2.png';
 
@@ -292,16 +292,10 @@ const MoviesHome = () => {
         <div className="min-h-screen bg-[#0d0d0d] text-white font-sans selection:bg-white/20 pb-20 pt-28">
             
             {/* --- HERO HEADER --- */}
-            <div className="w-full px-4 lg:px-8 mb-12 relative z-50 mt-2">
+            <div className="w-full px-4 lg:px-8 mb-12 relative z-10 mt-2">
                 <div className="relative p-6 md:p-8 rounded-[32px] border border-white/10 bg-black shadow-2xl flex flex-col md:flex-row items-center gap-6">
                     
                     <div className="relative z-20 flex-1 max-w-2xl w-full">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-1.5 bg-gradient-to-br from-red-900 to-red-500 rounded-lg shadow-lg shadow-red-500/20 border border-red-500/30">
-                                <Film size={16} className="text-white" />
-                            </div>
-                            <span className="text-xs font-bold tracking-widest text-zinc-400 uppercase">Premium Entertainment</span>
-                        </div>
                         <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
                             Cinematic <br className="hidden md:block" />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-300 to-zinc-500">
@@ -321,7 +315,7 @@ const MoviesHome = () => {
                             placeholder="Search movies & shows..."
                         />
                         {isSearchOpen && (
-                            <div className="absolute top-full mt-3 w-full bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 text-gray-200 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/5">
+                            <div className="absolute top-full mt-3 w-full bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 text-gray-200 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden z-[110] animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/5">
                                 <style>{`
                                     .search-results-scrollbar::-webkit-scrollbar { width: 4px; }
                                     .search-results-scrollbar::-webkit-scrollbar-track { background: transparent; }

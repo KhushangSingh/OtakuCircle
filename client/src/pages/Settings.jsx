@@ -326,7 +326,7 @@ const Settings = () => {
                 </div>
             )}
 
-            <div className="max-w-2xl mx-auto space-y-4">
+            <div className="max-w-6xl mx-auto grid gap-4 lg:grid-cols-2">
 
                 {/* ── Account Settings card ─────────────────────────────── */}
                 <div className="bg-[#151515] border border-white/5 rounded-2xl p-4 md:p-6 shadow-xl space-y-4">
@@ -526,7 +526,7 @@ const Settings = () => {
                 </div>
 
                 {/* ── Email Preferences card ─────────────────────────────── */}
-                <div className="bg-[#151515] border border-white/5 rounded-2xl p-4 md:p-6 shadow-xl">
+                <div className="lg:col-span-2 bg-[#151515] border border-white/5 rounded-2xl p-4 md:p-6 shadow-xl">
                     <h2 className="text-base font-bold text-white flex items-center gap-2 border-b border-white/5 pb-3 mb-3">
                         <Bell className="text-indigo-400" size={18} /> Email Preferences
                     </h2>
@@ -640,7 +640,7 @@ const Settings = () => {
                 )}
 
                 {/* ── Danger Zone card ──────────────────────────────────── */}
-                <div className="bg-[#151515] border border-red-900/30 rounded-2xl p-4 md:p-6 shadow-xl relative overflow-hidden">
+                <div className="lg:col-span-2 bg-[#151515] border border-red-900/30 rounded-2xl p-4 md:p-6 shadow-xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-red-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                     <h3 className="text-base font-bold text-red-500 flex items-center gap-2 mb-3">
                         <ShieldAlert size={18} /> Danger Zone

@@ -193,7 +193,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 h-20">
+    <nav className="fixed top-0 left-0 w-full z-[100] h-20">
       
       {/* Background Layers */}
       <div className={`absolute inset-0 bg-[#050505]/80 backdrop-blur-xl shadow-2xl transition-opacity duration-500 ease-in-out ${isScrolled ? 'opacity-100' : 'opacity-0'}`}></div>

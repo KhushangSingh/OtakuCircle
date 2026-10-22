@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import WatchStatusDropdown from '../components/WatchStatusDropdown';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Sparkles, Tv, Star, Check } from '../components/icons';
+import { Plus, Tv, Star, Check } from '../components/icons';
 import { useNotification } from '../components/NotificationProvider';
 import heroImage from '../assets/spotlight-hero-bg.jpg';
 
@@ -189,12 +189,6 @@ const Recommendations = () => {
             <div className="w-full px-4 lg:px-8 mb-10 relative z-10">
                 <div className="relative p-6 md:p-8 rounded-[32px] overflow-hidden border border-white/10 bg-black shadow-2xl flex items-center">
                     <div className="relative z-20 flex-1 pr-6 max-w-2xl">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="p-2 bg-gradient-to-br from-zinc-800 to-zinc-400 rounded-lg shadow-lg shadow-zinc-400/20 border border-white/10">
-                                <Sparkles size={20} className="text-white" />
-                            </div>
-                            <span className="text-base font-bold tracking-widest text-zinc-300 uppercase">AI Powered</span>
-                        </div>
                         <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
                             Your Personal <br className="hidden md:block" />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-blue-200">
