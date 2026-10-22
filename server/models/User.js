@@ -4,7 +4,18 @@ const userSchema = mongoose.Schema({
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, default: '' },
-    profilePicture: { type: String, default: '' }, 
+    profilePicture: { type: String, default: '' },
+
+    // Auth provider tracking
+    // 'local'  — registered with email + password
+    // 'google' — registered with Google Sign-In only (no local password)
+    // 'both'   — started with one method, linked the other
+    authProvider: {
+        type: String,
+        enum: ['local', 'google', 'both'],
+        default: 'local'
+    },
+    googleId: { type: String, default: null },
     
     // Watchlist (Plan to Watch)
     watchlist: [{
@@ -73,6 +84,15 @@ const userSchema = mongoose.Schema({
         totalWatched: { type: Number, default: 0 },
         favoriteGenre: { type: String, default: '' },
         genreCounts: { type: Map, of: Number, default: {} }
+    },
+
+    // Email notification preferences
+    // Security emails (password changed, email changed) are always sent — not stored here
+    emailPreferences: {
+        friendRecommendation:   { type: Boolean, default: true },  // notify when a friend recommends something
+        friendRequest:          { type: Boolean, default: true },  // notify when a friend request is received
+        friendRequestAccepted:  { type: Boolean, default: true },  // notify when a friend request is accepted
+        platformUpdates:        { type: Boolean, default: true }   // notify for OtakuCircle announcements
     }
 }, { timestamps: true });
 // --- Explicit Indexes for Performance ---

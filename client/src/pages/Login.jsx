@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User, ArrowRight, Loader, X, KeyRound, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Loader, X, KeyRound, ShieldCheck, LinkIcon } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import heroImage from '../assets/spotlight-hero-bg.jpg';
 
@@ -17,6 +17,7 @@ const Login = () => {
     });
     const [regOtp, setRegOtp] = useState('');
     const [error, setError] = useState('');
+    const [linkSent, setLinkSent] = useState(false); // true when backend sends a password-link email
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     
@@ -45,6 +46,7 @@ const Login = () => {
         setIsLogin(!isLogin);
         setRegStep('form');
         setError('');
+        setLinkSent(false);
         setRegOtp('');
         setFormData(prev => ({
             username: '',
@@ -60,12 +62,21 @@ const Login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
+        setLinkSent(false);
         setLoading(true);
         try {
             const res = await axios.post(`${API_URL}/auth/login`, {
                 email: formData.email,
                 password: formData.password
             });
+
+            // Backend detected a Google-only account — email sent for safe password linking
+            if (res.data.action === 'link_required') {
+                setLinkSent(true);
+                setLoading(false);
+                return;
+            }
+
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('userId', res.data._id);
             localStorage.setItem('username', res.data.username);
@@ -283,6 +294,23 @@ const Login = () => {
                         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                             {error}
+                        </div>
+                    )}
+
+                    {/* Link-required info banner — shown when Google account tries email/password login */}
+                    {linkSent && (
+                        <div className="p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-indigo-300 text-sm space-y-2">
+                            <div className="flex items-center gap-2 font-semibold text-indigo-200">
+                                <LinkIcon size={16} className="shrink-0" />
+                                Verification email sent
+                            </div>
+                            <p className="text-zinc-300 leading-relaxed">
+                                This email is linked to a Google account. We've sent a verification link to{' '}
+                                <span className="font-semibold text-white">{formData.email}</span>.
+                            </p>
+                            <p className="text-zinc-400">
+                                Click the button in that email to set a password — after that you can sign in with either Google or email &amp; password.
+                            </p>
                         </div>
                     )}
 

@@ -23,6 +23,7 @@ import MovieDetails from './pages/MovieDetails';
 import MovieSectionMore from './pages/MovieSectionMore';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import VerifyLink from './pages/VerifyLink';
 
 // Layout Wrapper (Applied to routes with Navbar)
 const MainLayout = () => {
@@ -53,6 +54,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
+            {/* Email link verification for password linking flow */}
+            <Route path="/verify-link" element={<VerifyLink />} />
 
             {/* --- Routes with MainLayout --- */}
             <Route element={<MainLayout />}>

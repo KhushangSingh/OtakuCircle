@@ -6,7 +6,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const connectDB = require('./config/db');
 
 // --- IMPORT CONTROLLERS ---
-const { sendRegisterOtp, registerVerify, loginUser, googleAuth, forgotPassword, verifyOtp, resetPassword } = require('./controllers/authController');
+const { sendRegisterOtp, registerVerify, loginUser, confirmPasswordLink, googleAuth, forgotPassword, verifyOtp, resetPassword } = require('./controllers/authController');
 
 const { 
     getAnimes, 
@@ -26,7 +26,10 @@ const {
     getUserStats, 
     changePassword, 
     changeEmail, 
-    searchUsers 
+    searchUsers,
+    updateEmailPreferences,
+    sendEmailChangeOtp,
+    sendDeleteOtp
 } = require('./controllers/userController');
 
 const { 
@@ -114,6 +117,8 @@ app.post('/api/auth/google', googleAuth);
 app.post('/api/auth/forgot-password', forgotPassword);
 app.post('/api/auth/verify-otp', verifyOtp);
 app.post('/api/auth/reset-password', resetPassword);
+// Password link confirmation (called from email button click)
+app.get('/api/auth/confirm-link', confirmPasswordLink);
 
 // --- SEARCH ROUTES ---
 const searchRoutes = require('./routes/search');
@@ -134,6 +139,12 @@ app.put('/api/users/profile', protect, updateProfile);
 app.delete('/api/users/profile', protect, deleteUser);    
 app.put('/api/users/password', protect, changePassword);  
 app.put('/api/users/email', protect, changeEmail);        
+// Email preferences
+app.put('/api/users/email-preferences', protect, updateEmailPreferences);
+// Email change: 2-step OTP flow
+app.post('/api/users/email/send-otp', protect, sendEmailChangeOtp);
+// Account deletion: OTP verification
+app.post('/api/users/delete/send-otp', protect, sendDeleteOtp);
 
 // --- SOCIAL & FRIEND ROUTES ---
 app.post('/api/friends/request', protect, sendFriendRequest);

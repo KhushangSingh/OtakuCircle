@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const { sendEmail, buildEmailHtml } = require('../utils/emailUtils');
 
 // @desc    Add a friend
 // @route   POST /api/friends/request (Handled by sendFriendRequest, this adds directly)
@@ -63,6 +64,21 @@ const recommendAnime = async (req, res) => {
             animeTitle,
             message: `${req.user.username} recommended: ${animeTitle}`
         });
+
+        // Email notification (gated by recipient preference, truthy-default for existing users)
+        if (friend.emailPreferences?.friendRecommendation !== false) {
+            const sender = await User.findById(req.user.id).select('username');
+            const frontendUrl = process.env.FRONTEND_URL || 'https://otakucircle.vercel.app';
+            sendEmail(
+                friend.email,
+                `OtakuCircle — ${sender?.username || 'A friend'} recommended an anime`,
+                buildEmailHtml(
+                    `New anime recommendation!`,
+                    `${sender?.username || 'A friend'} recommended <strong style="color:#f4f4f5">${animeTitle}</strong> to you${message ? `: "${message}"` : '.'}`,
+                    `<a href="${frontendUrl}/recommendations" class="btn">View Recommendation →</a>`
+                )
+            ).catch(err => console.error('[email] recommendAnime send failed:', err));
+        }
 
         res.status(200).json({ message: 'Recommendation sent!' });
     } catch (error) {
@@ -161,6 +177,21 @@ const recommendMovie = async (req, res) => {
             mediaType: mediaType,
             message: `${req.user.username} recommended: ${title}`
         });
+
+        // Email notification (gated by recipient preference)
+        if (friend.emailPreferences?.friendRecommendation !== false) {
+            const sender = await User.findById(req.user.id).select('username');
+            const frontendUrl = process.env.FRONTEND_URL || 'https://otakucircle.vercel.app';
+            sendEmail(
+                friend.email,
+                `OtakuCircle — ${sender?.username || 'A friend'} recommended a ${mediaType || 'title'}`,
+                buildEmailHtml(
+                    `New ${mediaType === 'tv' ? 'TV show' : 'movie'} recommendation!`,
+                    `${sender?.username || 'A friend'} recommended <strong style="color:#f4f4f5">${title}</strong> to you${message ? `: "${message}"` : '.'}`,
+                    `<a href="${frontendUrl}/recommendations" class="btn">View Recommendation →</a>`
+                )
+            ).catch(err => console.error('[email] recommendMovie send failed:', err));
+        }
 
         res.status(200).json({ message: 'Recommendation sent!' });
     } catch (error) {
@@ -304,6 +335,20 @@ const sendFriendRequest = async (req, res) => {
             message: `${sender.username} sent you a friend request`
         });
 
+        // Email notification (gated by recipient preference)
+        if (recipient.emailPreferences?.friendRequest !== false) {
+            const frontendUrl = process.env.FRONTEND_URL || 'https://otakucircle.vercel.app';
+            sendEmail(
+                recipient.email,
+                `OtakuCircle — ${sender.username} sent you a friend request`,
+                buildEmailHtml(
+                    'New friend request!',
+                    `<strong style="color:#f4f4f5">${sender.username}</strong> wants to be your friend on OtakuCircle. Accept or decline from the Friends page.`,
+                    `<a href="${frontendUrl}/friends" class="btn">View Friend Request →</a>`
+                )
+            ).catch(err => console.error('[email] sendFriendRequest send failed:', err));
+        }
+
         res.json({ message: 'Friend request sent', notificationId: notification._id });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -356,6 +401,22 @@ const acceptFriendRequest = async (req, res) => {
         
         // Remove request notification
         await Notification.findByIdAndDelete(notificationId);
+
+        // Email notification to the original sender (gated by their preference)
+        const originalSender = await User.findById(friendId).select('email username emailPreferences');
+        const accepter = await User.findById(currentUserId).select('username');
+        if (originalSender && originalSender.emailPreferences?.friendRequestAccepted !== false) {
+            const frontendUrl = process.env.FRONTEND_URL || 'https://otakucircle.vercel.app';
+            sendEmail(
+                originalSender.email,
+                `OtakuCircle — ${accepter?.username || 'Someone'} accepted your friend request`,
+                buildEmailHtml(
+                    'Friend request accepted!',
+                    `<strong style="color:#f4f4f5">${accepter?.username || 'Someone'}</strong> accepted your friend request. You're now friends on OtakuCircle!`,
+                    `<a href="${frontendUrl}/friends" class="btn">View Friends →</a>`
+                )
+            ).catch(err => console.error('[email] acceptFriendRequest send failed:', err));
+        }
 
         // Notify sender of acceptance
         await Notification.create({
