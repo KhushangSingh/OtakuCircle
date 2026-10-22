@@ -3,6 +3,17 @@
 This guide walks you through deploying OtakuCircle to production while keeping your local development environment fully functional.
 
 ## 1. Push to GitHub
+Before pushing, create local environment files from the checked-in examples:
+
+```powershell
+Copy-Item server\.env.example server\.env
+Copy-Item client\.env.example client\.env
+```
+
+Fill in the local files or your hosting provider's secret configuration. The `.gitignore`
+rules exclude `.env` files while keeping `.env.example` templates safe to commit. Never
+paste real credentials into source files, Dockerfiles, compose files, or documentation.
+
 First, create your remote GitHub repository and push your code:
 1. Go to [GitHub](https://github.com/new) and create a new repository called `OtakuCircle`.
 2. Do **not** initialize it with a README or `.gitignore`.
@@ -56,3 +67,11 @@ Your project is configured to automatically use the correct URLs:
 - **Locally**: When you run `npm run dev` in `client`, it connects to `http://localhost:5000/api` because `VITE_API_URL` is undefined locally.
 - **Production**: Vercel injects the `VITE_API_URL`, so your live site connects to the live backend.
 - Same logic applies to the backend connecting to the Python ML service via `ML_SERVICE_URL`.
+
+## 5. Secret Rotation
+If credentials were ever committed to GitHub, treat them as compromised even after the
+file is deleted. Revoke and regenerate the MongoDB credentials, JWT signing secret,
+Google OAuth client secret/refresh token, and TMDB API key before deploying again.
+Existing JWTs should be invalidated by changing `JWT_SECRET`. History cleanup and a
+force-push should only be performed using your repository's approved secret-removal
+process because it affects every clone and fork.

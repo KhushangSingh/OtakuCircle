@@ -12,7 +12,7 @@ const { oAuth2Client, sendEmail, buildEmailHtml } = require('../utils/emailUtils
 
 /** Generate a signed JWT */
 const generateToken = (id) =>
-    jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret_do_not_use_prod', { expiresIn: '7d' });
+    jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
 /** Generate a random 6-digit OTP string */
 const makeOtp = () => Math.floor(100000 + Math.random() * 900000).toString();

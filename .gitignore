@@ -10,7 +10,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# Environment Variables - CRITICAL: Never commit these!
+# Environment variables - never commit local secrets
 .env
 .env.local
 .env.development
@@ -20,10 +20,8 @@ __pycache__/
 .env.production
 .env.production.local
 **/.env
-**/. env.local
-server/.env
-client/.env
-ml_service/.env
+**/.env.*
+!**/.env.example
 
 # Logs
 logs/
