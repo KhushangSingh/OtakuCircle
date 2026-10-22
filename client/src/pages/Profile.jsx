@@ -76,7 +76,7 @@ const Profile = () => {
 
         // Avg Score
         const avgScore = scoredItems.length > 0 
-            ? (scoredItems.reduce((acc, curr) => acc + curr.score, 0) / scoredItems.length).toFixed(1)
+            ? (scoredItems.reduce((acc, curr) => acc + curr.score, 0) / scoredItems.length).toFixed(2)
             : "N/A";
 
         // Commitment Score

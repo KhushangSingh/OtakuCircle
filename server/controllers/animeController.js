@@ -27,7 +27,7 @@ const formatAniListMedia = (mediaList) => {
         mal_id: item.idMal || item.id,
         title: item.title?.english || item.title?.romaji || 'Unknown',
         poster_url: item.coverImage?.extraLarge || item.coverImage?.large,
-        score: item.averageScore ? (item.averageScore / 10).toFixed(1) : null,
+        score: item.averageScore ? (item.averageScore / 10).toFixed(2) : null,
         type: item.format,
         year: item.seasonYear || (item.startDate ? item.startDate.year : null),
         status: item.status
@@ -121,7 +121,7 @@ const getAnimeById = async (req, res) => {
             anime.type = media.format;
             anime.episodes = media.episodes;
             anime.status = media.status;
-            anime.score = media.averageScore ? (media.averageScore / 10).toFixed(1) : null;
+            anime.score = media.averageScore ? (media.averageScore / 10).toFixed(2) : null;
             anime.genres = media.genres || [];
             anime.poster_url = media.coverImage?.extraLarge || media.coverImage?.large;
             anime.duration = media.duration ? `${media.duration} min` : 'Unknown';
@@ -136,7 +136,7 @@ const getAnimeById = async (req, res) => {
                 type: media.format,
                 episodes: media.episodes,
                 status: media.status,
-                score: media.averageScore ? (media.averageScore / 10).toFixed(1) : null,
+                score: media.averageScore ? (media.averageScore / 10).toFixed(2) : null,
                 genres: media.genres || [],
                 poster_url: media.coverImage?.extraLarge || media.coverImage?.large,
                 duration: media.duration ? `${media.duration} min` : 'Unknown',

@@ -19,7 +19,7 @@ const formatTMDBMedia = (list, mediaType) => {
         tmdb_id: item.id,
         title: item.title || item.name,
         poster_url: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
-        score: item.vote_average ? item.vote_average.toFixed(1) : null,
+        score: item.vote_average ? item.vote_average.toFixed(2) : null,
         type: mediaType || item.media_type || (item.title ? 'movie' : 'tv'),
         year: item.release_date ? item.release_date.split('-')[0] : (item.first_air_date ? item.first_air_date.split('-')[0] : null)
     }));

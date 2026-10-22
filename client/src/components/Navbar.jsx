@@ -290,24 +290,24 @@ const Navbar = () => {
                         
                         {/* Notifications Dropdown */}
                         {isNotificationsOpen && (
-                            <div className={`absolute right-0 top-full mt-3 w-96 md:w-[400px] ${glassStyle}`}>
-                                <div className="px-4 py-2.5 border-b border-white/5 flex justify-between items-center bg-white/5">
+                            <div className={`absolute right-0 top-full mt-3 w-[calc(100vw-2rem)] max-w-[400px] ${glassStyle}`}>
+                                <div className="px-4 py-2 border-b border-white/5 flex justify-between items-center bg-white/5">
                                     <h3 className="font-semibold text-sm text-white">Notifications</h3>
                                     {unreadCount > 0 && <span className="text-xs text-blue-400 font-bold">{unreadCount} NEW</span>}
                                 </div>
-                                <div className="max-h-[400px] overflow-y-auto custom-scrollbar p-3 space-y-2">
+                                <div className="max-h-[min(400px,60vh)] overflow-y-auto custom-scrollbar p-2.5 space-y-1.5">
                                     {notifications.length === 0 ? (
-                                        <div className="p-6 text-center text-zinc-300 text-sm">No new notifications</div>
+                                        <div className="p-5 text-center text-zinc-300 text-sm">No new notifications</div>
                                     ) : (
                                         notifications.map(n => (
-                                            <div key={n._id} className="p-4 rounded-xl bg-white/5 border border-white/5 flex justify-between items-center gap-4 hover:bg-white/10 transition-colors group">
+                                            <div key={n._id} className="p-3 rounded-xl bg-white/5 border border-white/5 flex justify-between items-center gap-3 hover:bg-white/10 transition-colors group">
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm text-zinc-300 leading-relaxed line-clamp-2">{n.message}</p>
-                                                    <p className="text-xs text-zinc-300 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
+                                                    <p className="text-xs text-zinc-400 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
                                                 </div>
                                                 <button 
                                                     onClick={(e) => handleViewNotification(n, e)}
-                                                    className="text-xs font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-4 py-2 rounded transition-all shrink-0 uppercase tracking-wider"
+                                                    className="text-xs font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded transition-all shrink-0 uppercase tracking-wider"
                                                 >
                                                     View
                                                 </button>
