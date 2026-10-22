@@ -1,9 +1,9 @@
-const axios = require('axios');
+﻿const axios = require('axios');
 const Movie = require('../models/Movie');
 const User = require('../models/User');
 
 // --- CONFIGURATION ---
-const TMDB_API_KEY = process.env.TMDB_API_KEY || 'a04f61feaaae331e8c97b2c30765ebb3';
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const CACHE_DURATION = 1000 * 60 * 60 * 24; // 24 Hours
 
@@ -32,7 +32,10 @@ const formatTMDBMedia = (list, mediaType) => {
 // @route   GET /api/movies/home
 const getMoviesHomeData = async (req, res) => {
     try {
-        if (!TMDB_API_KEY) throw new Error("TMDB_API_KEY is not configured");
+        if (!TMDB_API_KEY) {
+            console.error("❌ TMDB_API_KEY is not configured in environment variables");
+            return res.status(500).json({ message: "Movie service is not properly configured. Please contact the administrator." });
+        }
 
         const now = Date.now();
         if (homeCache.data && (now - homeCache.lastFetch < CACHE_DURATION)) {
@@ -92,6 +95,10 @@ const getMovieById = async (req, res) => {
         let movie = await Movie.findOne({ tmdb_id: Number(id), media_type: type });
 
         if (movie) return res.json(movie);
+
+        if (!TMDB_API_KEY) {
+            return res.status(500).json({ message: "Movie service is not properly configured" });
+        }
 
         console.log(`⚠️ Media ${id} not in DB. Fetching from TMDB...`);
         const response = await axios.get(`${TMDB_BASE_URL}/${type}/${id}?api_key=${TMDB_API_KEY}&append_to_response=videos`);
@@ -186,6 +193,10 @@ const addMovieToWatchhistory = async (req, res) => {
 const searchMovies = async (req, res) => {
     const query = req.query.q;
     if (!query) return res.status(400).json({ message: "Search query is required" });
+
+    if (!TMDB_API_KEY) {
+        return res.status(500).json({ message: "Movie search is not properly configured" });
+    }
 
     try {
         const response = await axios.get(`${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);

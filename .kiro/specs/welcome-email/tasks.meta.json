@@ -1,0 +1,563 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Create `server/utils/emailUtils.js` with exported `sendEmail`, `buildEmailHtml`, and `oAuth2Client`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680129135
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680146752
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792681842396
+      }
+    ],
+    "1.2 Update `authController.js` to import from `emailUtils.js`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680129756
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792681847840
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684310137
+      }
+    ],
+    "2.1 Add `emailPreferences` subdocument to `server/models/User.js`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680129866
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792681853090
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684315142
+      }
+    ],
+    "2.2 Add `email_change` and `account_delete` to OTP type enum in `server/models/OTP.js`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680129973
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792681858523
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684321792
+      }
+    ],
+    "3.1 Add `sendWelcomeEmail(user)` function to `server/controllers/authController.js`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680130093
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684326452
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684580618
+      }
+    ],
+    "3.3 Call `sendWelcomeEmail` in `registerVerify` after user creation (non-blocking)": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680130195
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684625417
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792686214278
+      }
+    ],
+    "3.4 Call `sendWelcomeEmail` in `googleAuth` for new-user branch only (non-blocking)": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680130272
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684631258
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792686222368
+      }
+    ],
+    "4. Checkpoint — Ensure all tests pass, ask the user if questions arise.": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680130350
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792686267123
+      }
+    ],
+    "5.1 Add `updateEmailPreferences` controller function to `server/controllers/userController.js`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680130429
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684331334
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684585304
+      }
+    ],
+    "6.1 Gate `recommendAnime` in `socialController.js` behind `emailPreferences.friendRecommendation`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680130507
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684638408
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792686231126
+      }
+    ],
+    "6.2 Gate `recommendMovie` in `socialController.js` behind `emailPreferences.friendRecommendation`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680130587
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684645526
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792686235724
+      }
+    ],
+    "6.3 Gate `sendFriendRequest` in `socialController.js` behind recipient's `emailPreferences.friendRequest`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680130676
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684649822
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792686240121
+      }
+    ],
+    "6.4 Gate `acceptFriendRequest` in `socialController.js` behind sender's `emailPreferences.friendRequestAccepted`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680130815
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684656267
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792686247742
+      }
+    ],
+    "7.1 Add `sendEmailChangeOtp` handler to `userController.js`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680130905
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684337238
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684591942
+      }
+    ],
+    "7.2 Update `changeEmail` in `userController.js` to require and verify OTP": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680130985
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684605980
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684610557
+      }
+    ],
+    "8.1 Add `sendDeleteOtp` handler to `userController.js`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680131069
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684341398
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684596044
+      }
+    ],
+    "8.2 Update `deleteUser` in `userController.js` to require and verify OTP": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680131154
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684616146
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684620785
+      }
+    ],
+    "9.1 Send password-changed security email in `changePassword` (`userController.js`)": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680131230
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684347205
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684600441
+      }
+    ],
+    "10.1 Add three new user routes and update existing ones": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680131321
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792686271552
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792688165152
+      }
+    ],
+    "11. Checkpoint — Ensure all backend tests pass, ask the user if questions arise.": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680131442
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792688182350
+      }
+    ],
+    "12.1 Apply compact layout tokens throughout `client/src/pages/Settings.jsx`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680131524
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792688188386
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690541293
+      }
+    ],
+    "13.1 Add `emailStep` state (1 | 2) and update `emailData` shape to `{ new, currentPassword, otp }` in `Settings.jsx`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680131605
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690546682
+      }
+    ],
+    "13.2 Implement step-1 email change form: collect `newEmail` + `currentPassword`, call `POST /api/users/email/send-otp` on submit": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680131687
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690551683
+      }
+    ],
+    "13.3 Implement step-2 email change form: show \"Code sent to {email}\" hint, collect OTP, call `PUT /api/users/email` on confirm": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680131770
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690556681
+      }
+    ],
+    "14.1 Add `deleteStep` state (1 | 2 | 3) and `deleteOtp` string state to `Settings.jsx`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680131855
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690561676
+      }
+    ],
+    "14.2 Implement step-1 deletion modal: confirmation prompt with \"Send Verification Code\" button": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680131935
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690568118
+      }
+    ],
+    "14.3 Implement step-2 deletion modal: OTP input with \"Confirm Delete\" button calling `DELETE /api/users/profile`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680132075
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690574194
+      }
+    ],
+    "15.1 Add `emailPrefs` state initialized from `user.emailPreferences` on page load in `Settings.jsx`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680132165
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690579697
+      }
+    ],
+    "15.2 Build the Email Preferences card component inline in `Settings.jsx`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680132248
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690585404
+      }
+    ],
+    "15.3 Wire each toggle to `PUT /api/users/email-preferences` on change": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680132334
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690590591
+      }
+    ],
+    "16. Final checkpoint — Ensure all tests pass, ask the user if questions arise.": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792680132422
+      },
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690595616
+      }
+    ],
+    "1. Extract shared email utilities module": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684310230
+      }
+    ],
+    "2. Update data models": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684321863
+      }
+    ],
+    "5. Implement email preferences API": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684585354
+      }
+    ],
+    "9. Implement security confirmation emails": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684600647
+      }
+    ],
+    "7. Implement OTP-verified email change (backend)": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684610636
+      }
+    ],
+    "8. Implement OTP-verified account deletion (backend)": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792684620896
+      }
+    ],
+    "3. Implement welcome email": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792686222507
+      }
+    ],
+    "6. Add email preference gating to social notifications": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792686247897
+      }
+    ],
+    "10. Register new endpoints in `server/server.js`": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792688165397
+      }
+    ],
+    "12. Compact Settings UI redesign": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690541540
+      }
+    ],
+    "13. 2-step email change UI in Settings": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690556830
+      }
+    ],
+    "14. 3-step account deletion modal in Settings": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690574311
+      }
+    ],
+    "15. Email Preferences section in Settings": [
+      {
+        "executionId": "805c6c43-e3bd-41e7-8be3-fc77332d52d6",
+        "chatSessionId": "sess_b861142c-15f8-4681-84b6-2d6e0be024e4",
+        "timestamp": 1792690590689
+      }
+    ]
+  }
+}

@@ -10,12 +10,20 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# Environment Variables
+# Environment Variables - CRITICAL: Never commit these!
 .env
-.env.development.local
-.env.test.local
-.env.production.local
 .env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+**/.env
+**/. env.local
+server/.env
+client/.env
+ml_service/.env
 
 # Logs
 logs/
@@ -40,6 +48,16 @@ ehthumbs.db
 Thumbs.db
 
 # Build outputs
-client/dist/*.pkl
-.env
+client/dist/
+build/
+dist/
 *.pkl
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
