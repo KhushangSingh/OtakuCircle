@@ -47,6 +47,8 @@ We recommend deploying both the backend and python ML service to [Render](https:
    - `MONGO_URI`: Your MongoDB Atlas URI.
    - `JWT_SECRET`: A secure random string for JWT signatures.
    - `ML_SERVICE_URL`: The URL you got from the previous step (e.g., `https://otakucircle-ml.onrender.com`).
+   - `TMDB_API_KEY`: Your TMDB v3 API key. Without this variable, movie home,
+     detail, and search endpoints return `503 Movie service is temporarily unavailable`.
 5. Wait for deployment, and copy the **Service URL** (e.g., `https://otakucircle-api.onrender.com`).
 
 ## 3. Deploying the Frontend (React + Vite)

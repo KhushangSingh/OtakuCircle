@@ -5,6 +5,9 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const connectDB = require('./config/db');
 
+// Load environment variables before importing controllers that read them.
+dotenv.config();
+
 // --- IMPORT CONTROLLERS ---
 const { sendRegisterOtp, registerVerify, loginUser, confirmPasswordLink, googleAuth, forgotPassword, verifyOtp, resetPassword } = require('./controllers/authController');
 
@@ -59,9 +62,6 @@ const authLimiter = rateLimit({
     max: 20, // Limit each IP to 20 auth requests per window
     message: { message: 'Too many authentication attempts from this IP, please try again after 15 minutes.' }
 });
-
-// --- CONFIG ---
-dotenv.config();
 
 // Verify critical environment variables
 const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'REFRESH_TOKEN', 'EMAIL_USER'];

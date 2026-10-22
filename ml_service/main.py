@@ -22,17 +22,14 @@ CORS(app)  # Enable Cross-Origin Resource Sharing for all domains
 MODEL = None
 SEARCH_IDS = []
 SEARCH_EMBEDDINGS = None
+MODEL_LOAD_LOCK = threading.Lock()
+MODEL_LOAD_ERROR = None
 
-def load_resources():
-    """Loads the AI model and pre-computed index into memory on startup."""
-    global MODEL, SEARCH_IDS, SEARCH_EMBEDDINGS
-    print("Loading AI Models & Index...")
-    
+def load_index():
+    """Load the compact pre-computed index without loading the transformer model."""
+    global SEARCH_IDS, SEARCH_EMBEDDINGS
+
     try:
-        # 1. Load Sentence Transformer (Must match build_search_index.py)
-        MODEL = SentenceTransformer('all-mpnet-base-v2')
-        
-        # 2. Load Search Index
         if not os.path.exists('search_index.pkl'):
             raise FileNotFoundError("search_index.pkl not found. Run build_search_index.py first.")
             
@@ -41,13 +38,33 @@ def load_resources():
             SEARCH_IDS = np.array(data['ids'])
             SEARCH_EMBEDDINGS = data['embeddings']
             
-        print(f"ML Service Ready! Loaded {len(SEARCH_IDS)} items.")
+        print(f"Search index ready! Loaded {len(SEARCH_IDS)} items.")
     except Exception as e:
-        print(f"Critical Error loading resources: {e}")
+        print(f"Critical Error loading search index: {e}")
 
-# Load in background so the server can start immediately
-# (Render requires a port to be open quickly or it times out)
-threading.Thread(target=load_resources, daemon=True).start()
+def get_model():
+    """Load the transformer only when semantic search is requested."""
+    global MODEL, MODEL_LOAD_ERROR
+    if MODEL is not None:
+        return MODEL
+    if MODEL_LOAD_ERROR is not None:
+        return None
+
+    with MODEL_LOAD_LOCK:
+        if MODEL is None and MODEL_LOAD_ERROR is None:
+            try:
+                print("Loading AI model for the first semantic search request...")
+                MODEL = SentenceTransformer(
+                    os.getenv('SENTENCE_TRANSFORMER_MODEL', 'all-mpnet-base-v2')
+                )
+            except Exception as e:
+                MODEL_LOAD_ERROR = str(e)
+                print(f"Critical Error loading AI model: {e}")
+    return MODEL
+
+# Load only the small index during startup. The transformer is lazy-loaded to
+# keep the Render instance below its memory limit while idle.
+load_index()
 
 @app.route('/predict', methods=['POST'])
 def recommend_by_ids():
@@ -108,12 +125,13 @@ def semantic_search():
     if not query:
         return jsonify({'error': 'No query provided'}), 400
 
-    if MODEL is None or SEARCH_EMBEDDINGS is None:
+    model = get_model()
+    if model is None or SEARCH_EMBEDDINGS is None:
         return jsonify({'error': 'Model not loaded'}), 503
 
     try:
         # 1. Encode User Query
-        query_vec = MODEL.encode([query])
+        query_vec = model.encode([query])
 
         # 2. Similarity Search
         scores = cosine_similarity(query_vec, SEARCH_EMBEDDINGS)[0]
@@ -142,7 +160,11 @@ def semantic_search():
 
 @app.route('/health', methods=['GET'])
 def health():
-    return jsonify({"status": "healthy", "model_loaded": MODEL is not None})
+    return jsonify({
+        "status": "healthy",
+        "model_loaded": MODEL is not None,
+        "index_loaded": SEARCH_EMBEDDINGS is not None
+    })
 
 if __name__ == '__main__':
     # Use Waitress for Production Serving
@@ -150,4 +172,4 @@ if __name__ == '__main__':
     print(f"Starting Production ML Service on port {port}...")
     print("   (Press CTRL+C to quit)")
     
-    serve(app, host='0.0.0.0', port=port, threads=6)
+    serve(app, host='0.0.0.0', port=port, threads=2)

@@ -3,7 +3,6 @@ const Movie = require('../models/Movie');
 const User = require('../models/User');
 
 // --- CONFIGURATION ---
-const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const CACHE_DURATION = 1000 * 60 * 60 * 24; // 24 Hours
 
@@ -11,6 +10,8 @@ let homeCache = {
     data: null,
     lastFetch: 0
 };
+
+const getTMDBApiKey = () => process.env.TMDB_API_KEY;
 
 // --- HELPERS ---
 const formatTMDBMedia = (list, mediaType) => {
@@ -32,9 +33,10 @@ const formatTMDBMedia = (list, mediaType) => {
 // @route   GET /api/movies/home
 const getMoviesHomeData = async (req, res) => {
     try {
-        if (!TMDB_API_KEY) {
+        const tmdbApiKey = getTMDBApiKey();
+        if (!tmdbApiKey) {
             console.error("❌ TMDB_API_KEY is not configured in environment variables");
-            return res.status(500).json({ message: "Movie service is not properly configured. Please contact the administrator." });
+            return res.status(503).json({ message: "Movie service is temporarily unavailable." });
         }
 
         const now = Date.now();
@@ -47,7 +49,7 @@ const getMoviesHomeData = async (req, res) => {
         
         const fetchTMDB = (endpoint) => {
             const separator = endpoint.includes('?') ? '&' : '?';
-            return axios.get(`${TMDB_BASE_URL}${endpoint}${separator}api_key=${TMDB_API_KEY}`);
+            return axios.get(`${TMDB_BASE_URL}${endpoint}${separator}api_key=${tmdbApiKey}`);
         };
 
         const [trending, popularMovies, popularTv, topRatedMovies, actionMovies, sciFiMovies, comedyMovies, animationMovies] = await Promise.all([
@@ -96,12 +98,13 @@ const getMovieById = async (req, res) => {
 
         if (movie) return res.json(movie);
 
-        if (!TMDB_API_KEY) {
-            return res.status(500).json({ message: "Movie service is not properly configured" });
+        const tmdbApiKey = getTMDBApiKey();
+        if (!tmdbApiKey) {
+            return res.status(503).json({ message: "Movie service is temporarily unavailable." });
         }
 
         console.log(`⚠️ Media ${id} not in DB. Fetching from TMDB...`);
-        const response = await axios.get(`${TMDB_BASE_URL}/${type}/${id}?api_key=${TMDB_API_KEY}&append_to_response=videos`);
+        const response = await axios.get(`${TMDB_BASE_URL}/${type}/${id}?api_key=${tmdbApiKey}&append_to_response=videos`);
         const data = response.data;
 
         let trailerUrl = null;
@@ -194,12 +197,13 @@ const searchMovies = async (req, res) => {
     const query = req.query.q;
     if (!query) return res.status(400).json({ message: "Search query is required" });
 
-    if (!TMDB_API_KEY) {
-        return res.status(500).json({ message: "Movie search is not properly configured" });
+    const tmdbApiKey = getTMDBApiKey();
+    if (!tmdbApiKey) {
+        return res.status(503).json({ message: "Movie service is temporarily unavailable." });
     }
 
     try {
-        const response = await axios.get(`${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+        const response = await axios.get(`${TMDB_BASE_URL}/search/multi?api_key=${tmdbApiKey}&query=${encodeURIComponent(query)}`);
         // Filter out people and items without posters if desired, but definitely filter out people
         const validResults = response.data.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv');
         const formatted = formatTMDBMedia(validResults);
