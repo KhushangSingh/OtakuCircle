@@ -291,9 +291,9 @@ const Navbar = () => {
                         {/* Notifications Dropdown */}
                         {isNotificationsOpen && (
                             <div className={`absolute right-0 top-full mt-3 w-96 md:w-[400px] ${glassStyle}`}>
-                                <div className="p-5 border-b border-white/5 flex justify-between items-center bg-white/5">
-                                    <h3 className="font-semibold text-base text-white">Notifications</h3>
-                                    {unreadCount > 0 && <span className="text-sm text-blue-400 font-bold">{unreadCount} NEW</span>}
+                                <div className="px-4 py-2.5 border-b border-white/5 flex justify-between items-center bg-white/5">
+                                    <h3 className="font-semibold text-sm text-white">Notifications</h3>
+                                    {unreadCount > 0 && <span className="text-xs text-blue-400 font-bold">{unreadCount} NEW</span>}
                                 </div>
                                 <div className="max-h-[400px] overflow-y-auto custom-scrollbar p-3 space-y-2">
                                     {notifications.length === 0 ? (
