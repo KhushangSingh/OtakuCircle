@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Tv, Star, Check } from '../components/icons';
 import { useNotification } from '../components/NotificationProvider';
-import heroImage from '../assets/spotlight-hero-bg.jpg';
+import heroImage from '../assets/spotlight-hero-bg-converted.webp';
 
 // --- ANIME CARD COMPONENT ---
 // Matches Home Page Dimensions & Design exactly

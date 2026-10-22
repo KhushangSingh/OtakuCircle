@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, Loader, X, KeyRound, ShieldCheck, LinkIcon } from '../components/icons';
 import { GoogleLogin } from '@react-oauth/google';
-import heroImage from '../assets/spotlight-hero-bg.jpg';
+import heroImage from '../assets/spotlight-hero-bg-converted.webp';
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);

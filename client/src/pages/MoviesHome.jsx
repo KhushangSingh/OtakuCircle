@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Plus, Check, ChevronLeft, ChevronRight } from '../components/icons';
 import SearchBar from '../components/SearchBar';
-import moviesHeroBg from '../assets/movies-hero-bg-2.png';
+import moviesHeroBg from '../assets/movies-hero-bg-2-converted.webp';
 
 // --- COMPONENT: Movie Card ---
 const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {

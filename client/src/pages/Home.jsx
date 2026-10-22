@@ -4,7 +4,7 @@ import { useNotification } from '../components/NotificationProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Plus, Check, ChevronLeft, ChevronRight } from '../components/icons';
-import heroImage from '../assets/spotlight-hero-bg.jpg';
+import heroImage from '../assets/spotlight-hero-bg-converted.webp';
 import Footer from '../components/Footer';
 
 // --- COMPONENT: Anime Card ---

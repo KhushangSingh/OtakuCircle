@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../components/NotificationProvider';
 import axios from 'axios';
 import { 
-    UserPlus, X, User, MessageSquare, Check, XCircle, Film, Trash2,
-    Users, Compass, UserMinus
+    UserPlus, X, MessageSquare, Check, Film, Trash2,
+    Users, UserMinus
 } from '../components/icons';
 import SearchBar from '../components/SearchBar';
 
@@ -164,14 +164,6 @@ const Friends = () => {
         setFriendDetails(null);
     };
 
-    // --- UTILS ---
-    const getTasteMatch = (userId) => {
-        if (!userId) return 0;
-        let seed = 0;
-        for (let i = 0; i < userId.length; i++) seed += userId.charCodeAt(i);
-        return (seed % 60) + 40; 
-    };
-    
     // --- AVATAR COMPONENT ---
     const Avatar = ({ user, size = 'md', className = '' }) => {
         const sizes = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-14 h-14 text-lg', xl: 'w-32 h-32 text-4xl' };
@@ -278,14 +270,11 @@ const Friends = () => {
                                 friendRequests.length === 0 ? (
                                     <div className="py-8 text-center text-zinc-600 text-sm">No pending requests</div>
                                 ) : (
-                                    friendRequests.map(req => {
-                                        const match = getTasteMatch(req.sender?._id);
-                                        return (
+                                    friendRequests.map(req => (
                                             <div key={req._id} className="flex items-center gap-3 bg-black/20 p-3 rounded-2xl border border-white/5">
                                                 <Avatar user={req.sender} size="md" />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-white text-sm font-semibold truncate">{req.sender?.username}</p>
-                                                    <p className="text-zinc-500 text-xs truncate">{match}% Taste Match</p>
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <button onClick={() => handleAcceptRequest(req.sender?._id, req._id)} className="w-8 h-8 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center hover:bg-green-500 hover:text-white transition-colors">
@@ -296,21 +285,17 @@ const Friends = () => {
                                                     </button>
                                                 </div>
                                             </div>
-                                        )
-                                    })
+                                    ))
                                 )
                             ) : (
                                 sentRequests.length === 0 ? (
                                     <div className="py-8 text-center text-zinc-600 text-sm">No sent requests</div>
                                 ) : (
-                                    sentRequests.map(req => {
-                                        const match = getTasteMatch(req.recipient?._id);
-                                        return (
+                                    sentRequests.map(req => (
                                             <div key={req._id} className="flex items-center gap-3 bg-black/20 p-3 rounded-2xl border border-white/5">
                                                 <Avatar user={req.recipient} size="md" />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-white text-sm font-semibold truncate">{req.recipient?.username}</p>
-                                                    <p className="text-zinc-500 text-xs truncate">{match}% Taste Match</p>
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <button onClick={() => handleCancelRequest(req.recipient?._id, req._id)} className="w-8 h-8 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors" title="Cancel Request">
@@ -318,8 +303,7 @@ const Friends = () => {
                                                     </button>
                                                 </div>
                                             </div>
-                                        )
-                                    })
+                                    ))
                                 )
                             )}
                         </div>
@@ -396,19 +380,11 @@ const Friends = () => {
                         </div>
                     ) : (
                         <div className="flex flex-col gap-2">
-                            {friends.map(friend => {
-                                const match = getTasteMatch(friend._id);
-                                
-                                let textColor = "text-green-400";
-                                if (match < 60) textColor = "text-red-400";
-                                else if (match < 80) textColor = "text-yellow-400";
-                                
-                                return (
+                            {friends.map(friend => (
                                     <div key={friend._id} className="flex items-center gap-3 rounded-2xl border border-white/5 bg-black/20 p-3 hover:bg-white/[0.06] transition-colors">
                                         <Avatar user={friend} size="sm" />
                                         <div className="flex-1 min-w-0">
                                             <h3 className="text-white font-semibold text-sm truncate">{friend.username}</h3>
-                                            <p className={`text-xs font-semibold ${textColor}`}>{match}% Taste Match</p>
                                         </div>
                                         <button
                                             onClick={() => handleFriendClick(friend)}
@@ -417,8 +393,7 @@ const Friends = () => {
                                             View Profile
                                         </button>
                                     </div>
-                                )
-                            })}
+                            ))}
                         </div>
                     )}
                 </div>
