@@ -42,6 +42,7 @@ const AnimeDetails = () => {
     const handleAddToList = async () => {
         try {
             const token = localStorage.getItem('token');
+            if (!token) { showNotification("Please sign in to add to your watchlist", "error"); navigate('/login'); return; }
             await axios.post(`${API_URL}/anime/watchlist`, 
                 { 
                     animeId: anime.mal_id, 
@@ -59,6 +60,7 @@ const AnimeDetails = () => {
     const handleMarkWatched = async (statusValue = 'Watched') => {
         try {
             const token = localStorage.getItem('token');
+            if (!token) { showNotification("Please sign in to track your watch history", "error"); navigate('/login'); return; }
             await axios.post(`${API_URL}/anime/watchhistory`, 
                 { 
                     animeId: anime.mal_id, 

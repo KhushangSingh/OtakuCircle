@@ -60,7 +60,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route 
                 path="/anime/:id" 
-                element={isAuthenticated ? <AnimeDetails /> : <Navigate to="/login" />} 
+                element={<AnimeDetails />} 
               />
               <Route 
                 path="/profile/:username" 
@@ -80,7 +80,7 @@ function App() {
               />
               <Route 
                 path="/section/:section" 
-                element={isAuthenticated ? <AnimeSectionMore /> : <Navigate to="/login" />} 
+                element={<AnimeSectionMore />} 
               />
               <Route 
                 path="/friends/:username/watched" 
