@@ -42,6 +42,10 @@ const AnimeDetails = () => {
 
     // --- HANDLERS ---
     const handleAddToList = async () => {
+        const currentStatus = animeStatuses[anime.mal_id];
+        if (currentStatus && !window.confirm(`This anime is marked as ${currentStatus}. Add it to your Watchlist instead? It will be removed from your watch history.`)) {
+            return;
+        }
         try {
             const token = localStorage.getItem('token');
             if (!token) { showNotification("Please sign in to add to your watchlist", "error"); navigate('/login'); return; }
@@ -206,10 +210,10 @@ const AnimeDetails = () => {
 
                     {/* Action Buttons */}
                     <div className="flex flex-wrap gap-3 mb-6">
-                        <button onClick={handleWatchTrailer} className="flex items-center gap-1.5 bg-white text-black px-3.5 py-2 rounded-xl font-black text-xs md:text-sm hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.3)] active:scale-95">
+                        <button onClick={handleWatchTrailer} className="h-10 flex items-center gap-1.5 bg-white text-black px-3.5 rounded-xl font-black text-xs md:text-sm hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.3)] active:scale-95">
                             <Play className="w-4 h-4 fill-black" /> Trailer
                         </button>
-                        <button onClick={handleAddToList} disabled={Boolean(animeWatchlist[anime.mal_id])} className={`flex items-center gap-1.5 backdrop-blur-md px-3.5 py-2 rounded-xl font-bold text-xs md:text-sm transition-all active:scale-95 ${animeWatchlist[anime.mal_id] ? 'bg-blue-500/20 text-blue-300 border border-blue-400/40 cursor-default' : 'bg-white/10 text-white border border-white/10 hover:bg-white/20'}`}>
+                        <button onClick={handleAddToList} disabled={Boolean(animeWatchlist[anime.mal_id])} className={`h-10 flex items-center gap-1.5 backdrop-blur-md px-3.5 rounded-xl font-bold text-xs md:text-sm transition-all active:scale-95 ${animeWatchlist[anime.mal_id] ? 'bg-blue-500/20 text-blue-300 border border-blue-400/40 cursor-default' : 'bg-white/10 text-white border border-white/10 hover:bg-white/20'}`}>
                             <Plus className="w-4 h-4" /> {animeWatchlist[anime.mal_id] ? 'In Watchlist' : 'Watchlist'}
                         </button>
                         
@@ -219,10 +223,11 @@ const AnimeDetails = () => {
                                 handleMarkWatched(status);
                             }}
                             wrapperClass="w-36 shrink-0"
+                            className="h-10"
                         />
                         <button
                             onClick={openRecModal}
-                            className="flex items-center gap-1.5 bg-purple-500/20 text-purple-200 border border-purple-500/30 px-3.5 py-2 rounded-xl font-bold text-xs md:text-sm hover:bg-purple-500/30 transition-colors active:scale-95"
+                            className="h-10 flex items-center gap-1.5 bg-purple-500/20 text-purple-200 border border-purple-500/30 px-3.5 rounded-xl font-bold text-xs md:text-sm hover:bg-purple-500/30 transition-colors active:scale-95"
                         >
                             <Share2 className="w-4 h-4" /> Recommend
                         </button>

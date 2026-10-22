@@ -44,8 +44,13 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                     <button 
                         onClick={(e) => {
                             e.stopPropagation();
-                            onAddWatchlist(movie);
-                            setWatchlistAdded(true);
+                            if (watchedAdded && !window.confirm('This title is already in your watch history. Add it to your Watchlist instead? It will be removed from your watch history.')) return;
+                            Promise.resolve(onAddWatchlist(movie)).then((success) => {
+                                if (success !== false) {
+                                    setWatchlistAdded(true);
+                                    setWatchedAdded(false);
+                                }
+                            });
                         }}
                         disabled={watchlistAdded}
                         className={`w-[85%] mx-auto flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-bold backdrop-blur-sm border transition-colors active:scale-95 shadow-lg
@@ -241,15 +246,17 @@ const MoviesHome = () => {
 
     const handleAddToWatchlist = async (movie) => {
         const token = localStorage.getItem('token');
-        if (!token) { showNotification("Please login first!", "error"); return; }
+        if (!token) { showNotification("Please sign in to add items to your watchlist.", "error"); return false; }
         try {
             await axios.post(`${API_URL}/movies/watchlist`, {
                 tmdbId: movie.tmdb_id, title: movie.title, poster: movie.poster_url,
                 mediaType: movie.type
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Added ${movie.title} to your watchlist!`, "success");
+            return true;
         } catch (error) { 
             showNotification(error.response?.data?.message || "Movie service failed to save this item", "error");
+            return false;
         }
     };
 

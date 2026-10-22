@@ -172,6 +172,7 @@ const addToWatchlist = async (req, res) => {
             return res.status(400).json({ message: 'Anime already in your watchlist' });
         }
         
+        user.watchhistory = user.watchhistory.filter(item => item.animeId !== Number(animeId));
         user.watchlist.push({ animeId, title, poster });
         await user.save();
         res.status(201).json(user.watchlist);

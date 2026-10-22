@@ -36,7 +36,7 @@ const getMoviesHomeData = async (req, res) => {
         const tmdbApiKey = getTMDBApiKey();
         if (!tmdbApiKey) {
             console.error("❌ TMDB_API_KEY is not configured in environment variables");
-                return res.status(503).json({ message: "Movie service is temporarily unavailable. Configure TMDB_API_KEY on the server." });
+                return res.status(503).json({ message: "Movies are temporarily unavailable. Please try again later." });
         }
 
         const now = Date.now();
@@ -100,7 +100,7 @@ const getMovieById = async (req, res) => {
 
         const tmdbApiKey = getTMDBApiKey();
         if (!tmdbApiKey) {
-            return res.status(503).json({ message: "Movie service is temporarily unavailable." });
+            return res.status(503).json({ message: "Movies are temporarily unavailable. Please try again later." });
         }
 
         console.log(`⚠️ Media ${id} not in DB. Fetching from TMDB...`);
@@ -147,6 +147,7 @@ const addMovieToWatchlist = async (req, res) => {
             return res.status(400).json({ message: 'Item already in your watchlist' });
         }
         
+        user.movieWatchhistory = user.movieWatchhistory.filter(item => item.tmdbId !== Number(tmdbId));
         user.movieWatchlist.push({ tmdbId, title, poster, mediaType });
         await user.save();
         res.status(201).json(user.movieWatchlist);
@@ -199,7 +200,7 @@ const searchMovies = async (req, res) => {
 
     const tmdbApiKey = getTMDBApiKey();
     if (!tmdbApiKey) {
-        return res.status(503).json({ message: "Movie service is temporarily unavailable." });
+        return res.status(503).json({ message: "Movies are temporarily unavailable. Please try again later." });
     }
 
     try {

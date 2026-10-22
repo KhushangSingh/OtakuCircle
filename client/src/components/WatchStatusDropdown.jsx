@@ -82,10 +82,16 @@ const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded,
                 disabled={disabled}
                 ref={buttonRef}
                 onClick={toggleMenu}
-                className={`w-full flex items-center justify-between gap-1.5 py-2 px-4 rounded-xl text-xs font-bold backdrop-blur-sm transition-all shadow-lg border outline-none
+                className={`w-full h-10 flex items-center justify-between gap-1.5 px-4 rounded-xl text-xs font-bold backdrop-blur-sm transition-all shadow-lg border outline-none
                     ${disabled 
-                        ? 'bg-green-500/20 border-green-500/50 text-green-400 shadow-green-500/20 cursor-default' 
-                        : 'bg-white/10 hover:bg-white/20 border-white/30 text-white cursor-pointer'
+                        ? currentStatus === 'Watching'
+                            ? 'bg-blue-500/20 border-blue-500/50 text-blue-300 shadow-blue-500/20 cursor-default'
+                            : 'bg-green-500/20 border-green-500/50 text-green-300 shadow-green-500/20 cursor-default'
+                        : currentStatus === 'Watching'
+                            ? 'bg-blue-500/20 hover:bg-blue-500/30 border-blue-400/50 text-blue-200'
+                            : currentStatus === 'Watched'
+                                ? 'bg-green-500/20 hover:bg-green-500/30 border-green-400/50 text-green-200'
+                                : 'bg-white/10 hover:bg-white/20 border-white/30 text-white cursor-pointer'
                     } ${className || ''}`}
             >
                 {disabled ? (

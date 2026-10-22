@@ -51,6 +51,12 @@ export const MediaStatusProvider = ({ children }) => {
 
     const setAnimeInWatchlist = useCallback((animeId) => {
         setAnimeWatchlist((current) => ({ ...current, [animeId]: true }));
+        setAnimeStatuses((current) => {
+          if (!current[animeId]) return current;
+          const next = { ...current };
+          delete next[animeId];
+          return next;
+        });
     }, []);
 
     const value = useMemo(() => ({

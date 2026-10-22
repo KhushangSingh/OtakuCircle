@@ -15,6 +15,7 @@ const MovieDetails = () => {
     const { showNotification } = useNotification();
     const [movie, setMovie] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [movieStatus, setMovieStatus] = useState(null);
 
     // Modal State
     const [isRecModalOpen, setIsRecModalOpen] = useState(false);
@@ -47,6 +48,14 @@ const MovieDetails = () => {
     const handleAddToList = async () => {
         try {
             const token = localStorage.getItem('token');
+            if (!token) {
+                showNotification("Please sign in to add items to your watchlist.", "error");
+                navigate('/login');
+                return;
+            }
+            if (movieStatus && !window.confirm(`This title is marked as ${movieStatus}. Add it to your Watchlist instead? It will be removed from your watch history.`)) {
+                return;
+            }
             await axios.post(`${API_URL}/movies/watchlist`, 
                 { 
                     tmdbId: movie.tmdb_id, 
@@ -57,6 +66,7 @@ const MovieDetails = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             showNotification("Added to Watchlist", "success");
+            setMovieStatus(null);
         } catch (error) {
             showNotification(error.response?.data?.message || "Failed to add", "error");
         }
@@ -76,6 +86,7 @@ const MovieDetails = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             showNotification(`Marked as ${statusValue}`, "success");
+            setMovieStatus(statusValue);
         } catch (error) {
             showNotification(error.response?.data?.message || "Failed to update", "error");
         }
@@ -217,21 +228,22 @@ const MovieDetails = () => {
 
                     {/* Action Buttons */}
                     <div className="flex flex-wrap gap-3 mb-6">
-                        <button onClick={handleWatchTrailer} className="flex items-center gap-1.5 bg-white text-black px-3.5 py-2 rounded-xl font-black text-xs md:text-sm hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.3)] active:scale-95">
+                        <button onClick={handleWatchTrailer} className="h-10 flex items-center gap-1.5 bg-white text-black px-3.5 rounded-xl font-black text-xs md:text-sm hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.3)] active:scale-95">
                             <Play className="w-4 h-4 fill-black" /> Trailer
                         </button>
-                        <button onClick={handleAddToList} className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md text-white border border-white/10 px-3.5 py-2 rounded-xl font-bold text-xs md:text-sm hover:bg-white/20 transition-colors active:scale-95">
+                        <button onClick={handleAddToList} className="h-10 flex items-center gap-1.5 bg-white/10 backdrop-blur-md text-white border border-white/10 px-3.5 rounded-xl font-bold text-xs md:text-sm hover:bg-white/20 transition-colors active:scale-95">
                             <Plus className="w-4 h-4" /> Watchlist
                         </button>
 
                         <WatchStatusDropdown
-                            currentStatus={null}
+                            currentStatus={movieStatus}
                             onStatusChange={handleMarkWatched}
                             wrapperClass="w-36 shrink-0"
+                            className="h-10"
                         />
                         <button 
                             onClick={openRecModal}
-                            className="flex items-center gap-1.5 bg-purple-500/20 text-purple-200 border border-purple-500/30 px-3.5 py-2 rounded-xl font-bold text-xs md:text-sm hover:bg-purple-500/30 transition-colors active:scale-95"
+                            className="h-10 flex items-center gap-1.5 bg-purple-500/20 text-purple-200 border border-purple-500/30 px-3.5 rounded-xl font-bold text-xs md:text-sm hover:bg-purple-500/30 transition-colors active:scale-95"
                         >
                             <Share2 className="w-4 h-4" /> Recommend
                         </button>

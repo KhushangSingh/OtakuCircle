@@ -40,8 +40,13 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                     <button 
                         onClick={(e) => {
                             e.stopPropagation();
-                            onAddWatchlist(movie);
-                            setWatchlistAdded(true);
+                            if (watchedAdded && !window.confirm('This title is already in your watch history. Add it to your Watchlist instead? It will be removed from your watch history.')) return;
+                            Promise.resolve(onAddWatchlist(movie)).then((success) => {
+                                if (success !== false) {
+                                    setWatchlistAdded(true);
+                                    setWatchedAdded(false);
+                                }
+                            });
                         }}
                         disabled={watchlistAdded}
                         className={`w-full flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold backdrop-blur-xl border transition-all active:scale-95 shadow-lg
@@ -122,16 +127,18 @@ const MovieSectionMore = () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                showNotification("Please login first!", "error");
-                return;
+                showNotification("Please sign in to add items to your watchlist.", "error");
+                return false;
             }
             await axios.post(`${API_URL}/movies/watchlist`, 
                 { tmdbId: movie.tmdb_id, title: movie.title, poster: movie.poster_url, mediaType: movie.type },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             showNotification(`Added ${movie.title} to Watchlist`, "success");
+            return true;
         } catch (error) {
             showNotification(error.response?.data?.message || "Failed to add", "error");
+            return false;
         }
     };
 

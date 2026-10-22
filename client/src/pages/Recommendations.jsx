@@ -51,6 +51,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                     <button 
                         onClick={(e) => {
                             e.stopPropagation();
+                            if (currentStatus && !window.confirm(`This anime is marked as ${currentStatus}. Add it to your Watchlist instead? It will be removed from your watch history.`)) return;
                             Promise.resolve(onAddWatchlist(e, anime)).then((success) => {
                                 if (success) setAnimeInWatchlist(anime.mal_id);
                             });
