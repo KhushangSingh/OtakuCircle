@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Settings as SettingsIcon, User, Mail, Lock, ShieldAlert, Bell, KeyRound, X, Pencil } from '../components/icons';
+import { Settings as SettingsIcon, User, Mail, Lock, Bell, KeyRound, X, Pencil } from '../components/icons';
 
 // ── Pill toggle ──────────────────────────────────────────────────────────────
 const ToggleSwitch = ({ checked, onChange, disabled }) => (
@@ -358,7 +358,7 @@ const Settings = () => {
                                 </span>
                                 <button
                                     onClick={() => setEditingField('username')}
-                                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-lg transition-colors"
                                 >
                                     Edit
                                 </button>
@@ -440,7 +440,7 @@ const Settings = () => {
                                 </span>
                                 <button
                                     onClick={() => setEditingField('email')}
-                                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-lg transition-colors"
                                 >
                                     Edit
                                 </button>
@@ -489,7 +489,7 @@ const Settings = () => {
                                 </span>
                                 <button
                                     onClick={() => setEditingField('password')}
-                                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-lg transition-colors"
                                 >
                                     Change
                                 </button>
@@ -639,11 +639,11 @@ const Settings = () => {
                     </div>
                 )}
 
-                {/* ── Danger Zone card ──────────────────────────────────── */}
+                {/* ── Account deletion card ─────────────────────────────── */}
                 <div className="lg:col-span-2 bg-[#151515] border border-red-900/30 rounded-2xl p-4 md:p-6 shadow-xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-red-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                    <h3 className="text-base font-bold text-red-500 flex items-center gap-2 mb-3">
-                        <ShieldAlert size={18} /> Danger Zone
+                    <h3 className="text-base font-bold text-red-500 mb-3">
+                        Account Deletion
                     </h3>
                     <p className="text-zinc-400 text-sm mb-5">
                         Once you delete your account, there is no going back. Please be certain.
@@ -659,8 +659,8 @@ const Settings = () => {
 
             {/* ── Delete Modal ─────────────────────────────────────────────── */}
             {deleteStep > 0 && (
-                <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-[#151515] border border-white/5 rounded-2xl p-6 max-w-sm w-full shadow-2xl shadow-red-900/20 ring-1 ring-red-500/20">
+                <div className="fixed inset-0 bg-black/55 backdrop-blur-[2px] z-[100] flex items-center justify-center p-4">
+                    <div className="bg-[#151515] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-lg">
 
                         {/* Step 1 — confirm intent */}
                         {deleteStep === 1 && (

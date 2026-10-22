@@ -165,7 +165,7 @@ const SmartSearch = () => {
         <div className="min-h-screen bg-[#0d0d0d] text-white font-sans selection:bg-white/20">
             
             {/* --- HERO SECTION --- */}
-            <div className="relative pt-24 pb-12 px-6 overflow-hidden">
+            <div className="relative pt-32 pb-12 px-6 overflow-hidden">
                 <div className="absolute top-0 left-0 w-full max-w-4xl h-[300px] bg-[#0d0d0d] pointer-events-none" />
 
                 <div className="relative z-10 w-full px-4 lg:px-8 flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
