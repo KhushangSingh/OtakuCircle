@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../components/NotificationProvider';
 import axios from 'axios';
 import { 
-    UserPlus, Search, X, User, MessageSquare, Check, XCircle, Film, Trash2,
+    UserPlus, X, User, MessageSquare, Check, XCircle, Film, Trash2,
     Users, Compass, MoreVertical, VideoOff, MessageCircle, Info, UserMinus
 } from '../components/icons';
+import SearchBar from '../components/SearchBar';
 
 const Friends = () => {
     const { showNotification } = useNotification();
@@ -207,13 +208,10 @@ const Friends = () => {
                         <p className="text-zinc-400 text-sm">Connect, Share, and Discover.</p>
                     </div>
                     <div className="relative w-full md:w-80">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-5 h-5" />
-                        <input 
+                        <SearchBar
                             value={search}
                             onChange={(e) => handleSearch(e.target.value)}
-                            className="w-full bg-white/5 border border-white/5 rounded-2xl py-2.5 pl-10 pr-4 text-sm text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-zinc-500 outline-none" 
-                            placeholder="Find friends..." 
-                            type="text"
+                            placeholder="Find friends..."
                         />
                         
                         {/* Search Dropdown */}

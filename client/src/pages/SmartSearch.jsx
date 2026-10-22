@@ -3,6 +3,7 @@ import WatchStatusDropdown from '../components/WatchStatusDropdown';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Search, Sparkles, Plus, Check, Star } from '../components/icons';
+import SearchBar from '../components/SearchBar';
 import { useNotification } from '../components/NotificationProvider';
 
 // --- ANIME CARD COMPONENT ---
@@ -190,18 +191,13 @@ const SmartSearch = () => {
 
                     {/* RIGHT COLUMN: Search Bar */}
                     <div className="w-full lg:w-1/2 relative group">
-                        <div className="relative flex items-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5),inset_0_2px_6px_rgba(0,0,0,0.7)] transition-all group-focus-within:bg-white/10 group-focus-within:border-white/20">
-                            <Search className="text-zinc-400 w-5 h-5 mr-4 group-focus-within:text-white transition-colors" />
-                            <input 
-                                type="text" 
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                placeholder="Describe an anime (e.g., 'Time travel thriller with a microwave')" 
-                                className="bg-transparent border-none outline-none text-base lg:text-lg text-white w-full placeholder-zinc-500 font-medium leading-relaxed"
-                                autoFocus
-                            />
-                        </div>
+                        <SearchBar
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Describe an anime (e.g., 'Time travel thriller with a microwave')"
+                            autoFocus
+                        />
                     </div>
 
                 </div>

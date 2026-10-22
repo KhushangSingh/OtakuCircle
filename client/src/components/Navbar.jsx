@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, User, Bell, Menu, Sparkles } from './icons';
+import { User, Bell, Menu, Sparkles } from './icons';
+import SearchBar from './SearchBar';
 import axios from 'axios';
 
 const Navbar = () => {
@@ -32,7 +33,6 @@ const Navbar = () => {
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   // --- STYLES ---
-  const searchInputClass = "flex items-center bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-5 py-3 transition-all duration-300 focus-within:bg-black/60 focus-within:border-white/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]";
   const glassStyle = "bg-[#0a0a0a]/80 backdrop-blur-2xl border border-white/10 text-gray-200 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/5";
 
   // 1. SCROLL TRIGGER LOGIC
@@ -210,17 +210,12 @@ const Navbar = () => {
         
         {/* Search Bar */}
         <div className="relative flex-1 max-w-[140px] sm:max-w-[180px] md:max-w-[250px] xl:max-w-sm group mx-2 md:mx-4" ref={searchRef}>
-            <div className={searchInputClass}>
-                <Search className="text-zinc-300 w-5 h-5 mr-3 group-focus-within:text-white transition-colors" />
-                <input 
-                    type="text" 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={handleKeyDown} 
-                    placeholder="Search anime..." 
-                    className="bg-transparent border-none outline-none text-xs sm:text-sm text-white w-full placeholder-zinc-500 group-focus-within:placeholder-zinc-400"
-                />
-            </div>
+            <SearchBar
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Search anime..."
+            />
             
             {/* Search Dropdown */}
             {isSearchOpen && (

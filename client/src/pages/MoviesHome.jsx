@@ -3,7 +3,8 @@ import WatchStatusDropdown from '../components/WatchStatusDropdown';
 import { useNotification } from '../components/NotificationProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Check, ChevronLeft, ChevronRight, Film, Search } from '../components/icons';
+import { Plus, Check, ChevronLeft, ChevronRight, Film } from '../components/icons';
+import SearchBar from '../components/SearchBar';
 import moviesHeroBg from '../assets/movies-hero-bg-2.png';
 
 // --- COMPONENT: Movie Card ---
@@ -314,16 +315,11 @@ const MoviesHome = () => {
 
                     {/* --- Search Bar --- */}
                     <div className="relative md:absolute md:top-6 md:right-6 lg:top-8 lg:right-8 z-30 w-full md:w-72 lg:w-96 mt-6 md:mt-0" ref={searchRef}>
-                        <div className="flex items-center bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-5 py-3 transition-all duration-300 focus-within:bg-black/60 focus-within:border-white/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]">
-                            <Search className="text-zinc-500 w-5 h-5 mr-3 transition-colors" />
-                            <input 
-                                type="text" 
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search movies & shows..." 
-                                className="bg-transparent border-none outline-none text-sm text-white w-full placeholder-zinc-500"
-                            />
-                        </div>
+                        <SearchBar
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search movies & shows..."
+                        />
                         {isSearchOpen && (
                             <div className="absolute top-full mt-3 w-full bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 text-gray-200 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/5">
                                 <style>{`
