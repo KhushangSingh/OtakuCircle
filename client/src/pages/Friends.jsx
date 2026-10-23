@@ -426,11 +426,11 @@ const Friends = () => {
                                         
                                         <div className="grid grid-cols-3 gap-2 w-full mt-5">
                                             {[
-                                                { label: 'Completed', value: friendDetails.watchhistory?.filter(item => item.status === 'Watched' || item.status === 'Completed').length || 0 },
+                                                { label: 'Watched', value: friendDetails.watchhistory?.filter(item => item.status === 'Watched' || item.status === 'Completed').length || 0 },
                                                 { label: 'Watching', value: friendDetails.watchhistory?.filter(item => item.status === 'Watching').length || 0 },
-                                                { label: 'Plan to Watch', value: friendDetails.watchlist?.length || 0 }
+                                                { label: 'Watchlist', value: friendDetails.watchlist?.length || 0 }
                                             ].map((stat, i) => (
-                                                <div key={i} className="bg-black/40 border border-white/5 p-2 rounded-lg text-center">
+                                                <div key={i} className="bg-black/40 border border-white/5 p-2 rounded-lg flex min-h-[68px] flex-col items-center justify-center text-center">
                                                     <p className="text-base font-bold text-white">{stat.value}</p>
                                                     <p className="text-[9px] text-zinc-500 uppercase tracking-wide font-bold mt-1">{stat.label}</p>
                                                 </div>

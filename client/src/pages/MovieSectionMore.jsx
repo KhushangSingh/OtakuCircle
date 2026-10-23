@@ -8,7 +8,7 @@ import { useNotification } from '../components/NotificationProvider';
 // --- SUB-COMPONENT: Movie Card ---
 const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
     const [watchlistAdded, setWatchlistAdded] = useState(false);
-    const [watchedAdded, setWatchedAdded] = useState(false);
+    const [currentStatus, setCurrentStatus] = useState(null);
 
     return (
         <div 
@@ -40,11 +40,11 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                     <button 
                         onClick={(e) => {
                             e.stopPropagation();
-                            if (watchedAdded && !window.confirm('This title is already in your watch history. Add it to your Watchlist instead? It will be removed from your watch history.')) return;
+                            if (currentStatus && !window.confirm(`This title is marked as ${currentStatus}. Add it to your Watchlist instead? It will be removed from your watch history.`)) return;
                             Promise.resolve(onAddWatchlist(movie)).then((success) => {
                                 if (success !== false) {
                                     setWatchlistAdded(true);
-                                    setWatchedAdded(false);
+                                    setCurrentStatus(null);
                                 }
                             });
                         }}
@@ -57,11 +57,11 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                     </button>
                     {/* Watched Button */}
                     <WatchStatusDropdown 
-                        isAdded={watchedAdded}
-                        disabled={watchedAdded}
+                        currentStatus={currentStatus}
                         onStatusChange={(status) => {
-                            onAddWatchhistory(movie, status);
-                            setWatchedAdded(true);
+                            Promise.resolve(onAddWatchhistory(movie, status)).then((success) => {
+                                if (success !== false) setCurrentStatus(status);
+                            });
                         }}
                         wrapperClass="w-[85%] mx-auto"
                         className="rounded-full"
@@ -145,8 +145,8 @@ const MovieSectionMore = () => {
     const handleAddToWatchhistory = async (movie, statusValue = 'Watched') => {
         const token = localStorage.getItem('token');
         if (!token) {
-            showNotification("Please login first!", "error");
-            return;
+            showNotification("Please sign in to track what you watch.", "error");
+            return false;
         }
         try {
             await axios.post(`${API_URL}/movies/watchhistory`, 
@@ -154,8 +154,10 @@ const MovieSectionMore = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             showNotification(`Marked ${movie.title} as ${statusValue}`, "success");
+            return true;
         } catch (err) {
             showNotification(err.response?.data?.message || "Failed to add", "error");
+            return false;
         }
     };
 

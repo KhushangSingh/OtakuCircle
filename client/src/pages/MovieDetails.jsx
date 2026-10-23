@@ -87,8 +87,10 @@ const MovieDetails = () => {
             );
             showNotification(`Marked as ${statusValue}`, "success");
             setMovieStatus(statusValue);
+            return true;
         } catch (error) {
             showNotification(error.response?.data?.message || "Failed to update", "error");
+            return false;
         }
     };
 

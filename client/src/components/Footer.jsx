@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { Shield, FileText, Mail, Heart, Sparkles, Film } from './icons';
 
 const Footer = () => {
     return (
@@ -31,8 +30,8 @@ const Footer = () => {
                         <h4 className="text-xs font-bold uppercase tracking-wider text-white">Explore</h4>
                         <ul className="space-y-2 text-sm">
                             <li><Link to="/" className="hover:text-white transition-colors">Anime Catalog</Link></li>
-                            <li><Link to="/smart-search" className="hover:text-white transition-colors flex items-center gap-1.5"><Sparkles size={14} className="text-blue-400" /> Smart Search</Link></li>
-                            <li><Link to="/movies" className="hover:text-white transition-colors flex items-center gap-1.5"><Film size={14} /> Movies &amp; TV</Link></li>
+                            <li><Link to="/smart-search" className="hover:text-white transition-colors">Smart Search</Link></li>
+                            <li><Link to="/movies" className="hover:text-white transition-colors">Movies &amp; TV</Link></li>
                             <li><Link to="/login" className="hover:text-white transition-colors">Sign In / Register</Link></li>
                         </ul>
                     </div>
@@ -42,14 +41,10 @@ const Footer = () => {
                         <h4 className="text-xs font-bold uppercase tracking-wider text-white">Trust &amp; Legal</h4>
                         <ul className="space-y-2 text-sm">
                             <li>
-                                <Link to="/privacy" className="hover:text-white transition-colors flex items-center gap-1.5">
-                                    <Shield size={14} className="text-blue-400" /> Privacy Policy
-                                </Link>
+                                <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
                             </li>
                             <li>
-                                <Link to="/terms" className="hover:text-white transition-colors flex items-center gap-1.5">
-                                    <FileText size={14} className="text-zinc-400" /> Terms of Service
-                                </Link>
+                                <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
                             </li>
                             <li className="pt-2 text-xs text-zinc-500">
                                 Support &amp; Contact:
@@ -65,8 +60,6 @@ const Footer = () => {
                 <div className="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 gap-4">
                     <p>&copy; {new Date().getFullYear()} OtakuCircle. Built for anime &amp; movie fans worldwide.</p>
                     <div className="flex gap-6">
-                        <Link to="/privacy" className="hover:text-zinc-300 transition-colors">Privacy</Link>
-                        <Link to="/terms" className="hover:text-zinc-300 transition-colors">Terms</Link>
                         <Link to="/login" className="hover:text-zinc-300 transition-colors">Account</Link>
                     </div>
                 </div>

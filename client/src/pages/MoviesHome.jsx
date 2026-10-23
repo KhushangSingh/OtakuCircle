@@ -10,7 +10,7 @@ import moviesHeroBg from '../assets/movies-hero-bg-2-converted.webp';
 // --- COMPONENT: Movie Card ---
 const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
     const [watchlistAdded, setWatchlistAdded] = useState(false);
-    const [watchedAdded, setWatchedAdded] = useState(false);
+    const [currentStatus, setCurrentStatus] = useState(null);
 
     return (
         <div 
@@ -36,7 +36,7 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 
                 {movie.score && (
                     <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
-                        ★ {Number(movie.score).toFixed(2)}
+                        ÃƒÂ¢Ã‹Å“Ã¢â‚¬Â¦ {Number(movie.score).toFixed(2)}
                     </div>
                 )}
 
@@ -44,11 +44,11 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                     <button 
                         onClick={(e) => {
                             e.stopPropagation();
-                            if (watchedAdded && !window.confirm('This title is already in your watch history. Add it to your Watchlist instead? It will be removed from your watch history.')) return;
+                            if (currentStatus && !window.confirm(`This title is marked as ${currentStatus}. Add it to your Watchlist instead? It will be removed from your watch history.`)) return;
                             Promise.resolve(onAddWatchlist(movie)).then((success) => {
                                 if (success !== false) {
                                     setWatchlistAdded(true);
-                                    setWatchedAdded(false);
+                                    setCurrentStatus(null);
                                 }
                             });
                         }}
@@ -64,11 +64,11 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                     </button>
                     {/* Watched Button */}
                     <WatchStatusDropdown 
-                        isAdded={watchedAdded}
-                        disabled={watchedAdded}
+                        currentStatus={currentStatus}
                         onStatusChange={(status) => {
-                            onAddWatchhistory(movie, status);
-                            setWatchedAdded(true);
+                            Promise.resolve(onAddWatchhistory(movie, status)).then((success) => {
+                                if (success !== false) setCurrentStatus(status);
+                            });
                         }}
                         wrapperClass="w-[85%] mx-auto"
                         className="rounded-full"
@@ -83,7 +83,7 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 </h3>
                 <div className="flex items-center gap-2 text-xs text-zinc-500 font-semibold uppercase tracking-wider">
                     <span>{movie.type || 'TV'}</span>
-                    {movie.year && <span>• {movie.year}</span>}
+                    {movie.year && <span>ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ {movie.year}</span>}
                 </div>
             </div>
         </div>
@@ -99,7 +99,7 @@ const MovieSection = ({ title, data, onAddWatchlist, onAddWatchhistory, onCardCl
 
     const scroll = (dir) => {
         if (scrollRef.current) {
-            const scrollAmount = 600; 
+            const scrollAmount = 600;
             scrollRef.current.scrollBy({ left: dir * scrollAmount, behavior: 'smooth' });
         }
     };
@@ -203,7 +203,7 @@ const MoviesHome = () => {
             } else if (savedScroll) {
                 setTimeout(() => {
                     window.scrollTo({ top: parseInt(savedScroll, 10), behavior: 'instant' });
-                }, 100); 
+                }, 100);
             }
         };
         loadPageData();
@@ -219,13 +219,13 @@ const MoviesHome = () => {
                     setSearchResults(res.data);
                     setIsSearchOpen(true);
                 } catch (error) { 
-                    setSearchResults([]); 
+                    setSearchResults([]);
                 }
             } else {
                 setSearchResults([]);
                 setIsSearchOpen(false);
             }
-        }, 300); 
+        }, 300);
         return () => clearTimeout(delayDebounceFn);
     }, [searchQuery, API_URL]);
 
@@ -254,7 +254,7 @@ const MoviesHome = () => {
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Added ${movie.title} to your watchlist!`, "success");
             return true;
-        } catch (error) { 
+        } catch (error) {
             showNotification(error.response?.data?.message || "Movie service failed to save this item", "error");
             return false;
         }
@@ -262,15 +262,17 @@ const MoviesHome = () => {
 
     const handleAddToWatchhistory = async (movie, statusValue = 'Watched') => {
         const token = localStorage.getItem('token');
-        if (!token) { showNotification("Please login first!", "error"); return; }
+        if (!token) { showNotification("Please sign in to track what you watch.", "error"); return false; }
         try {
             await axios.post(`${API_URL}/movies/watchhistory`, {
                 tmdbId: movie.tmdb_id, title: movie.title, poster: movie.poster_url,
                 mediaType: movie.type, status: statusValue
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Added ${movie.title} to history!`, "success");
+            return true;
         } catch (error) { 
-            showNotification(error.response?.data?.message || "Error", "error"); 
+            showNotification(error.response?.data?.message || "Movie service failed to save this item", "error");
+            return false;
         }
     };
 
@@ -346,7 +348,7 @@ const MoviesHome = () => {
                                             <img src={item.poster_url || 'https://via.placeholder.com/40x60?text=NA'} alt={item.title} className="w-10 h-14 object-cover rounded shadow-md bg-zinc-800 shrink-0" />
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-semibold text-sm text-white truncate group-hover/item:text-blue-400 transition-colors">{item.title}</p>
-                                                <p className="text-[10px] text-zinc-400 mt-0.5 uppercase">{item.type} • {item.year || 'N/A'}</p>
+                                                <p className="text-[10px] text-zinc-400 mt-0.5 uppercase">{item.type} ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ {item.year || 'N/A'}</p>
                                             </div>
                                         </div>
                                     )) : (
