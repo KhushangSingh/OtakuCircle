@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
-    BarChart, Bar, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell,
+    Tooltip as RechartsTooltip, ResponsiveContainer,
     RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
 import { 
     Trash2, Activity, Film, Tv,
-    LogOut, CheckCircle, User, TrendingUp, Clock, Star, Zap, Users, Trophy, Award, Crown, Target
+    LogOut, CheckCircle, User, Clock, Star, Zap, Users, Trophy, Award, Crown, Target
 } from '../components/icons';
 import WatchStatusDropdown from '../components/WatchStatusDropdown';
 
@@ -21,7 +21,6 @@ const Profile = () => {
     
     // Stats
     const [genreData, setGenreData] = useState([]);
-    const [socialStats, setSocialStats] = useState([]);
     const [completionData, setCompletionData] = useState([]);
     const [badges, setBadges] = useState([]);
     const [topPoster, setTopPoster] = useState(null);
@@ -30,7 +29,12 @@ const Profile = () => {
         completionRate: 0, 
         estimatedHours: 0, 
         avgScore: 0,
-        commitmentScore: 0
+        commitmentScore: 0,
+        watched: 0,
+        watching: 0,
+        watchlist: 0,
+        animeCount: 0,
+        movieCount: 0
     });
 
     // Modals
@@ -46,12 +50,14 @@ const Profile = () => {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
     // --- HELPER: CALCULATE STATS ---
-    const calculateStats = (userData, friendsList = []) => {
-        if (!userData || !userData.watchhistory) return;
+    const calculateStats = (userData) => {
+        if (!userData) return;
 
-        const history = userData.watchhistory;
+        const history = userData.watchhistory || [];
         const watchlist = userData.watchlist || [];
-        const totalHistory = history.length;
+        const movieHistory = userData.movieWatchhistory || [];
+        const movieWatchlist = userData.movieWatchlist || [];
+        const totalHistory = history.length + movieHistory.length;
         
         // Find Top Rated for Banner Background
         const scoredItems = history.filter(h => h.score > 0);
@@ -63,16 +69,18 @@ const Profile = () => {
         }
         
         // Basic Counts
-        const watchedCount = history.filter(h => h.status === 'Watched' || h.status === 'Completed').length;
-        const watchingCount = history.filter(h => h.status === 'Watching').length;
-        const planCount = watchlist.length;
+        const watchedCount = history.filter(h => h.status === 'Watched' || h.status === 'Completed').length
+            + movieHistory.filter(h => h.status === 'Watched' || h.status === 'Completed').length;
+        const watchingCount = history.filter(h => h.status === 'Watching').length
+            + movieHistory.filter(h => h.status === 'Watching').length;
+        const planCount = watchlist.length + movieWatchlist.length;
         const totalEntries = watchedCount + watchingCount + planCount;
 
         // Completion Rate
         const completionRate = totalHistory > 0 ? Math.round((watchedCount / totalHistory) * 100) : 0;
 
         // Estimated Hours
-        const estimatedHours = Math.round(totalHistory * 5); 
+        const estimatedHours = Math.round((history.length * 5) + (movieHistory.length * 2));
 
         // Avg Score
         const avgScore = scoredItems.length > 0 
@@ -89,7 +97,12 @@ const Profile = () => {
             completionRate, 
             estimatedHours, 
             avgScore,
-            commitmentScore
+            commitmentScore,
+            watched: watchedCount,
+            watching: watchingCount,
+            watchlist: planCount,
+            animeCount: history.length + watchlist.length,
+            movieCount: movieHistory.length + movieWatchlist.length
         });
 
         // Calculate Badges
@@ -110,25 +123,8 @@ const Profile = () => {
                 .map(([name, value]) => ({ subject: name, A: value, fullMark: Math.max(...Object.values(userData.stats.genreCounts)) }))
                 .sort((a, b) => b.A - a.A)
                 .slice(0, 5);
-        } else if (totalHistory > 0) {
-            genres = [
-                { subject: 'Action', A: Math.ceil(totalHistory * 0.4), fullMark: totalHistory },
-                { subject: 'Drama', A: Math.ceil(totalHistory * 0.3), fullMark: totalHistory },
-                { subject: 'Fantasy', A: Math.ceil(totalHistory * 0.3), fullMark: totalHistory },
-            ];
         }
         setGenreData(genres);
-
-        // Social Comparison
-        let friendsAvg = 0;
-        if (friendsList.length > 0) {
-            const totalFriendsWatched = friendsList.reduce((acc, curr) => acc + (curr.watchlistCount || 0), 0);
-            friendsAvg = Math.round(totalFriendsWatched / friendsList.length);
-        }
-        setSocialStats([
-            { name: 'You', value: totalHistory },
-            { name: 'Friends', value: friendsAvg }
-        ]);
 
         // Activity Split
         setCompletionData([
@@ -161,7 +157,7 @@ const Profile = () => {
                     } catch (e) { console.warn("Friends stats unavailable"); }
                 }
 
-                calculateStats(userData, friendsList);
+                calculateStats(userData);
 
             } catch (error) {
                 console.error('Error fetching profile:', error);
@@ -190,7 +186,7 @@ const Profile = () => {
             } else {
                 const updatedHistory = user.watchhistory.filter(i => i.animeId !== deleteConfirm.animeId);
                 setUser(prev => ({ ...prev, watchhistory: updatedHistory }));
-                calculateStats({ ...user, watchhistory: updatedHistory }, []);
+                calculateStats({ ...user, watchhistory: updatedHistory });
             }
             
             setDeleteConfirm({ show: false, animeId: null, type: null, title: '' });
@@ -211,7 +207,7 @@ const Profile = () => {
             await axios.put(`${API_URL}/anime/watchhistory/${animeId}`, { status: newStatus }, { headers: { Authorization: `Bearer ${token}` } });
             const updatedHistory = user.watchhistory.map(i => i.animeId === animeId ? { ...i, status: newStatus } : i);
             setUser(prev => ({ ...prev, watchhistory: updatedHistory }));
-            calculateStats({ ...user, watchhistory: updatedHistory }, []);
+            calculateStats({ ...user, watchhistory: updatedHistory });
             setMessage({ type: 'success', text: 'Updated' });
         } catch (error) { setMessage({ type: 'error', text: 'Failed' }); }
     };
@@ -241,7 +237,7 @@ const Profile = () => {
             <div className="w-full px-4 lg:px-8 space-y-12">
                 
                 {/* --- THE IDENTITY (HEADER) --- */}
-                <div className="relative w-full rounded-[2.5rem] overflow-hidden mt-6 mb-12 shadow-2xl shadow-blue-900/10 border border-white/[0.05] bg-[#101010]">
+                <div className="relative w-full rounded-3xl overflow-hidden mt-4 mb-8 shadow-xl shadow-blue-900/10 border border-white/[0.05] bg-[#101010]">
                     
                     {/* Dynamic Background Banner */}
                     <div className="absolute inset-0 z-0 h-40 md:h-56 overflow-hidden">
@@ -256,11 +252,11 @@ const Profile = () => {
                         )}
                     </div>
 
-                    <div className="relative z-10 p-6 md:p-12 pt-16 md:pt-24 flex flex-col md:flex-row gap-6 md:gap-10 items-center md:items-end">
+                    <div className="relative z-10 p-5 md:p-8 pt-14 md:pt-20 flex flex-col md:flex-row gap-5 md:gap-7 items-center md:items-end">
                         
                         {/* Avatar */}
                         <div className="relative flex-shrink-0 group/avatar">
-                            <div className="w-28 h-28 md:w-36 md:h-36 rounded-full p-1 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-[0_0_30px_rgba(59,130,246,0.3)] overflow-hidden transition-transform duration-500 group-hover/avatar:scale-105">
+                            <div className="w-24 h-24 md:w-28 md:h-28 rounded-full p-1 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-[0_0_30px_rgba(59,130,246,0.3)] overflow-hidden">
                                 {user.profilePicture ? 
                                     <img src={user.profilePicture} className="w-full h-full object-cover rounded-full bg-[#1a1a1a] border-4 border-[#101010]" /> : 
                                     <div className="w-full h-full bg-[#1a1a1a] rounded-full border-4 border-[#101010] flex items-center justify-center text-4xl md:text-5xl font-black text-white">{user.username.charAt(0).toUpperCase()}</div>
@@ -272,29 +268,38 @@ const Profile = () => {
                         <div className="flex-1 w-full text-center md:text-left space-y-4">
                             <div>
                                 <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
-                                    <div className="px-3 py-1 bg-green-500/10 text-green-400 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5 border border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.2)]">
-                                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div> Online
-                                    </div>
                                     <div className="px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-blue-500/20">
                                         Level {userLevel}
                                     </div>
                                 </div>
-                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight">{user.username}</h1>
+                                <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">{user.username}</h1>
                             </div>
 
                             {/* Quick Stats Pills */}
-                            <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-4">
-                                <div className="flex flex-col items-center md:items-start px-5 py-2.5 bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 rounded-2xl transition-colors backdrop-blur-md">
-                                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Total Watched</span>
-                                    <span className="text-xl font-black text-white">{quickStats.total}</span>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mt-4">
+                                <div className="flex flex-col items-center md:items-start px-3 py-2 bg-white/[0.03] border border-white/5 rounded-xl backdrop-blur-md">
+                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Watched</span>
+                                    <span className="text-lg font-black text-white">{quickStats.watched}</span>
                                 </div>
-                                <div className="flex flex-col items-center md:items-start px-5 py-2.5 bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 rounded-2xl transition-colors backdrop-blur-md">
-                                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Est. Hours</span>
-                                    <span className="text-xl font-black text-white">{quickStats.estimatedHours}<span className="text-sm text-zinc-500 ml-1">h</span></span>
+                                <div className="flex flex-col items-center md:items-start px-3 py-2 bg-white/[0.03] border border-white/5 rounded-xl backdrop-blur-md">
+                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Watching</span>
+                                    <span className="text-lg font-black text-blue-300">{quickStats.watching}</span>
                                 </div>
-                                <div className="flex flex-col items-center md:items-start px-5 py-2.5 bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 rounded-2xl transition-colors backdrop-blur-md">
-                                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Avg Score</span>
-                                    <span className="text-xl font-black text-white flex items-center gap-1"><Star size={14} className="text-yellow-500 inline fill-yellow-500"/> {quickStats.avgScore}</span>
+                                <div className="flex flex-col items-center md:items-start px-3 py-2 bg-white/[0.03] border border-white/5 rounded-xl backdrop-blur-md">
+                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Watchlist</span>
+                                    <span className="text-lg font-black text-purple-300">{quickStats.watchlist}</span>
+                                </div>
+                                <div className="flex flex-col items-center md:items-start px-3 py-2 bg-white/[0.03] border border-white/5 rounded-xl backdrop-blur-md">
+                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Watch time</span>
+                                    <span className="text-lg font-black text-white">{quickStats.estimatedHours}<span className="text-xs text-zinc-500 ml-1">h</span></span>
+                                </div>
+                                <div className="flex flex-col items-center md:items-start px-3 py-2 bg-white/[0.03] border border-white/5 rounded-xl backdrop-blur-md">
+                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Avg score</span>
+                                    <span className="text-lg font-black text-white flex items-center gap-1"><Star size={12} className="text-yellow-500 fill-yellow-500"/> {quickStats.avgScore}</span>
+                                </div>
+                                <div className="flex flex-col items-center md:items-start px-3 py-2 bg-white/[0.03] border border-white/5 rounded-xl backdrop-blur-md">
+                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Completion</span>
+                                    <span className="text-lg font-black text-emerald-300">{quickStats.completionRate}%</span>
                                 </div>
                             </div>
                         </div>
@@ -324,36 +329,6 @@ const Profile = () => {
                                             </div>
                                         );
                                     })}
-                                </div>
-                            </div>
-
-                            {/* Social Standing */}
-                            <div className="bg-[#151515] rounded-[32px] p-8 shadow-xl relative overflow-hidden">
-                                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-3">
-                                    <TrendingUp size={18} className="text-blue-400"/> Social Standing
-                                </h3>
-                                <div className="h-[200px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={socialStats} barSize={40} margin={{top: 0, right: 0, left: -20, bottom: 0}}>
-                                            <defs>
-                                                <linearGradient id="colorYou" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2}/>
-                                                </linearGradient>
-                                                <linearGradient id="colorFriends" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#71717a" stopOpacity={0.5}/>
-                                                    <stop offset="95%" stopColor="#71717a" stopOpacity={0.1}/>
-                                                </linearGradient>
-                                            </defs>
-                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 13, fontWeight: 700}} />
-                                            <RechartsTooltip cursor={{fill: 'transparent'}} contentStyle={{backgroundColor: '#1a1a1a', border: 'none', borderRadius: '16px', color: '#fff'}} />
-                                            <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                                                {socialStats.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={index === 0 ? 'url(#colorYou)' : 'url(#colorFriends)'} />
-                                                ))}
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
                                 </div>
                             </div>
 
