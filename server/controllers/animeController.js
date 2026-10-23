@@ -278,49 +278,49 @@ const getHomeData = async (req, res) => {
         // 2. Fetch Data in ONE single GraphQL query
         const query = `
         query {
-          trending: Page(perPage: 20) {
+          trending: Page(perPage: 40) {
             media(type: ANIME, sort: TRENDING_DESC, status: RELEASING) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year }
             }
           }
-          topRated: Page(perPage: 20) {
+          topRated: Page(perPage: 40) {
             media(type: ANIME, sort: SCORE_DESC) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year }
             }
           }
-          popular: Page(perPage: 20) {
+          popular: Page(perPage: 40) {
             media(type: ANIME, sort: POPULARITY_DESC) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year }
             }
           }
-          upcoming: Page(perPage: 20) {
+          upcoming: Page(perPage: 40) {
             media(type: ANIME, status: NOT_YET_RELEASED, sort: POPULARITY_DESC) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year }
             }
           }
-          latest: Page(perPage: 20) {
+          latest: Page(perPage: 40) {
             media(type: ANIME, season: SUMMER, seasonYear: 2026, sort: POPULARITY_DESC) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year }
             }
           }
-          action: Page(perPage: 20) {
+          action: Page(perPage: 40) {
             media(type: ANIME, genre: "Action", sort: SCORE_DESC) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year }
             }
           }
-          fantasy: Page(perPage: 20) {
+          fantasy: Page(perPage: 40) {
             media(type: ANIME, genre: "Fantasy", sort: SCORE_DESC) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year }
             }
           }
-          romance: Page(perPage: 20) {
+          romance: Page(perPage: 40) {
             media(type: ANIME, genre: "Romance", sort: SCORE_DESC) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year }

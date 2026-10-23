@@ -41,7 +41,7 @@ const getMoviesHomeData = async (req, res) => {
         }
 
         const now = Date.now();
-        if (homeCache.data && (now - homeCache.lastFetch < CACHE_DURATION)) {
+        if (req.query.expanded !== 'true' && homeCache.data && (now - homeCache.lastFetch < CACHE_DURATION)) {
             console.log("⚡ Serving Movies Home Data from Cache");
             return res.json(homeCache.data);
         }
@@ -75,7 +75,35 @@ const getMoviesHomeData = async (req, res) => {
             animationMovies: formatTMDBMedia(animationMovies.data.results, 'movie')
         };
 
-        homeCache = { data: finalData, lastFetch: now };
+        if (req.query.expanded === 'true') {
+            const expandedRequests = await Promise.all([
+                fetchTMDB('/trending/all/week?page=2'),
+                fetchTMDB('/movie/popular?page=2'),
+                fetchTMDB('/tv/popular?page=2'),
+                fetchTMDB('/movie/top_rated?page=2'),
+                fetchTMDB('/discover/movie?with_genres=28&page=2'),
+                fetchTMDB('/discover/movie?with_genres=878&page=2'),
+                fetchTMDB('/discover/movie?with_genres=35&page=2'),
+                fetchTMDB('/discover/movie?with_genres=16&page=2')
+            ]);
+            const expandedLists = [
+                formatTMDBMedia(expandedRequests[0].data.results),
+                formatTMDBMedia(expandedRequests[1].data.results, 'movie'),
+                formatTMDBMedia(expandedRequests[2].data.results, 'tv'),
+                formatTMDBMedia(expandedRequests[3].data.results, 'movie'),
+                formatTMDBMedia(expandedRequests[4].data.results, 'movie'),
+                formatTMDBMedia(expandedRequests[5].data.results, 'movie'),
+                formatTMDBMedia(expandedRequests[6].data.results, 'movie'),
+                formatTMDBMedia(expandedRequests[7].data.results, 'movie')
+            ];
+            Object.keys(finalData).forEach((name, index) => {
+                finalData[name] = [...finalData[name], ...expandedLists[index]];
+            });
+        }
+
+        if (req.query.expanded !== 'true') {
+            homeCache = { data: finalData, lastFetch: now };
+        }
         res.json(finalData);
 
     } catch (error) {

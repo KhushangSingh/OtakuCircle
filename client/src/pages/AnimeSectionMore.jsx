@@ -14,7 +14,7 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
 
     return (
         <div 
-            className="group relative w-full cursor-pointer"
+            className="group relative flex-none w-[120px] sm:w-[150px] md:w-[200px] cursor-pointer perspective-1000"
             onClick={onClick}
         >
             <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-zinc-900 transition-all duration-500 ease-out 
@@ -24,13 +24,15 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                 border border-white/5 group-hover:border-white/20"
                 style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)' }}
             >
+                <div className="absolute inset-0 rounded-2xl overflow-hidden">
                 <img 
                     src={anime.poster_url || 'https://via.placeholder.com/200x300?text=No+Image'} 
                     alt={anime.title} 
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+                </div>
                 {anime.score && (
                     <div className="absolute top-3 right-3 bg-blue-500/50 backdrop-blur-md text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-400 shadow-lg shadow-blue-900/40 z-10">
                         ★ {Number(anime.score).toFixed(2)}
@@ -46,8 +48,8 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                             });
                         }}
                         disabled={watchlistAdded}
-                        className={`w-full flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold backdrop-blur-xl border transition-all active:scale-95 shadow-lg
-                            ${watchlistAdded ? 'bg-blue-500/20 border-blue-500/50 text-blue-400 shadow-blue-500/20' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}
+                        className={`w-[85%] mx-auto flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-bold backdrop-blur-sm border transition-colors active:scale-95 shadow-lg
+                            ${watchlistAdded ? 'bg-blue-500/20 border-blue-500/50 text-blue-400 shadow-blue-500/20' : 'bg-white/10 border-white/30 text-white hover:bg-white/20'}`}
                     >
                         <Plus size={16} strokeWidth={3} />
                         <span>Watchlist</span>
@@ -61,11 +63,12 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
                         }}
                         wrapperClass="w-[85%] mx-auto"
                         className="rounded-full"
+                        direction="up"
                     />
                 </div>
             </div>
             <div className="mt-4 px-1 space-y-1 transition-opacity duration-300 group-hover:opacity-50">
-                <h3 className="text-xl font-bold text-gray-100 truncate leading-tight">{anime.title}</h3>
+                <h3 className="text-xs sm:text-sm md:text-base font-bold text-gray-100 truncate leading-tight">{anime.title}</h3>
                 <div className="flex items-center gap-2 text-xs text-zinc-500 font-semibold uppercase tracking-wider">
                     <span>{anime.type || 'TV'}</span>
                     {anime.year && <span>• {anime.year}</span>}
