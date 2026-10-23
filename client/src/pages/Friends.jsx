@@ -424,17 +424,28 @@ const Friends = () => {
                                         </div>
                                         <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-md truncate max-w-full">{friendDetails.username}</h2>
                                         
-                                        <div className="grid grid-cols-3 gap-2 w-full mt-5">
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full mt-5">
                                             {[
-                                                { label: 'Watched', value: friendDetails.watchhistory?.filter(item => item.status === 'Watched' || item.status === 'Completed').length || 0 },
-                                                { label: 'Watching', value: friendDetails.watchhistory?.filter(item => item.status === 'Watching').length || 0 },
-                                                { label: 'Watchlist', value: friendDetails.watchlist?.length || 0 }
+                                                { label: 'Watched', value: friendDetails.dashboardStats?.watched ?? (friendDetails.watchhistory?.filter(item => item.status === 'Watched' || item.status === 'Completed').length || 0) },
+                                                { label: 'Watching', value: friendDetails.dashboardStats?.watching ?? (friendDetails.watchhistory?.filter(item => item.status === 'Watching').length || 0) },
+                                                { label: 'Watchlist', value: friendDetails.dashboardStats?.watchlist ?? (friendDetails.watchlist?.length || 0) },
+                                                { label: 'Hours', value: `${friendDetails.dashboardStats?.estimatedHours ?? 0}h` }
                                             ].map((stat, i) => (
                                                 <div key={i} className="bg-black/40 border border-white/5 p-2 rounded-lg flex min-h-[68px] flex-col items-center justify-center text-center">
                                                     <p className="text-base font-bold text-white">{stat.value}</p>
                                                     <p className="text-[9px] text-zinc-500 uppercase tracking-wide font-bold mt-1">{stat.label}</p>
                                                 </div>
                                             ))}
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 w-full mt-2">
+                                            <div className="rounded-lg bg-blue-500/10 border border-blue-400/10 p-2 text-center">
+                                                <p className="text-sm font-bold text-blue-300">{friendDetails.dashboardStats?.completionRate ?? 0}%</p>
+                                                <p className="text-[9px] text-zinc-500 uppercase tracking-wide font-bold">Completion</p>
+                                            </div>
+                                            <div className="rounded-lg bg-yellow-500/10 border border-yellow-400/10 p-2 text-center">
+                                                <p className="text-sm font-bold text-yellow-300">{friendDetails.dashboardStats?.averageScore ?? '—'}</p>
+                                                <p className="text-[9px] text-zinc-500 uppercase tracking-wide font-bold">Avg score</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

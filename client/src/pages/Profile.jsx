@@ -92,7 +92,11 @@ const Profile = () => {
             ? Math.round(((watchedCount + watchingCount) / totalEntries) * 100) 
             : 0;
 
-        setQuickStats({ 
+        const serverStats = userData.dashboardStats;
+        setQuickStats(serverStats ? {
+            ...serverStats,
+            avgScore: serverStats.averageScore ?? "N/A"
+        } : {
             total: totalHistory, 
             completionRate, 
             estimatedHours, 
@@ -275,38 +279,60 @@ const Profile = () => {
                                 <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">{user.username}</h1>
                             </div>
 
-                            {/* Quick Stats Pills */}
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mt-4">
-                                <div className="flex flex-col items-center md:items-start px-3 py-2 bg-white/[0.03] border border-white/5 rounded-xl backdrop-blur-md">
-                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Watched</span>
-                                    <span className="text-lg font-black text-white">{quickStats.watched}</span>
-                                </div>
-                                <div className="flex flex-col items-center md:items-start px-3 py-2 bg-white/[0.03] border border-white/5 rounded-xl backdrop-blur-md">
-                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Watching</span>
-                                    <span className="text-lg font-black text-blue-300">{quickStats.watching}</span>
-                                </div>
-                                <div className="flex flex-col items-center md:items-start px-3 py-2 bg-white/[0.03] border border-white/5 rounded-xl backdrop-blur-md">
-                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Watchlist</span>
-                                    <span className="text-lg font-black text-purple-300">{quickStats.watchlist}</span>
-                                </div>
-                                <div className="flex flex-col items-center md:items-start px-3 py-2 bg-white/[0.03] border border-white/5 rounded-xl backdrop-blur-md">
-                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Watch time</span>
-                                    <span className="text-lg font-black text-white">{quickStats.estimatedHours}<span className="text-xs text-zinc-500 ml-1">h</span></span>
-                                </div>
-                                <div className="flex flex-col items-center md:items-start px-3 py-2 bg-white/[0.03] border border-white/5 rounded-xl backdrop-blur-md">
-                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Avg score</span>
-                                    <span className="text-lg font-black text-white flex items-center gap-1"><Star size={12} className="text-yellow-500 fill-yellow-500"/> {quickStats.avgScore}</span>
-                                </div>
-                                <div className="flex flex-col items-center md:items-start px-3 py-2 bg-white/[0.03] border border-white/5 rounded-xl backdrop-blur-md">
-                                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Completion</span>
-                                    <span className="text-lg font-black text-emerald-300">{quickStats.completionRate}%</span>
-                                </div>
-                            </div>
                         </div>
 
                         {/* Action Buttons */}
                     </div>
                 </div>
+
+                {/* --- PERSONAL DASHBOARD --- */}
+                <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                    {[
+                        ['Watched', quickStats.watched, 'text-emerald-300'],
+                        ['Watching', quickStats.watching, 'text-blue-300'],
+                        ['Watchlist', quickStats.watchlist, 'text-purple-300'],
+                        ['Watch time', `${quickStats.estimatedHours}h`, 'text-white'],
+                        ['Average score', quickStats.avgScore, 'text-yellow-300'],
+                        ['Completion', `${quickStats.completionRate}%`, 'text-cyan-300']
+                    ].map(([label, value, color]) => (
+                        <div key={label} className="rounded-2xl border border-white/10 bg-[#151515] p-4 shadow-lg">
+                            <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">{label}</p>
+                            <p className={`mt-2 text-2xl font-black ${color}`}>{value}</p>
+                        </div>
+                    ))}
+                </section>
+                <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-[#151515] p-6">
+                        <div className="flex items-center justify-between mb-5">
+                            <h2 className="text-sm font-bold uppercase tracking-widest text-white">Library mix</h2>
+                            <span className="text-xs text-zinc-500">{quickStats.total} tracked titles</span>
+                        </div>
+                        <div className="space-y-4">
+                            {[
+                                ['Watched', quickStats.watched, 'bg-emerald-400'],
+                                ['Watching', quickStats.watching, 'bg-blue-400'],
+                                ['Watchlist', quickStats.watchlist, 'bg-purple-400']
+                            ].map(([label, value, color]) => (
+                                <div key={label}>
+                                    <div className="flex justify-between text-xs mb-1"><span className="text-zinc-400">{label}</span><span className="text-white font-bold">{value}</span></div>
+                                    <div className="h-2 rounded-full bg-white/5 overflow-hidden"><div className={`h-full ${color} rounded-full transition-all duration-700`} style={{ width: `${quickStats.total ? Math.min(100, (value / quickStats.total) * 100) : 0}%` }} /></div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="rounded-3xl border border-white/10 bg-[#151515] p-6">
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-white mb-5">Library split</h2>
+                        <div className="flex items-end gap-3 h-28">
+                            {[['Anime', quickStats.animeCount, 'bg-pink-400'], ['Movies', quickStats.movieCount, 'bg-orange-400']].map(([label, value, color]) => (
+                                <div key={label} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                                    <span className="text-sm font-bold text-white">{value}</span>
+                                    <div className={`w-full ${color} rounded-t-lg transition-all duration-700`} style={{ height: `${Math.max(8, quickStats.total ? (value / quickStats.total) * 100 : 8)}%` }} />
+                                    <span className="text-[10px] uppercase tracking-widest text-zinc-500">{label}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
 
                 {/* --- OVERVIEW TAB --- */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

@@ -3,6 +3,38 @@ const OTP = require('../models/OTP');
 const bcrypt = require('bcryptjs');
 const { sendEmail, buildEmailHtml } = require('../utils/emailUtils');
 
+const buildDashboardStats = (user) => {
+    const animeHistory = Array.isArray(user.watchhistory) ? user.watchhistory : [];
+    const animeWatchlist = Array.isArray(user.watchlist) ? user.watchlist : [];
+    const movieHistory = Array.isArray(user.movieWatchhistory) ? user.movieWatchhistory : [];
+    const movieWatchlist = Array.isArray(user.movieWatchlist) ? user.movieWatchlist : [];
+    const isCompleted = (item) => ['Watched', 'Completed'].includes(item.status);
+    const isWatching = (item) => item.status === 'Watching';
+    const watched = animeHistory.filter(isCompleted).length + movieHistory.filter(isCompleted).length;
+    const watching = animeHistory.filter(isWatching).length + movieHistory.filter(isWatching).length;
+    const watchlist = animeWatchlist.length + movieWatchlist.length;
+    const history = animeHistory.length + movieHistory.length;
+    const total = history + watchlist;
+    const scored = animeHistory.filter(item => Number(item.score) > 0);
+    const averageScore = scored.length
+        ? Number((scored.reduce((sum, item) => sum + Number(item.score), 0) / scored.length).toFixed(2))
+        : null;
+
+    return {
+        total,
+        history,
+        watched,
+        watching,
+        watchlist,
+        animeCount: animeHistory.length + animeWatchlist.length,
+        movieCount: movieHistory.length + movieWatchlist.length,
+        estimatedHours: Math.round((animeHistory.length * 5) + (movieHistory.length * 2)),
+        completionRate: history ? Math.round((watched / history) * 100) : 0,
+        averageScore,
+        commitmentScore: total ? Math.round(((watched + watching) / total) * 100) : 0
+    };
+};
+
 // Helper: generate a random 6-digit OTP string
 const makeOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -15,7 +47,7 @@ const getUser = async (req, res) => {
     try {
         const user = await User.findOne({ username: req.params.userId }).select('-password');
         if (!user) return res.status(404).json({ message: 'User not found' });
-        res.json(user);
+        res.json({ ...user.toObject(), dashboardStats: buildDashboardStats(user) });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -90,15 +122,14 @@ const deleteUser = async (req, res) => {
 // @route   GET /api/users/:userId/stats
 const getUserStats = async (req, res) => {
     try {
-        const user = await User.findById(req.params.userId);
+        const user = await User.findOne({ username: req.params.userId });
         if (!user) return res.status(404).json({ message: 'User not found' });
-        
-        const stats = {
-            totalWatched: user.watchhistory ? user.watchhistory.length : 0,
-            totalSaved: user.watchlist ? user.watchlist.length : 0,
-            favoriteGenre: user.stats?.favoriteGenre || 'N/A'
-        };
-        res.json(stats);
+
+        res.json({
+            ...buildDashboardStats(user),
+            favoriteGenre: user.stats?.favoriteGenre || null,
+            genreCounts: user.stats?.genreCounts || {}
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
