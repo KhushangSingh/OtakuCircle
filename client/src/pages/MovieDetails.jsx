@@ -8,6 +8,7 @@ import {
 } from '../components/icons';
 
 import { useNotification } from '../components/NotificationProvider';
+import { useMediaStatus } from '../contexts/MediaStatusContext';
 
 const MovieDetails = () => {
     const { type, id } = useParams();
@@ -15,7 +16,7 @@ const MovieDetails = () => {
     const { showNotification } = useNotification();
     const [movie, setMovie] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [movieStatus, setMovieStatus] = useState(null);
+    const { movieStatuses, movieWatchlist, setMovieStatus, setMovieInWatchlist } = useMediaStatus();
 
     // Modal State
     const [isRecModalOpen, setIsRecModalOpen] = useState(false);
@@ -53,7 +54,8 @@ const MovieDetails = () => {
                 navigate('/login');
                 return;
             }
-            if (movieStatus && !window.confirm(`This title is marked as ${movieStatus}. Add it to your Watchlist instead? It will be removed from your watch history.`)) {
+            const currentStatus = movieStatuses[movie.tmdb_id];
+            if (currentStatus && !window.confirm(`This title is marked as ${currentStatus}. Add it to your Watchlist instead? It will be removed from your watch history.`)) {
                 return;
             }
             await axios.post(`${API_URL}/movies/watchlist`, 
@@ -66,7 +68,7 @@ const MovieDetails = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             showNotification("Added to Watchlist", "success");
-            setMovieStatus(null);
+            setMovieInWatchlist(movie.tmdb_id);
         } catch (error) {
             showNotification(error.response?.data?.message || "Failed to add", "error");
         }
@@ -86,7 +88,7 @@ const MovieDetails = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             showNotification(`Marked as ${statusValue}`, "success");
-            setMovieStatus(statusValue);
+            setMovieStatus(movie.tmdb_id, statusValue);
             return true;
         } catch (error) {
             showNotification(error.response?.data?.message || "Failed to update", "error");
@@ -233,12 +235,12 @@ const MovieDetails = () => {
                         <button onClick={handleWatchTrailer} className="h-10 flex items-center gap-1.5 bg-white text-black px-3.5 rounded-xl font-black text-xs md:text-sm hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.3)] active:scale-95">
                             <Play className="w-4 h-4 fill-black" /> Trailer
                         </button>
-                        <button onClick={handleAddToList} className="h-10 flex items-center gap-1.5 bg-white/10 backdrop-blur-md text-white border border-white/10 px-3.5 rounded-xl font-bold text-xs md:text-sm hover:bg-white/20 transition-colors active:scale-95">
-                            <Plus className="w-4 h-4" /> Watchlist
+                        <button onClick={handleAddToList} disabled={Boolean(movieWatchlist[movie.tmdb_id])} className={`h-10 flex items-center gap-1.5 bg-white/10 backdrop-blur-md text-white border border-white/10 px-3.5 rounded-xl font-bold text-xs md:text-sm hover:bg-white/20 transition-colors active:scale-95 ${movieWatchlist[movie.tmdb_id] ? 'bg-blue-500/20 text-blue-300 border-blue-400/40 cursor-default' : ''}`}>
+                            <Plus className="w-4 h-4" /> {movieWatchlist[movie.tmdb_id] ? 'In Watchlist' : 'Watchlist'}
                         </button>
 
                         <WatchStatusDropdown
-                            currentStatus={movieStatus}
+                            currentStatus={movieStatuses[movie.tmdb_id]}
                             onStatusChange={handleMarkWatched}
                             wrapperClass="w-36 shrink-0"
                             className="h-10"

@@ -4,11 +4,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Plus, Check, ArrowLeft } from '../components/icons';
 import { useNotification } from '../components/NotificationProvider';
+import { useMediaStatus } from '../contexts/MediaStatusContext';
 
 // --- SUB-COMPONENT: Movie Card ---
 const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
-    const [watchlistAdded, setWatchlistAdded] = useState(false);
-    const [currentStatus, setCurrentStatus] = useState(null);
+    const { movieStatuses, movieWatchlist, setMovieStatus, setMovieInWatchlist } = useMediaStatus();
+    const currentStatus = movieStatuses[movie.tmdb_id];
+    const watchlistAdded = Boolean(movieWatchlist[movie.tmdb_id]);
 
     return (
         <div 
@@ -43,8 +45,7 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                             if (currentStatus && !window.confirm(`This title is marked as ${currentStatus}. Add it to your Watchlist instead? It will be removed from your watch history.`)) return;
                             Promise.resolve(onAddWatchlist(movie)).then((success) => {
                                 if (success !== false) {
-                                    setWatchlistAdded(true);
-                                    setCurrentStatus(null);
+                                    setMovieInWatchlist(movie.tmdb_id);
                                 }
                             });
                         }}
@@ -60,7 +61,7 @@ const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
                         currentStatus={currentStatus}
                         onStatusChange={(status) => {
                             Promise.resolve(onAddWatchhistory(movie, status)).then((success) => {
-                                if (success !== false) setCurrentStatus(status);
+                                if (success !== false) setMovieStatus(movie.tmdb_id, status);
                             });
                         }}
                         wrapperClass="w-[85%] mx-auto"

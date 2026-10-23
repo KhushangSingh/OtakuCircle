@@ -6,6 +6,8 @@ const MediaStatusContext = createContext(null);
 const getStatusMaps = (user) => {
     const anime = {};
     const watchlist = {};
+    const movies = {};
+    const movieWatchlist = {};
 
     (user?.watchhistory || []).forEach((item) => {
         anime[item.animeId] = item.status;
@@ -13,13 +15,21 @@ const getStatusMaps = (user) => {
     (user?.watchlist || []).forEach((item) => {
         watchlist[item.animeId] = true;
     });
+    (user?.movieWatchhistory || []).forEach((item) => {
+        movies[item.tmdbId] = item.status;
+    });
+    (user?.movieWatchlist || []).forEach((item) => {
+        movieWatchlist[item.tmdbId] = true;
+    });
 
-    return { anime, watchlist };
+    return { anime, watchlist, movies, movieWatchlist };
 };
 
 export const MediaStatusProvider = ({ children }) => {
     const [animeStatuses, setAnimeStatuses] = useState({});
     const [animeWatchlist, setAnimeWatchlist] = useState({});
+    const [movieStatuses, setMovieStatuses] = useState({});
+    const [movieWatchlist, setMovieWatchlist] = useState({});
 
     const refreshStatuses = useCallback(async () => {
         const username = localStorage.getItem('username');
@@ -31,6 +41,8 @@ export const MediaStatusProvider = ({ children }) => {
             const maps = getStatusMaps(response.data);
             setAnimeStatuses(maps.anime);
             setAnimeWatchlist(maps.watchlist);
+            setMovieStatuses(maps.movies);
+            setMovieWatchlist(maps.movieWatchlist);
         } catch (error) {
             console.error('Failed to load saved anime statuses:', error);
         }
@@ -59,13 +71,36 @@ export const MediaStatusProvider = ({ children }) => {
         });
     }, []);
 
+    const setMovieStatus = useCallback((tmdbId, status) => {
+        setMovieStatuses((current) => ({ ...current, [tmdbId]: status }));
+        setMovieWatchlist((current) => {
+            const next = { ...current };
+            delete next[tmdbId];
+            return next;
+        });
+    }, []);
+
+    const setMovieInWatchlist = useCallback((tmdbId) => {
+        setMovieWatchlist((current) => ({ ...current, [tmdbId]: true }));
+        setMovieStatuses((current) => {
+            if (!current[tmdbId]) return current;
+            const next = { ...current };
+            delete next[tmdbId];
+            return next;
+        });
+    }, []);
+
     const value = useMemo(() => ({
         animeStatuses,
         animeWatchlist,
+        movieStatuses,
+        movieWatchlist,
         refreshStatuses,
         setAnimeStatus,
-        setAnimeInWatchlist
-    }), [animeStatuses, animeWatchlist, refreshStatuses, setAnimeStatus, setAnimeInWatchlist]);
+        setAnimeInWatchlist,
+        setMovieStatus,
+        setMovieInWatchlist
+    }), [animeStatuses, animeWatchlist, movieStatuses, movieWatchlist, refreshStatuses, setAnimeStatus, setAnimeInWatchlist, setMovieStatus, setMovieInWatchlist]);
 
     return <MediaStatusContext.Provider value={value}>{children}</MediaStatusContext.Provider>;
 };
