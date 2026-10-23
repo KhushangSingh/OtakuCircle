@@ -14,10 +14,14 @@ const getRecommendations = async (req, res) => {
         const watchedAnimeIds = user.watchhistory
             .filter(item => item.status === 'Watched' || item.status === 'Watching')
             .map(item => item.animeId);
+        const excludedAnimeIds = new Set([
+            ...user.watchhistory.map(item => String(item.animeId)),
+            ...user.watchlist.map(item => String(item.animeId))
+        ]);
 
         // Handle Empty History
         if (watchedAnimeIds.length === 0) {
-            const fallback = await Anime.find().sort({ score: -1 }).limit(20);
+            const fallback = await Anime.find({ mal_id: { $nin: [...excludedAnimeIds].map(Number) } }).sort({ score: -1 }).limit(20);
             return res.json({
                 message: "Watch some anime to get personalized picks!",
                 data: fallback
@@ -39,7 +43,7 @@ const getRecommendations = async (req, res) => {
 
             if (!recommendedIds || recommendedIds.length === 0) {
                 console.log("⚠️ AI returned no recommendations. Showing fallback.");
-                const fallback = await Anime.find().sort({ members: -1 }).limit(20);
+                const fallback = await Anime.find({ mal_id: { $nin: [...excludedAnimeIds].map(Number) } }).sort({ members: -1 }).limit(20);
                 return res.json({ data: fallback });
             }
 
@@ -52,6 +56,7 @@ const getRecommendations = async (req, res) => {
             const recMap = new Map(recommendations.map(a => [a.mal_id, a]));
             const sortedRecs = recommendedIds
                 .map(id => recMap.get(id))
+                .filter(a => !excludedAnimeIds.has(String(a?.mal_id)))
                 .filter(a => a !== undefined);
 
             res.json({ data: sortedRecs });
@@ -61,7 +66,7 @@ const getRecommendations = async (req, res) => {
             console.error(`   -> Ensure Python script is running on port ${mlServiceUrl.split(':').pop()}`);
 
             // Fallback: Return popular anime if ML service is down
-            const fallback = await Anime.find().sort({ members: -1 }).limit(24);
+            const fallback = await Anime.find({ mal_id: { $nin: [...excludedAnimeIds].map(Number) } }).sort({ members: -1 }).limit(24);
             return res.json({
                 message: "AI unavailable, showing popular anime",
                 data: fallback

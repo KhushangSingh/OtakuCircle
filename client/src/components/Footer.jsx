@@ -32,7 +32,6 @@ const Footer = () => {
                             <li><Link to="/" className="hover:text-white transition-colors">Anime Catalog</Link></li>
                             <li><Link to="/smart-search" className="hover:text-white transition-colors">Smart Search</Link></li>
                             <li><Link to="/movies" className="hover:text-white transition-colors">Movies &amp; TV</Link></li>
-                            <li><Link to="/login" className="hover:text-white transition-colors">Sign In / Register</Link></li>
                         </ul>
                     </div>
 
@@ -59,9 +58,6 @@ const Footer = () => {
 
                 <div className="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 gap-4">
                     <p>&copy; {new Date().getFullYear()} OtakuCircle. Built for anime &amp; movie fans worldwide.</p>
-                    <div className="flex gap-6">
-                        <Link to="/login" className="hover:text-zinc-300 transition-colors">Account</Link>
-                    </div>
                 </div>
             </div>
         </footer>

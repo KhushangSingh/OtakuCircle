@@ -116,15 +116,33 @@ const Recommendations = () => {
             }
 
             try {
-                const res = await axios.get(`${API_URL}/recommendations`, {
+                const cacheKey = `otakucircle-cache:recommendations:${token}`;
+                const cached = sessionStorage.getItem(cacheKey);
+                if (cached) {
+                    const cachedEntry = JSON.parse(cached);
+                    if (Date.now() - cachedEntry.createdAt < 5 * 60 * 1000) {
+                        const cachedResponse = cachedEntry.data;
+                        setRecs(cachedResponse.data || cachedResponse);
+                        setLoading(false);
+                        return;
+                    }
+                    sessionStorage.removeItem(cacheKey);
+                }
+                const response = await axios.get(`${API_URL}/recommendations`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 
+                try {
+                    sessionStorage.setItem(`otakucircle-cache:recommendations:${token}`, JSON.stringify({ createdAt: Date.now(), data: response.data }));
+                } catch (cacheError) {
+                    console.warn('Unable to cache recommendations', cacheError);
+                }
+
                 // Standardize response data structure
-                if (res.data.data) {
-                    setRecs(res.data.data);
+                if (response.data.data) {
+                    setRecs(response.data.data);
                 } else {
-                    setRecs(res.data);
+                    setRecs(response.data);
                 }
             } catch (error) {
                 console.error("Error fetching recommendations:", error);
@@ -195,7 +213,7 @@ const Recommendations = () => {
             
             {/* --- HERO HEADER --- */}
             <div className="w-full px-4 lg:px-8 mb-10 relative z-10">
-                <div className="relative p-6 md:p-8 rounded-[32px] overflow-hidden border border-white/10 bg-black shadow-2xl flex items-center">
+                <div className="relative h-64 md:h-72 p-6 md:p-8 rounded-[32px] overflow-hidden border border-white/10 bg-black shadow-2xl flex items-center">
                     <div className="relative z-20 flex-1 pr-6 max-w-2xl">
                         <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
                             Your Personal <br className="hidden md:block" />

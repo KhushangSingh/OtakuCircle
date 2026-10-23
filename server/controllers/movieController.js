@@ -33,6 +33,7 @@ const formatTMDBMedia = (list, mediaType) => {
 // @route   GET /api/movies/home
 const getMoviesHomeData = async (req, res) => {
     try {
+        res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
         const tmdbApiKey = getTMDBApiKey();
         if (!tmdbApiKey) {
             console.error("❌ TMDB_API_KEY is not configured in environment variables");

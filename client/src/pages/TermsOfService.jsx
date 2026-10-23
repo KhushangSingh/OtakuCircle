@@ -16,9 +16,6 @@ const TermsOfService = () => {
 
             {/* Header Banner */}
             <div className="max-w-4xl mx-auto px-6 pt-16 pb-12">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-wider mb-6">
-                    <FileText size={14} /> User Agreement
-                </div>
                 <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4">
                     Terms of Service
                 </h1>

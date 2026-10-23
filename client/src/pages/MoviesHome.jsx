@@ -7,6 +7,7 @@ import { Plus, Check, ChevronLeft, ChevronRight } from '../components/icons';
 import SearchBar from '../components/SearchBar';
 import moviesHeroBg from '../assets/movies-hero-bg-2-converted.webp';
 import { useMediaStatus } from '../contexts/MediaStatusContext';
+import { getCachedJson } from '../utils/cachedApi';
 
 // --- COMPONENT: Movie Card ---
 const MovieCard = ({ movie, onAddWatchlist, onAddWatchhistory, onClick }) => {
@@ -176,8 +177,11 @@ const MoviesHome = () => {
     const fetchHomeData = useCallback(async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`${API_URL}/movies/home`);
-            setHomeData(res.data);
+            const data = await getCachedJson('movies-home', async () => {
+                const res = await axios.get(`${API_URL}/movies/home`);
+                return res.data;
+            }, 5 * 60 * 1000);
+            setHomeData(data);
         } catch (error) {
             console.error("Error fetching home data:", error);
             showNotification(error.response?.data?.message || "Failed to load movie data", "error");
@@ -305,7 +309,7 @@ const MoviesHome = () => {
             
             {/* --- HERO HEADER --- */}
             <div className="w-full px-4 lg:px-8 mb-12 relative z-10 mt-2">
-                <div className="relative p-6 md:p-8 rounded-[32px] border border-white/10 bg-black shadow-2xl flex flex-col md:flex-row items-center gap-6">
+                <div className="relative h-64 md:h-72 p-6 md:p-8 rounded-[32px] border border-white/10 bg-black shadow-2xl flex flex-col md:flex-row items-center gap-6">
                     
                     <div className="relative z-20 flex-1 max-w-2xl w-full">
                         <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">

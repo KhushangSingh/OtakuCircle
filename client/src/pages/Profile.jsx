@@ -173,7 +173,7 @@ const Profile = () => {
     }, [username, API_URL, token]);
 
     // --- HANDLERS ---
-    const handleLogout = () => { localStorage.clear(); navigate('/login'); };
+    const handleLogout = () => { localStorage.clear(); navigate('/'); };
 
     const handleDeleteClick = (animeId, type, title) => { setDeleteConfirm({ show: true, animeId, type, title }); };
 

@@ -16,9 +16,6 @@ const PrivacyPolicy = () => {
 
             {/* Header Banner */}
             <div className="max-w-4xl mx-auto px-6 pt-16 pb-12">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-wider mb-6">
-                    <Shield size={14} /> Legal &amp; Transparency
-                </div>
                 <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4">
                     Privacy Policy
                 </h1>

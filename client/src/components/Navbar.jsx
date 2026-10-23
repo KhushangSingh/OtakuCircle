@@ -179,7 +179,7 @@ const Navbar = () => {
       localStorage.removeItem('username');
       setIsProfileDropdownOpen(false);
       setIsMobileMenuOpen(false);
-      navigate('/login');
+      navigate('/');
   };
 
   const unreadCount = notifications.length;
