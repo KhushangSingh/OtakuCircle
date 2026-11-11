@@ -38,6 +38,7 @@ const formatAniListMedia = (mediaList, forcedType = null) => {
         const isManga = forcedType === 'Manga' || item.format === 'MANGA';
         return {
             mal_id: item.idMal || item.id,
+            anilistId: item.id,
             title: item.title?.english || item.title?.romaji || 'Unknown',
             title_english: item.title?.english,
             poster_url: item.coverImage?.extraLarge || item.coverImage?.large,
@@ -85,9 +86,22 @@ const getAnimeById = async (req, res) => {
             localAnime = await Anime.findOne({ mal_id: numId });
         }
 
+        const reqMediaType = (req.query.mediaType || req.query.type || '').toLowerCase();
+        const reqTitle = req.query.title || null;
+        const anilistIdHint = req.query.anilistId ? Number(req.query.anilistId) : null;
+
+        // Resolve target media type:
+        // MongoDB Anime collection exclusively stores anime. If localAnime is found, target is ANIME.
+        let targetMediaType = null;
+        if (reqMediaType === 'manga') {
+            targetMediaType = 'MANGA';
+        } else if (localAnime || reqMediaType === 'anime') {
+            targetMediaType = 'ANIME';
+        }
+
         const buildAniListQuery = (paramName) => `
-        query ($mediaId: Int) {
-          Media(${paramName}: $mediaId) {
+        query (${paramName === 'search' ? '$search: String' : '$mediaId: Int'}, $type: MediaType) {
+          Media(${paramName}: ${paramName === 'search' ? '$search' : '$mediaId'}, type: $type, isAdult: false) {
             id
             idMal
             type
@@ -219,24 +233,53 @@ const getAnimeById = async (req, res) => {
 
         let media = null;
 
-        // 1. Try querying AniList by idMal (standard cross-reference ID)
-        if (!isNaN(numId)) {
+        // Query execution helper
+        const tryFetchMedia = async (paramName, variables) => {
             try {
-                const data = await anilistQuery(buildAniListQuery('idMal'), { mediaId: numId });
-                media = data?.Media;
+                const data = await anilistQuery(buildAniListQuery(paramName), variables);
+                return data?.Media || null;
             } catch (err) {
-                // Ignore and proceed to fallback
+                return null;
+            }
+        };
+
+        if (!isNaN(numId)) {
+            // 1. If anilistId hint was supplied, try it first
+            if (anilistIdHint && !isNaN(anilistIdHint)) {
+                media = await tryFetchMedia('id', { mediaId: anilistIdHint, type: targetMediaType || undefined });
             }
 
-            // 2. If not found by idMal, query by native AniList id
+            // 2. Try by idMal with targetMediaType (enforcing anime vs manga separation & isAdult: false)
             if (!media) {
-                try {
-                    const data = await anilistQuery(buildAniListQuery('id'), { mediaId: numId });
-                    media = data?.Media;
-                } catch (err) {
-                    // Ignore and proceed to local fallback
+                media = await tryFetchMedia('idMal', { mediaId: numId, type: targetMediaType || undefined });
+            }
+
+            // 3. Try by native AniList id with targetMediaType
+            if (!media) {
+                media = await tryFetchMedia('id', { mediaId: numId, type: targetMediaType || undefined });
+            }
+
+            // 4. If targetMediaType was unknown, try opposite media type as fallback
+            if (!media && !targetMediaType) {
+                media = await tryFetchMedia('idMal', { mediaId: numId, type: 'MANGA' });
+                if (!media) {
+                    media = await tryFetchMedia('id', { mediaId: numId, type: 'MANGA' });
                 }
             }
+
+            // 5. Search AniList by Title if localAnime exists or title hint provided
+            const searchTitle = reqTitle || localAnime?.title_english || localAnime?.title;
+            if (!media && searchTitle) {
+                media = await tryFetchMedia('search', { 
+                    search: searchTitle, 
+                    type: targetMediaType || (localAnime ? 'ANIME' : undefined) 
+                });
+            }
+        }
+
+        // Safety verification: guard against adult cross-contamination
+        if (media && media.isAdult && (!localAnime || !localAnime.genres?.includes('Hentai'))) {
+            media = null;
         }
 
         // If AniList returned media, build the rich enriched response
@@ -320,8 +363,10 @@ const getAnimeById = async (req, res) => {
             const relations = (media.relations?.edges || []).map(edge => ({
                 relationType: edge.relationType,
                 mal_id: edge.node.idMal || edge.node.id,
+                anilistId: edge.node.id,
                 title: edge.node.title.english || edge.node.title.romaji,
                 type: edge.node.type,
+                mediaType: edge.node.type === 'MANGA' ? 'manga' : 'anime',
                 format: edge.node.format,
                 poster_url: edge.node.coverImage?.large || edge.node.coverImage?.medium,
                 score: edge.node.averageScore ? (edge.node.averageScore / 10).toFixed(2) : null,
@@ -333,8 +378,10 @@ const getAnimeById = async (req, res) => {
                 .filter(n => n?.mediaRecommendation)
                 .map(n => ({
                     mal_id: n.mediaRecommendation.idMal || n.mediaRecommendation.id,
+                    anilistId: n.mediaRecommendation.id,
                     title: n.mediaRecommendation.title.english || n.mediaRecommendation.title.romaji,
                     type: n.mediaRecommendation.type,
+                    mediaType: n.mediaRecommendation.type === 'MANGA' ? 'manga' : 'anime',
                     format: n.mediaRecommendation.format,
                     poster_url: n.mediaRecommendation.coverImage?.large || n.mediaRecommendation.coverImage?.medium,
                     score: n.mediaRecommendation.averageScore ? (n.mediaRecommendation.averageScore / 10).toFixed(2) : null,
@@ -609,49 +656,49 @@ const getHomeData = async (req, res) => {
         const query = `
         query {
           trending: Page(perPage: 40) {
-            media(type: ${mediaTypeEnum}, sort: TRENDING_DESC, status: RELEASING) {
+            media(type: ${mediaTypeEnum}, sort: TRENDING_DESC, status: RELEASING, isAdult: false) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year } chapters episodes
             }
           }
           topRated: Page(perPage: 40) {
-            media(type: ${mediaTypeEnum}, sort: SCORE_DESC) {
+            media(type: ${mediaTypeEnum}, sort: SCORE_DESC, isAdult: false) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year } chapters episodes
             }
           }
           popular: Page(perPage: 40) {
-            media(type: ${mediaTypeEnum}, sort: POPULARITY_DESC) {
+            media(type: ${mediaTypeEnum}, sort: POPULARITY_DESC, isAdult: false) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year } chapters episodes
             }
           }
           upcoming: Page(perPage: 40) {
-            media(type: ${mediaTypeEnum}, status: NOT_YET_RELEASED, sort: POPULARITY_DESC) {
+            media(type: ${mediaTypeEnum}, status: NOT_YET_RELEASED, sort: POPULARITY_DESC, isAdult: false) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year } chapters episodes
             }
           }
           latest: Page(perPage: 40) {
-            media(type: ${mediaTypeEnum}, sort: START_DATE_DESC) {
+            media(type: ${mediaTypeEnum}, sort: START_DATE_DESC, isAdult: false) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year } chapters episodes
             }
           }
           action: Page(perPage: 40) {
-            media(type: ${mediaTypeEnum}, genre: "Action", sort: SCORE_DESC) {
+            media(type: ${mediaTypeEnum}, genre: "Action", sort: SCORE_DESC, isAdult: false) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year } chapters episodes
             }
           }
           fantasy: Page(perPage: 40) {
-            media(type: ${mediaTypeEnum}, genre: "Fantasy", sort: SCORE_DESC) {
+            media(type: ${mediaTypeEnum}, genre: "Fantasy", sort: SCORE_DESC, isAdult: false) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year } chapters episodes
             }
           }
           romance: Page(perPage: 40) {
-            media(type: ${mediaTypeEnum}, genre: "Romance", sort: SCORE_DESC) {
+            media(type: ${mediaTypeEnum}, genre: "Romance", sort: SCORE_DESC, isAdult: false) {
               idMal id title { romaji english } coverImage { extraLarge large }
               averageScore format seasonYear status startDate { year } chapters episodes
             }

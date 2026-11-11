@@ -176,7 +176,16 @@ const AnimeSectionMore = () => {
         }
     };
 
-    const handleCardClick = (mal_id) => { navigate(`/anime/${mal_id}`); };
+    const handleCardClick = (mal_id, mediaType, anilistId, title) => {
+        const params = new URLSearchParams();
+        if (mediaType) params.set('mediaType', mediaType);
+        if (anilistId) params.set('anilistId', anilistId.toString());
+        if (title) params.set('title', title);
+        const query = params.toString();
+        navigate(`/anime/${mal_id}${query ? `?${query}` : ''}`, {
+            state: { mediaType, anilistId, title }
+        });
+    };
 
     return (
         <div className="min-h-screen bg-[#0d0d0d] text-white font-sans selection:bg-white/20 pt-24">
@@ -208,7 +217,7 @@ const AnimeSectionMore = () => {
                                         anime={anime}
                                         onAddWatchlist={handleAddToWatchlist}
                                         onAddWatchhistory={handleAddToWatchhistory}
-                                        onClick={() => handleCardClick(anime.mal_id)}
+                                        onClick={() => handleCardClick(anime.mal_id, anime.mediaType, anime.anilistId, anime.title)}
                                     />
                                 ))}
                             </div>

@@ -218,8 +218,17 @@ const Recommendations = () => {
         fetchRecs();
     }, [fetchRecs]);
 
-    const handleCardClick = (id) => {
-        navigate(`/anime/${id}`);
+    const handleCardClick = (anime) => {
+        const malId = typeof anime === 'object' ? anime.mal_id : anime;
+        const mediaType = typeof anime === 'object' ? (anime.mediaType || 'anime') : 'anime';
+        const title = typeof anime === 'object' ? anime.title : '';
+        const params = new URLSearchParams();
+        if (mediaType) params.set('mediaType', mediaType);
+        if (title) params.set('title', title);
+        const query = params.toString();
+        navigate(`/anime/${malId}${query ? `?${query}` : ''}`, {
+            state: { mediaType, title }
+        });
     };
 
     // Dismiss recommendation handler
@@ -422,7 +431,7 @@ const Recommendations = () => {
                                     onAddWatchlist={handleAddToWatchlist}
                                     onAddWatchhistory={handleAddToWatchhistory}
                                     onDismiss={handleDismissRecommendation}
-                                    onClick={() => handleCardClick(anime.mal_id)}
+                                    onClick={() => handleCardClick(anime)}
                                 />
                             ))}
                         </div>

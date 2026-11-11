@@ -169,7 +169,19 @@ const SmartSearch = () => {
         performSmartSearch(prompt);
     };
 
-    const handleCardClick = (id) => navigate(`/anime/${id}`);
+    const handleCardClick = (item) => {
+        const malId = item.mal_id || item.id;
+        const mediaType = item.mediaType || (item.format === 'MANGA' || item.type === 'Manga' ? 'manga' : 'anime');
+        const anilistId = item.anilistId || item.id;
+        const params = new URLSearchParams();
+        if (mediaType) params.set('mediaType', mediaType);
+        if (anilistId) params.set('anilistId', anilistId.toString());
+        if (item.title) params.set('title', item.title);
+        const query = params.toString();
+        navigate(`/anime/${malId}${query ? `?${query}` : ''}`, {
+            state: { mediaType, anilistId, title: item.title }
+        });
+    };
     
     const handleAddToWatchlist = async (e, anime) => {
         if (e) e.stopPropagation();
@@ -308,7 +320,7 @@ const SmartSearch = () => {
                                                     anime={anime}
                                                     onAddWatchlist={handleAddToWatchlist}
                                                     onAddWatchhistory={handleAddToWatchhistory}
-                                                    onClick={() => handleCardClick(anime.mal_id)}
+                                                    onClick={() => handleCardClick(anime)}
                                                 />
                                             ))}
                                         </div>
@@ -331,7 +343,7 @@ const SmartSearch = () => {
                                                     anime={manga}
                                                     onAddWatchlist={handleAddToWatchlist}
                                                     onAddWatchhistory={handleAddToWatchhistory}
-                                                    onClick={() => handleCardClick(manga.mal_id)}
+                                                    onClick={() => handleCardClick(manga)}
                                                 />
                                             ))}
                                         </div>

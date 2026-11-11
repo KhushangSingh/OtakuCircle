@@ -75,7 +75,13 @@ export default function GroupedRecommendationCard({
     const handlePosterClick = (e) => {
         e.stopPropagation();
         if (anime.mal_id) {
-            navigate(`/anime/${anime.mal_id}`);
+            const params = new URLSearchParams();
+            if (anime.mediaType) params.set('mediaType', anime.mediaType);
+            if (anime.title) params.set('title', anime.title);
+            const query = params.toString();
+            navigate(`/anime/${anime.mal_id}${query ? `?${query}` : ''}`, {
+                state: { mediaType: anime.mediaType, title: anime.title }
+            });
         } else if (movie?.tmdbId) {
             navigate(`/movie/${movie.tmdbId}`);
         } else {

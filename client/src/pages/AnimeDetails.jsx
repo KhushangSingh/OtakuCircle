@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import WatchStatusDropdown from '../components/WatchStatusDropdown';
 import OttLogo from '../components/OttLogo';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { 
     Plus, Star, Play, Info, Calendar, Clock, Check, 
@@ -38,6 +38,12 @@ const AnimeDetails = () => {
     const [recMessage, setRecMessage] = useState('');
     const [sending, setSending] = useState(false);
 
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const mediaTypeParam = searchParams.get('mediaType') || location.state?.mediaType;
+    const anilistIdParam = searchParams.get('anilistId') || location.state?.anilistId;
+    const titleParam = searchParams.get('title') || location.state?.title;
+
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
     // --- FETCH DETAILS ---
@@ -46,7 +52,12 @@ const AnimeDetails = () => {
         const fetchDetails = async () => {
             setLoadingDetails(true);
             try {
-                const res = await axios.get(`${API_URL}/anime/${id}`);
+                const params = {};
+                if (mediaTypeParam) params.mediaType = mediaTypeParam;
+                if (anilistIdParam) params.anilistId = anilistIdParam;
+                if (titleParam) params.title = titleParam;
+
+                const res = await axios.get(`${API_URL}/anime/${id}`, { params });
                 if (isMounted) {
                     setAnime(res.data);
                 }
@@ -64,7 +75,7 @@ const AnimeDetails = () => {
         fetchDetails();
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return () => { isMounted = false; };
-    }, [id, API_URL]);
+    }, [id, API_URL, mediaTypeParam, anilistIdParam, titleParam]);
 
     // --- LIVE AIRING COUNTDOWN HOOK ---
     useEffect(() => {
@@ -896,7 +907,7 @@ const AnimeDetails = () => {
                             {anime.communityRecommendations.map((rec) => (
                                 <div
                                     key={rec.mal_id}
-                                    onClick={() => navigate(`/anime/${rec.mal_id}`)}
+                                    onClick={() => navigate(`/anime/${rec.mal_id}?mediaType=${rec.mediaType || 'anime'}&anilistId=${rec.anilistId || ''}&title=${encodeURIComponent(rec.title || '')}`)}
                                     className="group rounded-2xl overflow-hidden border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 transition-all cursor-pointer flex flex-col p-2.5"
                                 >
                                     <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-zinc-900 mb-2">
@@ -941,7 +952,7 @@ const AnimeDetails = () => {
                             {anime.relations.map((rel, idx) => (
                                 <div
                                     key={idx}
-                                    onClick={() => navigate(`/anime/${rel.mal_id}`)}
+                                    onClick={() => navigate(`/anime/${rel.mal_id}?mediaType=${rel.mediaType || 'anime'}&anilistId=${rel.anilistId || ''}&title=${encodeURIComponent(rel.title || '')}`)}
                                     className="group rounded-2xl overflow-hidden border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 transition-all cursor-pointer flex flex-col p-2.5"
                                 >
                                     <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-zinc-900 mb-2">

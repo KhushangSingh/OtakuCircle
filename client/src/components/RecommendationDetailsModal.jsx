@@ -69,7 +69,14 @@ export default function RecommendationDetailsModal({
         onClose();
         const rawId = anime.mal_id || group.animeId || group.id;
         const targetId = typeof rawId === 'string' && rawId.includes('_') ? rawId.split('_')[1] : rawId;
-        if (targetId) navigate(`/anime/${targetId}`);
+        const mediaType = isManga ? 'manga' : 'anime';
+        const params = new URLSearchParams();
+        params.set('mediaType', mediaType);
+        if (title) params.set('title', title);
+        const query = params.toString();
+        if (targetId) navigate(`/anime/${targetId}${query ? `?${query}` : ''}`, {
+            state: { mediaType, title }
+        });
     };
 
     return (

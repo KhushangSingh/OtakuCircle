@@ -144,7 +144,7 @@ const AnimeSection = ({ title, data, onAddWatchlist, onAddWatchhistory, onCardCl
                             anime={anime}
                             onAddWatchlist={onAddWatchlist}
                             onAddWatchhistory={onAddWatchhistory}
-                            onClick={() => onCardClick(anime.mal_id)}
+                            onClick={() => onCardClick(anime.mal_id, anime.mediaType, anime.anilistId, anime.title)}
                         />
                     ))}
                 </div>
@@ -309,9 +309,17 @@ const Home = () => {
         }
     };
 
-    const handleCardClick = (mal_id) => {
+    const handleCardClick = (mal_id, mediaType, anilistId, title) => {
         sessionStorage.setItem('otaku_home_scroll', window.scrollY.toString());
-        navigate(`/anime/${mal_id}`);
+        const resolvedMediaType = mediaType || (mediaTab === 'manga' ? 'manga' : 'anime');
+        const params = new URLSearchParams();
+        if (resolvedMediaType) params.set('mediaType', resolvedMediaType);
+        if (anilistId) params.set('anilistId', anilistId.toString());
+        if (title) params.set('title', title);
+        const query = params.toString();
+        navigate(`/anime/${mal_id}${query ? `?${query}` : ''}`, {
+            state: { mediaType: resolvedMediaType, anilistId, title }
+        });
     };
 
     const handleScrollToTrending = () => {

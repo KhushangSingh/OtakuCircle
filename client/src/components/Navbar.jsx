@@ -173,10 +173,19 @@ const Navbar = () => {
     return () => { document.body.style.overflow = 'auto'; };
   }, [isMobileMenuOpen]);
 
-  const handleResultClick = (id) => {
+  const handleResultClick = (anime) => {
       setIsSearchOpen(false);
       setSearchQuery('');
-      navigate(`/anime/${id}`);
+      const malId = typeof anime === 'object' ? (anime.mal_id || anime._id) : anime;
+      const mediaType = typeof anime === 'object' ? (anime.mediaType || 'anime') : 'anime';
+      const title = typeof anime === 'object' ? anime.title : '';
+      const params = new URLSearchParams();
+      if (mediaType) params.set('mediaType', mediaType);
+      if (title) params.set('title', title);
+      const query = params.toString();
+      navigate(`/anime/${malId}${query ? `?${query}` : ''}`, {
+          state: { mediaType, title }
+      });
   };
 
   const handleKeyDown = (e) => {
@@ -256,7 +265,8 @@ const Navbar = () => {
             navigate('/friends?tab=requests');
             setIsNotificationsOpen(false);
         } else if (notification.animeId) {
-            navigate(`/anime/${notification.animeId}`);
+            const mediaType = notification.mediaType || 'anime';
+            navigate(`/anime/${notification.animeId}?mediaType=${mediaType}`);
             setIsNotificationsOpen(false); 
         }
     } catch (error) {
@@ -356,7 +366,7 @@ const Navbar = () => {
                         Top Matches
                     </div>
                     {searchResults.length > 0 ? searchResults.map(anime => (
-                        <div key={anime._id} onClick={() => handleResultClick(anime.mal_id)} className="flex items-center gap-4 p-3 hover:bg-white/10 cursor-pointer border-b border-white/5 last:border-none transition-colors group/item">
+                        <div key={anime._id} onClick={() => handleResultClick(anime)} className="flex items-center gap-4 p-3 hover:bg-white/10 cursor-pointer border-b border-white/5 last:border-none transition-colors group/item">
                             <img src={anime.poster_url} alt={anime.title} className="w-9 h-12 object-cover rounded shadow-md bg-zinc-800" />
                             <div className="flex-1 min-w-0">
                                 <p className="font-semibold text-sm text-white truncate group-hover/item:text-blue-400 transition-colors">{anime.title}</p>
