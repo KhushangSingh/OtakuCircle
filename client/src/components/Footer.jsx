@@ -8,7 +8,12 @@ const Footer = () => {
                     
                     {/* Brand Column */}
                     <div className="md:col-span-2 space-y-4">
-                        <Link to="/" className="inline-block">
+                        <Link to="/" className="inline-flex items-center gap-3 group">
+                            <img 
+                                src="/logo.png" 
+                                alt="OtakuCircle Logo" 
+                                className="w-8 h-8 object-contain drop-shadow-[0_0_12px_rgba(255,255,255,0.2)] transition-transform duration-300 group-hover:scale-105" 
+                            />
                             <span 
                                 className="text-3xl font-extrabold tracking-tighter text-white"
                                 style={{

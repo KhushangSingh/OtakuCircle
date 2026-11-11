@@ -10,6 +10,8 @@ const {
     acceptFriendRequest,
     getFriends,
     markNotificationAsRead,
+    markAllNotificationsAsRead,
+    deleteNotification,
     declineFriendRequest
 } = require('../controllers/socialController'); 
 
@@ -29,6 +31,8 @@ router.get('/recommendations/friends', protect, getRecommendations);
 
 // --- Notifications ---
 router.get('/notifications', protect, getNotifications);
+router.put('/notifications/read-all', protect, markAllNotificationsAsRead);
 router.put('/notifications/:notificationId/read', protect, markNotificationAsRead);
+router.delete('/notifications/:notificationId', protect, deleteNotification);
 
 module.exports = router;

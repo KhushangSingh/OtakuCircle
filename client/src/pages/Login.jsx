@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User, ArrowRight, Loader, X, KeyRound, ShieldCheck, LinkIcon } from '../components/icons';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { Mail, Lock, User, ArrowRight, ArrowLeft, Loader, X, KeyRound, ShieldCheck, LinkIcon } from '../components/icons';
 import { GoogleLogin } from '@react-oauth/google';
 import heroImage from '../assets/spotlight-hero-bg-converted.webp';
+import { setAuth } from '../utils/auth';
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -20,6 +21,25 @@ const Login = () => {
     const [linkSent, setLinkSent] = useState(false); // true when backend sends a password-link email
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Track origin page so user can exit back to exactly where they came from
+    useEffect(() => {
+        if (location.state?.from && location.state.from !== '/login') {
+            sessionStorage.setItem('login_return_path', location.state.from);
+        }
+    }, [location]);
+
+    const handleBack = () => {
+        const returnPath = location.state?.from || sessionStorage.getItem('login_return_path');
+        if (returnPath && returnPath !== '/login') {
+            navigate(returnPath);
+        } else if (window.history.length > 2) {
+            navigate(-1);
+        } else {
+            navigate('/');
+        }
+    };
     
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -77,9 +97,7 @@ const Login = () => {
                 return;
             }
 
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('userId', res.data._id);
-            localStorage.setItem('username', res.data.username);
+            setAuth(res.data.token, res.data.username, { userId: res.data._id });
             sessionStorage.removeItem('otaku_home_scroll');
             window.location.href = '/';
         } catch (err) {
@@ -99,9 +117,7 @@ const Login = () => {
             const res = await axios.post(`${API_URL}/auth/google`, {
                 token: credentialResponse.credential
             });
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('userId', res.data._id);
-            localStorage.setItem('username', res.data.username);
+            setAuth(res.data.token, res.data.username, { userId: res.data._id });
             sessionStorage.removeItem('otaku_home_scroll');
             window.location.href = '/';
         } catch (err) {
@@ -154,9 +170,7 @@ const Login = () => {
                 password: formData.password,
                 otp: regOtp
             });
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('userId', res.data._id);
-            localStorage.setItem('username', res.data.username);
+            setAuth(res.data.token, res.data.username, { userId: res.data._id });
             sessionStorage.removeItem('otaku_home_scroll');
             navigate('/');
         } catch (err) {
@@ -246,6 +260,16 @@ const Login = () => {
     return (
         <div className="h-screen w-full bg-[#0d0d0d] flex relative overflow-hidden font-sans text-white">
             
+            {/* FLOATING BACK BUTTON */}
+            <button
+                type="button"
+                onClick={handleBack}
+                className="absolute top-6 left-6 z-30 flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white text-xs sm:text-sm font-semibold backdrop-blur-md transition-all shadow-lg hover:scale-105 active:scale-95 cursor-pointer"
+            >
+                <ArrowLeft size={16} />
+                <span>Back</span>
+            </button>
+
             {/* FULL PAGE BACKGROUND */}
             <div className="absolute inset-0 z-0 pointer-events-none bg-[#0d0d0d]">
                 <div 
@@ -255,11 +279,18 @@ const Login = () => {
                 <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-[#000000] from-0% via-[#000000]/95 via-[35%] to-transparent to-[70%]"></div>
             </div>
 
-            {/* LEFT SIDE: VISUALS (Enlarged pure-white hero styling) */}
-            <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center overflow-hidden h-full z-10">
-                <div className="relative p-12 max-w-2xl">
+            {/* LEFT SIDE: VISUALS (Enlarged pure-white hero styling without blur or hover animation, positioned higher) */}
+            <div className="hidden lg:flex lg:w-1/2 relative items-start justify-center pt-20 xl:pt-24 overflow-hidden h-full z-10">
+                <div className="relative px-12 max-w-2xl flex flex-col items-start">
+                    <div className="mb-0.5 select-none">
+                        <img 
+                            src="/logo.png" 
+                            alt="OtakuCircle Logo" 
+                            className="w-44 h-44 sm:w-52 sm:h-52 lg:w-60 lg:h-60 object-contain" 
+                        />
+                    </div>
                     <h1 
-                        className="text-6xl sm:text-7xl lg:text-8xl xl:text-[7rem] leading-none font-extrabold tracking-tight mb-8 text-white select-none drop-shadow-[0_0_25px_rgba(255,255,255,0.3)] inline-block pr-8 pb-3"
+                        className="text-6xl sm:text-7xl lg:text-8xl xl:text-[7rem] leading-none font-extrabold tracking-tight mb-4 text-white select-none drop-shadow-[0_0_25px_rgba(255,255,255,0.3)] inline-block pr-8 pb-1"
                         style={{
                             background: 'linear-gradient(to bottom, #ffffff, #e4e4e7)',
                             WebkitBackgroundClip: 'text',
@@ -275,213 +306,281 @@ const Login = () => {
                 </div>
             </div>
 
-            {/* RIGHT SIDE: FORM */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12 relative z-10 h-full overflow-y-auto">
-                <div className="w-full max-w-md space-y-6 py-8">
+            {/* RIGHT SIDE: GLASSMORPHISM CARD (Taller Zero-Scroll OS-DS Design with balanced lower placement) */}
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative z-10 h-full overflow-y-auto lg:overflow-hidden font-sans">
+                <div className="relative rounded-[2rem] border border-white/20 bg-white/10 px-7 py-6 sm:px-9 sm:py-7 shadow-2xl shadow-black/35 backdrop-blur-2xl backdrop-saturate-150 w-full max-w-[460px] min-h-[500px] sm:min-h-[530px] flex flex-col justify-between transition-all">
                     
-                    <div className="text-center lg:text-left">
-                        <h2 className="text-3xl font-bold text-white mb-2">
-                            {isLogin ? 'Welcome back' : regStep === 'otp' ? 'Verify your email' : 'Create an account'}
-                        </h2>
-                        <p className="text-zinc-300 text-sm">
-                            {isLogin ? 'Enter your details to access your lists.' 
-                             : regStep === 'otp' ? `We sent a code to ${formData.email}` 
-                             : 'Start your journey with us today.'}
-                        </p>
+                    {/* Header with Segmented Mode Toggle (No logo or brand name) */}
+                    <div className="flex justify-between items-center mb-5 sm:mb-6">
+                        <div className="inline-flex p-1 rounded-full bg-black/40 border border-white/10 backdrop-blur-md">
+                            <button
+                                type="button"
+                                onClick={() => { if (!isLogin) toggleMode(); }}
+                                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                                    isLogin ? 'bg-white text-black shadow-md' : 'text-zinc-400 hover:text-white'
+                                }`}
+                            >
+                                Sign In
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { if (isLogin) toggleMode(); }}
+                                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                                    !isLogin ? 'bg-white text-black shadow-md' : 'text-zinc-400 hover:text-white'
+                                }`}
+                            >
+                                Register
+                            </button>
+                        </div>
+
+                        <span className="text-sm font-semibold text-zinc-100 tracking-wide">
+                            {isLogin ? 'Welcome back' : 'New account'}
+                        </span>
                     </div>
 
-                    {error && (
-                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                            {error}
-                        </div>
-                    )}
-
-                    {/* Link-required info banner — shown when Google account tries email/password login */}
-                    {linkSent && (
-                        <div className="p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-indigo-300 text-sm space-y-2">
-                            <div className="flex items-center gap-2 font-semibold text-indigo-200">
-                                <LinkIcon size={16} className="shrink-0" />
-                                Verification email sent
-                            </div>
-                            <p className="text-zinc-300 leading-relaxed">
-                                This email is linked to a Google account. We've sent a verification link to{' '}
-                                <span className="font-semibold text-white">{formData.email}</span>.
-                            </p>
-                            <p className="text-zinc-400">
-                                Click the button in that email to set a password — after that you can sign in with either Google or email &amp; password.
-                            </p>
-                        </div>
-                    )}
-
-                    {/* ===== GOOGLE BUTTON (Solid White Pill) ===== */}
-                    {(isLogin || (!isLogin && regStep === 'form')) && (
-                        <div className="space-y-4">
-                            <div className="flex justify-center">
-                                <GoogleLogin
-                                    onSuccess={handleGoogleSuccess}
-                                    onError={() => setError('Google sign-in failed')}
-                                    shape="pill"
-                                    width="384"
-                                    text={isLogin ? 'signin_with' : 'signup_with'}
-                                    theme="outline"
-                                />
-                            </div>
-                            <div className="relative flex items-center">
-                                <div className="flex-grow border-t border-white/10"></div>
-                                <span className="flex-shrink-0 mx-4 text-zinc-300 text-xs font-bold uppercase tracking-widest">or</span>
-                                <div className="flex-grow border-t border-white/10"></div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ===== LOGIN FORM ===== */}
-                    {isLogin && (
-                        <form onSubmit={handleLogin} className="space-y-5" autoComplete="off">
-                            <div className="space-y-1.5">
-                                <label className={labelClass}>Email</label>
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-white transition-colors">
-                                        <Mail size={18} />
+                    {/* Lower Container: Title, Inputs & Actions (fills the card and covers the lower empty space) */}
+                    <div className="flex-1 flex flex-col justify-between pt-2 sm:pt-3">
+                        <div>
+                            {/* Title and Google Auth Row (shifted lower) */}
+                            <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5 pt-1.5 sm:pt-2">
+                                <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+                                    {isLogin ? 'Log in' : regStep === 'otp' ? 'Verify' : 'Sign up'}
+                                </h2>
+                                {(isLogin || (!isLogin && regStep === 'form')) && (
+                                    <div className="shrink-0 flex items-center">
+                                        <GoogleLogin
+                                            onSuccess={handleGoogleSuccess}
+                                            onError={() => setError('Google sign-in failed')}
+                                            shape="pill"
+                                            size="medium"
+                                            text="signin_with"
+                                            theme="outline"
+                                        />
                                     </div>
-                                    <input type="email" name="email" value={formData.email} onChange={handleChange}
-                                        autoComplete="email" className={inputClass} placeholder="name@example.com" required />
-                                </div>
+                                )}
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className={labelClass}>Password</label>
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-white transition-colors">
-                                        <Lock size={18} />
-                                    </div>
-                                    <input type="password" name="password" value={formData.password} onChange={handleChange}
-                                        autoComplete="current-password" className={inputClass} placeholder="••••••••" required />
+                            {/* Alerts & Notifications */}
+                            {error && (
+                                <div className="mb-4 p-3 px-4 bg-red-500/15 border border-red-500/25 rounded-2xl text-red-300 text-xs sm:text-sm flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                                    <span className="truncate">{error}</span>
                                 </div>
-                                <div className="flex justify-end">
-                                    <button type="button" onClick={openForgotModal}
-                                        className="text-xs text-zinc-300 hover:text-white transition-colors font-medium mt-1 drop-shadow-sm">
-                                        Forgot password?
+                            )}
+
+                            {linkSent && (
+                                <div className="mb-4 p-3.5 bg-indigo-500/15 border border-indigo-500/30 rounded-2xl text-indigo-200 text-xs sm:text-sm space-y-1">
+                                    <div className="flex items-center gap-1.5 font-semibold">
+                                        <LinkIcon size={16} className="shrink-0" />
+                                        Verification email sent
+                                    </div>
+                                    <p className="text-white/80 leading-snug">
+                                        Check <span className="font-semibold text-white">{formData.email}</span> to set your password.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* ===== LOGIN FORM ===== */}
+                        {isLogin && (
+                            <form onSubmit={handleLogin} className="flex-1 flex flex-col justify-between font-sans mt-1" autoComplete="off">
+                                <div className="space-y-4">
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-white/50">
+                                            <Mail size={18} />
+                                        </div>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            autoComplete="email"
+                                            placeholder="e-mail address"
+                                            className="w-full rounded-full border border-white/10 bg-white/[0.08] py-3.5 sm:py-4 pl-12 pr-4 text-sm sm:text-base text-white placeholder-white/50 shadow-inner outline-none transition-all focus:bg-white/[0.15] focus:ring-2 focus:ring-white/20 focus:border-white/30"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <div className="relative flex items-center">
+                                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-white/50">
+                                                <Lock size={18} />
+                                            </div>
+                                            <input
+                                                type="password"
+                                                name="password"
+                                                value={formData.password}
+                                                onChange={handleChange}
+                                                autoComplete="current-password"
+                                                placeholder="password"
+                                                className="w-full rounded-full border border-white/10 bg-white/[0.08] py-3.5 sm:py-4 pl-12 pr-4 text-sm sm:text-base text-white placeholder-white/50 shadow-inner outline-none transition-all focus:bg-white/[0.15] focus:ring-2 focus:ring-white/20 focus:border-white/30"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="flex justify-end pr-2 pt-0.5">
+                                            <button
+                                                type="button"
+                                                onClick={openForgotModal}
+                                                className="text-xs sm:text-sm text-white/60 hover:text-white transition-colors cursor-pointer font-medium"
+                                            >
+                                                Forgot password?
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Privacy line & Submit button (positioned higher) */}
+                                <div className="flex items-center justify-between pt-4 pb-2 sm:pb-3 mt-auto">
+                                    <p className="text-[11px] leading-relaxed text-white/50 max-w-[210px]">
+                                        By signing in, you agree to our{' '}
+                                        <Link to="/terms" state={{ from: '/login' }} onClick={() => sessionStorage.setItem('legal_return_path', '/login')} className="underline hover:text-white transition-colors">Terms of Service</Link> and{' '}
+                                        <Link to="/privacy" state={{ from: '/login' }} onClick={() => sessionStorage.setItem('legal_return_path', '/login')} className="underline hover:text-white transition-colors">Privacy Policy</Link>.
+                                    </p>
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="flex h-12 px-6 sm:px-7 items-center justify-center rounded-full bg-white text-black font-bold text-sm sm:text-base shadow-lg transition-all hover:bg-zinc-200 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                                    >
+                                        {loading ? <Loader className="animate-spin text-black" size={18} /> : <span>Submit</span>}
                                     </button>
                                 </div>
-                            </div>
+                            </form>
+                        )}
 
-                            {/* OS-DS Primary Solid White CTA */}
-                            <button type="submit" disabled={loading}
-                                className="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-zinc-200 transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2 mt-2 disabled:opacity-40 disabled:cursor-not-allowed">
-                                {loading ? <Loader className="animate-spin" size={20} /> : <><span>Sign In</span><ArrowRight size={18} /></>}
-                            </button>
-                        </form>
-                    )}
-
-                    {/* ===== REGISTER FORM — Step 1: Details ===== */}
-                    {!isLogin && regStep === 'form' && (
-                        <form onSubmit={handleSendRegOtp} className="space-y-4" autoComplete="off">
-                            <div className="space-y-1.5">
-                                <label className={labelClass}>Username</label>
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-white transition-colors">
-                                        <User size={18} />
+                        {/* ===== REGISTER FORM — Step 1: Details (Side-by-side passwords, Zero Scroll) ===== */}
+                        {!isLogin && regStep === 'form' && (
+                            <form onSubmit={handleSendRegOtp} className="flex-1 flex flex-col justify-between font-sans mt-1" autoComplete="off">
+                                <div className="space-y-3.5">
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-white/50">
+                                            <User size={18} />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            name="username"
+                                            value={formData.username}
+                                            onChange={handleChange}
+                                            autoComplete="off"
+                                            placeholder="username"
+                                            className="w-full rounded-full border border-white/10 bg-white/[0.08] py-3.5 sm:py-4 pl-12 pr-4 text-sm sm:text-base text-white placeholder-white/50 shadow-inner outline-none transition-all focus:bg-white/[0.15] focus:ring-2 focus:ring-white/20 focus:border-white/30"
+                                            required
+                                        />
                                     </div>
-                                    <input type="text" name="username" value={formData.username} onChange={handleChange}
-                                        autoComplete="off" className={inputClass} placeholder="johndoe" required />
-                                </div>
-                            </div>
 
-                            <div className="space-y-1.5">
-                                <label className={labelClass}>Email</label>
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-white transition-colors">
-                                        <Mail size={18} />
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-white/50">
+                                            <Mail size={18} />
+                                        </div>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            autoComplete="email"
+                                            placeholder="e-mail address"
+                                            className="w-full rounded-full border border-white/10 bg-white/[0.08] py-3.5 sm:py-4 pl-12 pr-4 text-sm sm:text-base text-white placeholder-white/50 shadow-inner outline-none transition-all focus:bg-white/[0.15] focus:ring-2 focus:ring-white/20 focus:border-white/30"
+                                            required
+                                        />
                                     </div>
-                                    <input type="email" name="email" value={formData.email} onChange={handleChange}
-                                        autoComplete="email" className={inputClass} placeholder="name@example.com" required />
-                                </div>
-                            </div>
 
-                            <div className="space-y-1.5">
-                                <label className={labelClass}>Password</label>
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-white transition-colors">
-                                        <Lock size={18} />
+                                    <div className="grid grid-cols-2 gap-2.5">
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-white/50">
+                                                <Lock size={16} />
+                                            </div>
+                                            <input
+                                                type="password"
+                                                name="password"
+                                                value={formData.password}
+                                                onChange={handleChange}
+                                                autoComplete="new-password"
+                                                placeholder="password"
+                                                className="w-full rounded-full border border-white/10 bg-white/[0.08] py-3.5 pl-10 pr-3 text-xs sm:text-sm text-white placeholder-white/50 shadow-inner outline-none transition-all focus:bg-white/[0.15] focus:ring-2 focus:ring-white/20 focus:border-white/30"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-white/50">
+                                                <Lock size={16} />
+                                            </div>
+                                            <input
+                                                type="password"
+                                                name="passwordConfirm"
+                                                value={formData.passwordConfirm}
+                                                onChange={handleChange}
+                                                autoComplete="new-password"
+                                                placeholder="confirm"
+                                                className="w-full rounded-full border border-white/10 bg-white/[0.08] py-3.5 pl-10 pr-3 text-xs sm:text-sm text-white placeholder-white/50 shadow-inner outline-none transition-all focus:bg-white/[0.15] focus:ring-2 focus:ring-white/20 focus:border-white/30"
+                                                required
+                                            />
+                                        </div>
                                     </div>
-                                    <input type="password" name="password" value={formData.password} onChange={handleChange}
-                                        autoComplete="new-password" className={inputClass} placeholder="••••••••" required />
                                 </div>
-                            </div>
 
-                            <div className="space-y-1.5">
-                                <label className={labelClass}>Confirm Password</label>
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-white transition-colors">
-                                        <Lock size={18} />
-                                    </div>
-                                    <input type="password" name="passwordConfirm" value={formData.passwordConfirm} onChange={handleChange}
-                                        autoComplete="new-password" className={inputClass} placeholder="••••••••" required />
+                                {/* Privacy line & Submit button (positioned higher) */}
+                                <div className="flex items-center justify-between pt-4 pb-2 sm:pb-3 mt-auto">
+                                    <p className="text-[11px] leading-relaxed text-white/50 max-w-[210px]">
+                                        By creating an account, you agree to our{' '}
+                                        <Link to="/terms" state={{ from: '/login' }} onClick={() => sessionStorage.setItem('legal_return_path', '/login')} className="underline hover:text-white transition-colors">Terms of Service</Link> and{' '}
+                                        <Link to="/privacy" state={{ from: '/login' }} onClick={() => sessionStorage.setItem('legal_return_path', '/login')} className="underline hover:text-white transition-colors">Privacy Policy</Link>.
+                                    </p>
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="flex h-12 px-6 sm:px-7 items-center justify-center rounded-full bg-white text-black font-bold text-sm sm:text-base shadow-lg transition-all hover:bg-zinc-200 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                                    >
+                                        {loading ? <Loader className="animate-spin text-black" size={18} /> : <span>Submit</span>}
+                                    </button>
                                 </div>
-                            </div>
+                            </form>
+                        )}
 
-                            {/* OS-DS Primary Solid White CTA */}
-                            <button type="submit" disabled={loading}
-                                className="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-zinc-200 transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2 mt-2 disabled:opacity-40 disabled:cursor-not-allowed">
-                                {loading ? <Loader className="animate-spin" size={20} /> : <><span>Send Verification Code</span><ArrowRight size={18} /></>}
-                            </button>
-                        </form>
-                    )}
-
-                    {/* ===== REGISTER — Step 2: Enter OTP ===== */}
-                    {!isLogin && regStep === 'otp' && (
-                        <form onSubmit={handleRegisterVerify} className="space-y-5">
-                            <div className="flex items-center justify-center mb-2">
-                                <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/30">
-                                    <Mail size={28} className="text-blue-400" />
+                        {/* ===== REGISTER — Step 2: Enter OTP ===== */}
+                        {!isLogin && regStep === 'otp' && (
+                            <form onSubmit={handleRegisterVerify} className="flex-1 flex flex-col justify-between font-sans mt-1">
+                                <div className="space-y-4 pt-2">
+                                    <p className="text-xs sm:text-sm text-white/70 text-center">
+                                        We sent a 6-digit code to <span className="text-white font-medium">{formData.email}</span>
+                                    </p>
+                                    <input
+                                        type="text"
+                                        value={regOtp}
+                                        onChange={(e) => setRegOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                        className="w-full text-center text-2xl sm:text-3xl font-bold tracking-[0.4em] rounded-full border border-white/10 bg-white/[0.08] py-3.5 text-white placeholder-white/30 outline-none focus:bg-white/[0.15] focus:ring-2 focus:ring-white/20 transition-all"
+                                        placeholder="000000"
+                                        maxLength={6}
+                                        autoFocus
+                                    />
                                 </div>
-                            </div>
-                            <input
-                                type="text"
-                                value={regOtp}
-                                onChange={(e) => setRegOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                className="block w-full py-4 bg-white/5 border border-white/10 rounded-xl text-white text-center text-3xl font-bold tracking-[0.5em] placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 transition-all"
-                                placeholder="000000"
-                                maxLength={6}
-                                autoFocus
-                            />
-                            {/* OS-DS Primary Solid White CTA */}
-                            <button type="submit" disabled={loading}
-                                className="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-zinc-200 transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
-                                {loading ? <Loader className="animate-spin" size={20} /> : <><span>Verify &amp; Create Account</span><ShieldCheck size={18} /></>}
-                            </button>
-                            <button type="button" onClick={() => { setRegStep('form'); setError(''); setRegOtp(''); }}
-                                className="w-full text-zinc-300 hover:text-white text-sm transition-colors font-medium">
-                                Wrong email? Go back
-                            </button>
-                        </form>
-                    )}
-
-                    <div className="text-center pt-2 space-y-4">
-                        <p className="text-zinc-200 text-sm font-medium drop-shadow-sm">
-                            {isLogin ? "Don't have an account?" : 'Already have an account?'}
-                            <button onClick={toggleMode}
-                                className="ml-2 text-white font-bold hover:text-blue-400 transition-colors">
-                                {isLogin ? 'Sign up' : 'Log in'}
-                            </button>
-                        </p>
-
-                        <div className="flex items-center justify-center gap-3 text-xs text-zinc-300 font-medium pt-3 border-t border-white/10 drop-shadow-sm">
-                            <Link to="/privacy" className="hover:text-white transition-colors underline-offset-2 hover:underline">Privacy Policy</Link>
-                            <span className="text-zinc-500">•</span>
-                            <Link to="/terms" className="hover:text-white transition-colors underline-offset-2 hover:underline">Terms of Service</Link>
-                        </div>
+                                <div className="flex items-center justify-between pt-4 pb-2 sm:pb-3 mt-auto">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setRegStep('form'); setError(''); setRegOtp(''); }}
+                                        className="text-xs sm:text-sm text-white/60 hover:text-white transition-colors cursor-pointer font-medium"
+                                    >
+                                        Wrong email? Go back
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="flex h-12 px-6 sm:px-7 items-center justify-center rounded-full bg-white text-black font-bold text-sm sm:text-base shadow-lg transition-all hover:bg-zinc-200 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                                    >
+                                        {loading ? <Loader className="animate-spin text-black" size={18} /> : <span>Submit</span>}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
                     </div>
                 </div>
             </div>
 
             {/* =============================================
-                FORGOT PASSWORD MODAL (OS-DS Level 3 Elevation)
+                FORGOT PASSWORD MODAL (Glasio Liquid Glass Standard)
             ============================================= */}
             {showForgotModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                    <div className="bg-[#141414] border border-white/10 rounded-2xl w-full max-w-md p-8 relative shadow-2xl">
+                    <div className="bg-[#121212]/90 backdrop-blur-2xl backdrop-saturate-150 border border-white/20 rounded-[2rem] w-full max-w-md p-8 sm:p-10 relative shadow-2xl shadow-black/60">
                         <button onClick={closeForgotModal}
                             className="absolute top-4 right-4 p-2 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors">
                             <X size={20} />

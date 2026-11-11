@@ -11,11 +11,12 @@
    - [1.1 Product Vision & 5 Core Design Principles](#11-product-vision--5-core-design-principles)
    - [1.2 Voice & Tone Matrix](#12-voice--tone-matrix)
    - [1.3 UX Microcopy & Error State Guidelines](#13-ux-microcopy--error-state-guidelines)
+   - [1.4 Official Brand Mark, Logo & Favicon](#14-official-brand-mark-logo--favicon)
 2. [Design Tokens & Foundations](#2-design-tokens--foundations)
    - [2.1 Token Architecture & Semantic Naming](#21-token-architecture--semantic-naming)
    - [2.2 Color System (60-30-10 Dark Canvas)](#22-color-system-60-30-10-dark-canvas)
    - [2.3 Surface Glassmorphism & Translucency](#23-surface-glassmorphism--translucency)
-   - [2.4 Typography Scale & Hierarchy (Outfit)](#24-typography-scale--hierarchy-outfit)
+   - [2.4 Typography Scale & Hierarchy (DM Sans)](#24-typography-scale--hierarchy-dm-sans)
    - [2.5 Spatial System & 8pt Grid](#25-spatial-system--8pt-grid)
    - [2.6 Elevation, Shadows & Atmospheric Glow](#26-elevation-shadows--atmospheric-glow)
    - [2.7 Border Radii & Shape Language](#27-border-radii--shape-language)
@@ -97,6 +98,22 @@ graph LR
 
 ---
 
+### 1.4 Official Brand Mark, Logo & Favicon
+
+The official OtakuCircle brand mark is the **Japanese Torii with Cherry Blossoms** emblem.
+
+| Attribute | Specification | Implementation Detail |
+| :--- | :--- | :--- |
+| **Emblem Metaphor** | Red Torii gate framed by cherry blossoms (*sakura*) | Represents entering a sacred cultural portal to anime, manga, and storytelling. |
+| **Source Asset** | 1254 × 1254 PNG, Square 1:1 Aspect Ratio | High-fidelity master asset with transparent background framing. |
+| **Favicon Path** | [`/logo.png`](file:///c:/Users/khush/Documents/Projects/OtakuCircle/client/public/logo.png), [`/favicon.png`](file:///c:/Users/khush/Documents/Projects/OtakuCircle/client/public/favicon.png) | Referenced in [`client/index.html`](file:///c:/Users/khush/Documents/Projects/OtakuCircle/client/index.html) with cache-busting `?v=2`. |
+| **Component Asset** | [`client/src/assets/logo.png`](file:///c:/Users/khush/Documents/Projects/OtakuCircle/client/src/assets/logo.png) | Bundled into client source assets for direct imports. |
+| **Navbar Treatment** | `w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9` | Paired with `OtakuCircle` text logo; includes subtle glow and hover scaling. |
+| **Footer Treatment** | `w-8 h-8` | Displayed alongside the gradient brand wordmark with ambient glow. |
+| **Auth Screen** | `w-14 h-14` (Hero) / `w-10 h-10` (Mobile) | Featured on login & registration portals as the official community seal. |
+
+---
+
 ## 2. Design Tokens & Foundations
 
 ### 2.1 Token Architecture & Semantic Naming
@@ -135,31 +152,89 @@ OtakuCircle enforces a **60-30-10 dark canvas distribution**:
 
 ---
 
-### 2.3 Surface Glassmorphism & Translucency
+### 2.3 Surface Glassmorphism & Translucency (Glasio Standard)
 
-Three standardized frosted glass tokens deliver physical depth over dynamic poster backgrounds:
+OtakuCircle enforces the **Glasio Liquid Glassmorphic Specification** across all translucent, frosted, floating, and glass-surfaced elements. This standard combines high blur with 150% saturation boost (`backdrop-saturate-150`) to create a vibrant, liquid-glass aesthetic over poster backgrounds without color dullness or muddiness.
 
+#### The Golden Formula
 ```css
-/* Glass Surface Tokens */
-:root {
-  --glass-subtle: rgba(255, 255, 255, 0.05) backdrop-filter: blur(12px) border: 1px solid rgba(255, 255, 255, 0.08);
-  --glass-medium: rgba(10, 10, 10, 0.60) backdrop-filter: blur(20px) border: 1px solid rgba(255, 255, 255, 0.10);
-  --glass-heavy: rgba(5, 5, 5, 0.85) backdrop-filter: blur(32px) border: 1px solid rgba(255, 255, 255, 0.15);
+/* Container Glass Panel */
+.glass-panel {
+  border-radius: 2rem;                 /* rounded-[2rem] */
+  border: 1px solid rgba(255, 255, 255, 0.20); /* border-white/20 */
+  background: rgba(255, 255, 255, 0.10);       /* bg-white/10 */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* shadow-2xl shadow-black/25 */
+  backdrop-filter: blur(40px) saturate(150%);  /* backdrop-blur-2xl backdrop-saturate-150 */
+}
+
+/* Glass Inner Input */
+.glass-input {
+  border-radius: 9999px;              /* rounded-full */
+  border: 1px solid rgba(255, 255, 255, 0.10); /* border-white/10 */
+  background: rgba(255, 255, 255, 0.08);       /* bg-white/[0.08] */
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06); /* shadow-inner */
+  color: #ffffff;
+}
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.15);       /* focus:bg-white/[0.15] */
+  outline: 2px solid rgba(255, 255, 255, 0.20); /* focus:ring-2 focus:ring-white/20 */
+}
+
+/* Glass Sub-button & Pill */
+.glass-pill {
+  border-radius: 9999px;              /* rounded-full */
+  border: 1px solid rgba(255, 255, 255, 0.20); /* border-white/20 */
+  background: rgba(255, 255, 255, 0.05);       /* bg-white/5 */
+  padding: 0.375rem 1rem;             /* px-4 py-1.5 */
+  font-size: 0.75rem;                 /* text-xs font-medium */
+  color: #ffffff;
+  transition: all 0.2s ease-in-out;
+}
+.glass-pill:hover {
+  background: rgba(255, 255, 255, 0.10);       /* hover:bg-white/10 */
 }
 ```
 
-* **Subtle Glass (`bg-white/5 backdrop-blur-md border border-white/10`):** Used on inner poster buttons, watchlist toggles, and metadata tags.
-* **Medium Glass (`bg-black/60 backdrop-blur-xl border border-white/10`):** Used on notification toasts, navigation scroll states, and search input bars.
-* **Heavy Glass (`bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/15`):** Used on flyout modals, friend profile cards, and dropdown popovers.
+#### Token Hierarchy & Component Roles
+* **Hero & Primary Form Panels (`.glass-panel`):** `rounded-[2rem] border border-white/20 bg-white/10 shadow-2xl shadow-black/25 backdrop-blur-2xl backdrop-saturate-150` (used on Login/Signup cards, full modals, and primary feature hero cards).
+* **Elevated Modals & Dialogs (`.glass-modal`):** `rounded-[2rem] border border-white/20 bg-[#121212]/90 shadow-2xl shadow-black/50 backdrop-blur-2xl backdrop-saturate-150`.
+* **Dropdown Popovers & Menus (`.glass-dropdown`):** `rounded-2xl border border-white/20 bg-black/60 shadow-2xl shadow-black/40 backdrop-blur-2xl backdrop-saturate-150`.
+* **Interactive Inputs (`.glass-input`):** `rounded-full border border-white/10 bg-white/[0.08] py-4 pl-12 pr-4 text-sm text-white placeholder-white/50 shadow-inner outline-none transition-all focus:bg-white/[0.15] focus:ring-2 focus:ring-white/20`.
+* **Chips & Filter Pills (`.glass-pill`):** `rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-xs font-medium text-white transition-all hover:bg-white/10 hover:border-white/30 backdrop-blur-md backdrop-saturate-150`.
+* **Primary Contrast Action (`.btn-glass-primary`):** `rounded-full bg-white text-black font-bold shadow-lg transition-transform hover:scale-105 active:scale-95 hover:bg-zinc-200`.
+
+#### Canonical Implementation Reference
+```jsx
+// Standard Canonical Glassmorphic Component (Glasio Standard)
+export function GlassPanel({ children, className = "" }) {
+  return (
+    <div
+      className={[
+        "relative rounded-[2rem]",
+        "border border-white/20",
+        "bg-white/10",
+        "p-8",
+        "shadow-2xl shadow-black/20",
+        "backdrop-blur-2xl backdrop-saturate-150",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      {children}
+    </div>
+  );
+}
+```
 
 ---
 
-### 2.4 Typography Scale & Hierarchy (Outfit)
+### 2.4 Typography Scale & Hierarchy (DM Sans)
 
-The official font family is **Outfit** (imported via Google Fonts in [`client/src/index.css`](file:///c:/Users/khush/Documents/Projects/OtakuCircle/client/src/index.css#L2)):
+The official font family is **DM Sans** (imported via Google Fonts in [`client/index.html`](file:///c:/Users/khush/Documents/Projects/OtakuCircle/client/index.html#L10) and configured in [`client/tailwind.config.js`](file:///c:/Users/khush/Documents/Projects/OtakuCircle/client/tailwind.config.js)):
 
 ```css
-font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 ```
 
 #### The Modular Type Scale
@@ -560,7 +635,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Outfit', 'sans-serif'],
+        sans: ['Onest', 'sans-serif'],
       },
       colors: {
         canvas: {
@@ -626,7 +701,7 @@ If an edge case cannot conform to the design system (e.g., a one-off promotional
 
 When authoring or modifying OtakuCircle UI components:
 1. **Backgrounds:** Strictly use canonical obsidian neutrals (`#050505` floor, `#0d0d0d` containers, `#141414` modals). Never use light themes or generic gray backdrops.
-2. **Typography:** Primary font family is `'Outfit', sans-serif`. Use defined modular scale sizes.
+2. **Typography:** Primary font family is `'Onest', sans-serif`. Use defined modular scale sizes.
 3. **Surfaces:** Card surfaces must employ frosted glassmorphism (`bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl`).
 4. **CTAs:** Primary actions must use solid white buttons with black bold text (`bg-white text-black font-bold rounded-full hover:scale-105 active:scale-95`).
 5. **Anime Posters:** Maintain strict `aspect-[2/3]` ratio.

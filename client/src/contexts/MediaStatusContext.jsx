@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
+import { getValidToken } from '../utils/auth';
 
 const MediaStatusContext = createContext(null);
 
@@ -26,6 +27,20 @@ const getStatusMaps = (user) => {
 };
 
 export const MediaStatusProvider = ({ children }) => {
+    const [mediaTab, setMediaTabState] = useState(() => {
+        return localStorage.getItem('otaku_media_tab') || 'anime';
+    });
+
+    const setMediaTab = useCallback((type) => {
+        const next = type === 'manga' ? 'manga' : 'anime';
+        setMediaTabState(next);
+        try {
+            localStorage.setItem('otaku_media_tab', next);
+        } catch {
+            // Ignore storage quota
+        }
+    }, []);
+
     const [animeStatuses, setAnimeStatuses] = useState({});
     const [animeWatchlist, setAnimeWatchlist] = useState({});
     const [movieStatuses, setMovieStatuses] = useState({});
@@ -33,7 +48,7 @@ export const MediaStatusProvider = ({ children }) => {
 
     const refreshStatuses = useCallback(async () => {
         const username = localStorage.getItem('username');
-        if (!username || !localStorage.getItem('token')) return;
+        if (!username || !getValidToken()) return;
 
         try {
             const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -44,7 +59,11 @@ export const MediaStatusProvider = ({ children }) => {
             setMovieStatuses(maps.movies);
             setMovieWatchlist(maps.movieWatchlist);
         } catch (error) {
-            console.error('Failed to load saved anime statuses:', error);
+            if (error.response?.status === 401 || error.response?.status === 404) {
+                // Silently skip if guest or expired credentials
+                return;
+            }
+            console.warn('Could not sync user media statuses:', error?.message || error);
         }
     }, []);
 
@@ -91,6 +110,8 @@ export const MediaStatusProvider = ({ children }) => {
     }, []);
 
     const value = useMemo(() => ({
+        mediaTab,
+        setMediaTab,
         animeStatuses,
         animeWatchlist,
         movieStatuses,
@@ -100,7 +121,7 @@ export const MediaStatusProvider = ({ children }) => {
         setAnimeInWatchlist,
         setMovieStatus,
         setMovieInWatchlist
-    }), [animeStatuses, animeWatchlist, movieStatuses, movieWatchlist, refreshStatuses, setAnimeStatus, setAnimeInWatchlist, setMovieStatus, setMovieInWatchlist]);
+    }), [mediaTab, setMediaTab, animeStatuses, animeWatchlist, movieStatuses, movieWatchlist, refreshStatuses, setAnimeStatus, setAnimeInWatchlist, setMovieStatus, setMovieInWatchlist]);
 
     return <MediaStatusContext.Provider value={value}>{children}</MediaStatusContext.Provider>;
 };

@@ -1,12 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { User, Bell, Menu, Sparkles } from './icons';
+import { User, Bell, Menu, Sparkles, Check, X, UserPlus } from './icons';
 import SearchBar from './SearchBar';
 import axios from 'axios';
+import { getValidToken, clearAuth } from '../utils/auth';
+import { useMediaStatus } from '../contexts/MediaStatusContext';
 
 const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notificationTab, setNotificationTab] = useState('all');
   
   // Search States
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,12 +31,24 @@ const Navbar = () => {
   const searchRef = useRef(null);
   const notificationsRef = useRef(null);
   const profileDropdownRef = useRef(null);
+
+  // Global Media Type (Anime / Manga) from Context
+  const { mediaTab, setMediaTab } = useMediaStatus();
+
+  const handleMediaTabChange = (type) => {
+    if (type === mediaTab) return;
+    setMediaTab(type);
+    if (location.pathname !== '/') {
+      navigate('/');
+    }
+  };
   
   // API URL from environment variables
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   // --- STYLES ---
-  const glassStyle = "bg-[#0a0a0a]/80 backdrop-blur-2xl border border-white/10 text-gray-200 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/5";
+  // Liquid Glassmorphic styling based on Glasio reference spec
+  const glassStyle = "bg-[#0d0d0d]/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/20 text-gray-200 rounded-[1.75rem] shadow-2xl shadow-black/40 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200";
 
   // 1. SCROLL TRIGGER LOGIC
   useEffect(() => {
@@ -44,44 +59,81 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const [isLoggedIn, setIsLoggedIn] = useState(() => !!getValidToken());
+
   // 2. Fetch Data Logic (Notifications & User Profile)
+  const fetchData = useCallback(async () => {
+      const token = getValidToken();
+      const username = localStorage.getItem('username');
+
+      if (!token) {
+          setIsLoggedIn(false);
+          setNotifications([]);
+          setUserProfilePic(null);
+          return;
+      }
+
+      setIsLoggedIn(true);
+
+      try {
+          // Fetch notifications
+          const res = await axios.get(`${API_URL}/social/notifications`, {
+              headers: { Authorization: `Bearer ${token}` }
+          });
+          setNotifications(Array.isArray(res.data) ? res.data : []);
+      } catch (error) { 
+          if (error.response?.status === 401) {
+              clearAuth();
+              setIsLoggedIn(false);
+              setNotifications([]);
+              setUserProfilePic(null);
+              return;
+          }
+      }
+
+      try {
+          // Fetch User Profile Pic
+          if (username && !userProfilePic) {
+              const userRes = await axios.get(`${API_URL}/users/${encodeURIComponent(username)}`);
+              if (userRes.data?.profilePicture) {
+                  setUserProfilePic(userRes.data.profilePicture);
+              }
+          }
+      } catch (error) { 
+          // Silently ignore optional profile picture lookup errors
+      }
+  }, [API_URL, userProfilePic]);
+
   useEffect(() => {
-    const fetchData = async () => {
-        const token = localStorage.getItem('token');
-        const username = localStorage.getItem('username');
+    fetchData();
 
-        if (token) {
-            try {
-                // Fetch notifications
-                const res = await axios.get(`${API_URL}/social/notifications`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                // Only show unread notifications in the dropdown
-                const unread = res.data.filter(n => !n.isRead);
-                setNotifications(unread || []);
-            } catch (error) { 
-                console.error("Error fetching notifications"); 
-            }
+    // Only poll when actively authenticated
+    const interval = setInterval(() => {
+        if (getValidToken()) {
+            fetchData();
+        }
+    }, 30000);
 
-            try {
-                // Fetch User Profile Pic
-                if (username && !userProfilePic) {
-                    const userRes = await axios.get(`${API_URL}/users/${username}`);
-                    if (userRes.data?.profilePicture) {
-                        setUserProfilePic(userRes.data.profilePicture);
-                    }
-                }
-            } catch (error) { 
-                console.error("Error fetching user profile"); 
-            }
+    const handleAuthEvent = () => {
+        const valid = !!getValidToken();
+        setIsLoggedIn(valid);
+        if (!valid) {
+            setNotifications([]);
+            setUserProfilePic(null);
+        } else {
+            fetchData();
         }
     };
-    
-    fetchData();
-    // Poll every 30 seconds to keep updated without overwhelming server
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, [API_URL, userProfilePic]);
+
+    window.addEventListener('auth-change', handleAuthEvent);
+    window.addEventListener('storage', handleAuthEvent);
+
+    return () => {
+        clearInterval(interval);
+        window.removeEventListener('auth-change', handleAuthEvent);
+        window.removeEventListener('storage', handleAuthEvent);
+    };
+  }, [fetchData]);
 
   // 3. Search Logic (Debounced)
   useEffect(() => {
@@ -102,8 +154,6 @@ const Navbar = () => {
     }, 300); 
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, API_URL]);
-
-  const isLoggedIn = !!localStorage.getItem('token');
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -137,12 +187,60 @@ const Navbar = () => {
     }
   };
 
+  // Helper: Format relative timestamp
+  const formatTimeAgo = (dateStr) => {
+    if (!dateStr) return '';
+    const now = new Date();
+    const past = new Date(dateStr);
+    const diffMs = now - past;
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffSecs < 60) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return past.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  };
+
+  // --- NOTIFICATION HANDLERS ---
+  const handleMarkAllAsRead = async (e) => {
+    if (e) e.stopPropagation();
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+
+    try {
+        const token = localStorage.getItem('token');
+        await axios.put(`${API_URL}/social/notifications/read-all`, {}, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+    } catch (error) {
+        console.error("Failed to mark all as read", error);
+    }
+  };
+
+  const handleDeleteNotification = async (notificationId, e) => {
+    if (e) e.stopPropagation();
+    setNotifications(prev => prev.filter(n => n._id !== notificationId));
+
+    try {
+        const token = localStorage.getItem('token');
+        await axios.delete(`${API_URL}/social/notifications/${notificationId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+    } catch (error) {
+        console.error("Failed to delete notification", error);
+    }
+  };
+
   // --- NOTIFICATION HANDLER ---
   const handleViewNotification = async (notification, e) => {
     e.stopPropagation();
     
     // Optimistic Update
-    setNotifications(prev => prev.filter(n => n._id !== notification._id));
+    setNotifications(prev => prev.map(n => n._id === notification._id ? { ...n, isRead: true } : n));
 
     try {
         const token = localStorage.getItem('token');
@@ -151,12 +249,15 @@ const Navbar = () => {
             headers: { Authorization: `Bearer ${token}` }
         });
 
-        if (notification.animeId) {
+        if (notification.type === 'RECOMMENDATION') {
+            navigate('/friends?tab=recommendations');
+            setIsNotificationsOpen(false);
+        } else if (notification.type === 'FRIEND_REQUEST') {
+            navigate('/friends?tab=requests');
+            setIsNotificationsOpen(false);
+        } else if (notification.animeId) {
             navigate(`/anime/${notification.animeId}`);
             setIsNotificationsOpen(false); 
-        } else if (notification.type === 'FRIEND_REQUEST') {
-            navigate('/friends');
-            setIsNotificationsOpen(false);
         }
     } catch (error) {
         console.error("Failed to mark notification as read", error);
@@ -175,14 +276,16 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('username');
+      clearAuth();
+      setIsLoggedIn(false);
+      setNotifications([]);
+      setUserProfilePic(null);
       setIsProfileDropdownOpen(false);
       setIsMobileMenuOpen(false);
       navigate('/');
   };
 
-  const unreadCount = notifications.length;
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const getLinkClass = (path, showOnTablet = false) => {
     const displayClass = showOnTablet ? "hidden md:flex" : "hidden xl:flex";
@@ -199,14 +302,43 @@ const Navbar = () => {
       <div className={`absolute inset-0 bg-[#050505]/80 backdrop-blur-xl shadow-2xl transition-opacity duration-500 ease-in-out ${isScrolled ? 'opacity-100' : 'opacity-0'}`}></div>
       <div className={`absolute inset-0 bg-gradient-to-b from-black/90 to-transparent transition-opacity duration-500 ease-in-out ${isScrolled ? 'opacity-0' : 'opacity-100'}`}></div>
 
-      <div className="w-full px-4 md:px-6 xl:px-12 h-full flex justify-between items-center relative z-10">
+      <div className="w-full px-4 md:px-6 xl:px-12 h-full flex justify-between items-center relative z-10 gap-2 sm:gap-4">
         
-        {/* Logo */}
-        <a href="/" onClick={handleLogoClick} className="text-xl md:text-2xl xl:text-4xl font-extrabold tracking-tighter flex items-center group cursor-pointer">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400 group-hover:to-white transition-colors pr-2">
-                OtakuCircle
-            </span>
-        </a>
+        {/* Left Section: Logo & Media Switcher */}
+        <div className="flex items-center gap-2.5 sm:gap-4 md:gap-5 shrink-0">
+            {/* Brand Title (Logo removed, no text clipping) */}
+            <a href="/" onClick={handleLogoClick} className="text-xl md:text-2xl xl:text-3xl font-extrabold tracking-tight flex items-center group cursor-pointer select-none">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-zinc-100 to-zinc-300 group-hover:to-white transition-colors inline-block pr-2 py-0.5 whitespace-nowrap">
+                    OtakuCircle
+                </span>
+            </a>
+
+            {/* Anime / Manga Liquid Glass Switcher */}
+            <div className="inline-flex p-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-2xl backdrop-saturate-150 shadow-md">
+                <button
+                    type="button"
+                    onClick={() => handleMediaTabChange('anime')}
+                    className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
+                        mediaTab === 'anime'
+                            ? 'bg-white text-black shadow-md'
+                            : 'text-zinc-400 hover:text-white'
+                    }`}
+                >
+                    Anime
+                </button>
+                <button
+                    type="button"
+                    onClick={() => handleMediaTabChange('manga')}
+                    className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
+                        mediaTab === 'manga'
+                            ? 'bg-white text-black shadow-md'
+                            : 'text-zinc-400 hover:text-white'
+                    }`}
+                >
+                    Manga
+                </button>
+            </div>
+        </div>
         
         {/* Search Bar */}
         <div className="relative flex-1 max-w-[140px] sm:max-w-[180px] md:max-w-[250px] xl:max-w-sm group mx-2 md:mx-4" ref={searchRef}>
@@ -214,7 +346,7 @@ const Navbar = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Search anime..."
+                placeholder={mediaTab === 'manga' ? "Search manga..." : "Search anime..."}
             />
             
             {/* Search Dropdown */}
@@ -266,11 +398,6 @@ const Navbar = () => {
                     <Link to="/friends" className={getLinkClass('/friends', false)}>
                         Friends
                     </Link>
-                    {import.meta.env.VITE_ENABLE_MOVIES === 'true' && (
-                        <Link to="/movies" className={getLinkClass('/movies', true)}>
-                            Movies & Shows
-                        </Link>
-                    )}
                 </div>
             )}
 
@@ -290,31 +417,131 @@ const Navbar = () => {
                         
                         {/* Notifications Dropdown */}
                         {isNotificationsOpen && (
-                            <div className={`absolute right-0 top-full mt-3 w-[calc(100vw-2rem)] max-w-[400px] ${glassStyle}`}>
-                                <div className="px-4 py-2 border-b border-white/5 flex justify-between items-center bg-white/5">
-                                    <h3 className="font-semibold text-sm text-white">Notifications</h3>
-                                    {unreadCount > 0 && <span className="text-xs text-blue-400 font-bold">{unreadCount} NEW</span>}
+                            <div className={`absolute right-0 top-full mt-3 w-[calc(100vw-2rem)] sm:w-[420px] max-w-[440px] ${glassStyle} shadow-2xl`}>
+                                {/* Header */}
+                                <div className="px-4 py-3 border-b border-white/5 flex justify-between items-center bg-white/5">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-bold text-sm text-white">Notifications</h3>
+                                        {unreadCount > 0 && (
+                                            <span className="px-2 py-0.5 text-[10px] font-extrabold bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-full">
+                                                {unreadCount} NEW
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        {unreadCount > 0 && (
+                                            <button 
+                                                type="button"
+                                                onClick={handleMarkAllAsRead}
+                                                className="px-2.5 py-1 text-xs font-semibold text-zinc-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+                                                title="Mark all notifications as read"
+                                            >
+                                                <Check className="w-3.5 h-3.5 text-blue-400" />
+                                                <span>Mark all read</span>
+                                            </button>
+                                        )}
+                                        <button 
+                                            type="button"
+                                            onClick={() => setIsNotificationsOpen(false)}
+                                            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                                            title="Close"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="max-h-[min(400px,60vh)] overflow-y-auto custom-scrollbar p-2.5 space-y-1.5">
-                                    {notifications.length === 0 ? (
-                                        <div className="p-5 text-center text-zinc-300 text-sm">No new notifications</div>
+
+                                {/* Filter Tabs: All vs Unread */}
+                                <div className="flex border-b border-white/5 bg-black/40 px-3 py-1.5 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setNotificationTab('all')}
+                                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                            notificationTab === 'all'
+                                                ? 'bg-white/15 text-white'
+                                                : 'text-zinc-400 hover:text-zinc-200'
+                                        }`}
+                                    >
+                                        All ({notifications.length})
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setNotificationTab('unread')}
+                                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                                            notificationTab === 'unread'
+                                                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                                : 'text-zinc-400 hover:text-zinc-200'
+                                        }`}
+                                    >
+                                        <span>Unread</span>
+                                        {unreadCount > 0 && (
+                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                                        )}
+                                    </button>
+                                </div>
+
+                                {/* Notification List */}
+                                <div className="max-h-[min(380px,55vh)] overflow-y-auto custom-scrollbar p-2 space-y-1.5">
+                                    {(notificationTab === 'unread' ? notifications.filter(n => !n.isRead) : notifications).length === 0 ? (
+                                        <div className="py-10 px-4 text-center flex flex-col items-center justify-center">
+                                            <p className="text-sm font-semibold text-zinc-200">
+                                                {notificationTab === 'unread' ? "All caught up!" : "No notifications yet"}
+                                            </p>
+                                            <p className="text-xs text-zinc-500 mt-1 max-w-[220px]">
+                                                {notificationTab === 'unread' 
+                                                    ? "You have reviewed all your recent notifications." 
+                                                    : "Friend requests and recommendations will appear here."}
+                                            </p>
+                                        </div>
                                     ) : (
-                                        notifications.map(n => (
-                                            <div key={n._id} className="p-3 rounded-xl bg-white/5 border border-white/5 flex justify-between items-center gap-3 hover:bg-white/10 transition-colors group">
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm text-zinc-300 leading-relaxed line-clamp-2">{n.message}</p>
-                                                    <p className="text-xs text-zinc-400 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
-                                                </div>
-                                                <button 
+                                        (notificationTab === 'unread' ? notifications.filter(n => !n.isRead) : notifications).map(n => {
+                                            const isRec = n.type === 'RECOMMENDATION';
+                                            const isFriendReq = n.type === 'FRIEND_REQUEST';
+                                            return (
+                                                <div 
+                                                    key={n._id} 
                                                     onClick={(e) => handleViewNotification(n, e)}
-                                                    className="text-xs font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded transition-all shrink-0 uppercase tracking-wider"
+                                                    className={`p-3 rounded-xl border transition-all duration-200 flex items-start gap-3 group relative cursor-pointer ${
+                                                        !n.isRead 
+                                                            ? 'bg-blue-500/[0.08] border-blue-500/25 hover:bg-blue-500/[0.14] hover:border-blue-500/40' 
+                                                            : 'bg-white/[0.03] border-white/5 hover:bg-white/[0.07] hover:border-white/10'
+                                                    }`}
                                                 >
-                                                    View
-                                                </button>
-                                            </div>
-                                        ))
+                                                    {/* Indicator */}
+                                                    {!n.isRead && (
+                                                        <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0 mt-1.5" />
+                                                    )}
+
+                                                    {/* Content */}
+                                                    <div className="flex-1 min-w-0 pr-6">
+                                                        <p className={`text-xs leading-relaxed line-clamp-2 ${!n.isRead ? 'text-zinc-100 font-semibold' : 'text-zinc-300'}`}>
+                                                            {n.message}
+                                                        </p>
+                                                        <div className="flex items-center gap-2 mt-1.5 text-[11px] text-zinc-400">
+                                                            <span>{formatTimeAgo(n.createdAt)}</span>
+                                                            {!n.isRead && (
+                                                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-400 bg-blue-500/15 px-1.5 py-0.2 rounded">
+                                                                    New
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Dismiss Cross Button */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => handleDeleteNotification(n._id, e)}
+                                                        className="absolute top-2.5 right-2.5 p-1 rounded-md text-zinc-400 hover:text-white hover:bg-white/10 opacity-70 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                                        title="Dismiss notification"
+                                                    >
+                                                        <X className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })
                                     )}
                                 </div>
+
                             </div>
                         )}
                     </div>
@@ -419,7 +646,29 @@ const Navbar = () => {
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </button>
 
-          <div className="flex flex-col items-center justify-center h-full gap-6">
+          <div className="flex flex-col items-center justify-center h-full gap-5">
+              {/* Mobile Media Switcher */}
+              <div className="inline-flex p-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-2xl backdrop-saturate-150 shadow-md mb-2">
+                  <button
+                      type="button"
+                      onClick={() => { handleMediaTabChange('anime'); setIsMobileMenuOpen(false); }}
+                      className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                          mediaTab === 'anime' ? 'bg-white text-black shadow-md' : 'text-zinc-400 hover:text-white'
+                      }`}
+                  >
+                      Anime
+                  </button>
+                  <button
+                      type="button"
+                      onClick={() => { handleMediaTabChange('manga'); setIsMobileMenuOpen(false); }}
+                      className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                          mediaTab === 'manga' ? 'bg-white text-black shadow-md' : 'text-zinc-400 hover:text-white'
+                      }`}
+                  >
+                      Manga
+                  </button>
+              </div>
+
               {!isLoggedIn && (
                   <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-bold text-white mb-6 hover:text-zinc-300 transition-colors">
                       Sign In
@@ -439,11 +688,6 @@ const Navbar = () => {
                       <Link to="/friends" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 text-xl font-bold transition-colors ${location.pathname === '/friends' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
                           Friends
                       </Link>
-                      {import.meta.env.VITE_ENABLE_MOVIES === 'true' && (
-                          <Link to="/movies" onClick={() => setIsMobileMenuOpen(false)} className={`md:hidden flex items-center gap-3 text-xl font-bold transition-colors ${location.pathname === '/movies' ? 'text-white' : 'text-zinc-300 hover:text-zinc-300'}`}>
-                              Movies & Shows
-                          </Link>
-                      )}
                       
                       <div className="w-16 border-t border-white/10 my-1"></div>
                       <Link to="/privacy" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors">

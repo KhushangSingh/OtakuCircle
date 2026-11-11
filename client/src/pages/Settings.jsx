@@ -80,6 +80,12 @@ const Settings = () => {
         platformUpdates: true,
     });
 
+    // ── Privacy Settings (Defaulting to Off/Private) ───────────────────────────
+    const [privacySettings, setPrivacySettings] = useState({
+        shareLibrary: false,
+        shareStats: false
+    });
+
     // ── Auth ──────────────────────────────────────────────────────────────────
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
@@ -98,6 +104,10 @@ const Settings = () => {
                     friendRequest: true,
                     friendRequestAccepted: true,
                     platformUpdates: true,
+                });
+                setPrivacySettings(userRes.data.privacySettings || {
+                    shareLibrary: false,
+                    shareStats: false
                 });
             } catch (error) {
                 console.error('Error fetching user data:', error);
@@ -279,6 +289,25 @@ const Settings = () => {
             toast('error', error.response?.data?.message || 'Invalid or expired code');
         } finally {
             setDeleteLoading(false);
+        }
+    };
+
+    // ── Privacy Settings toggle ──────────────────────────────────────────────
+    const handlePrivacyToggle = async (key, value) => {
+        setPrivacySettings(prev => ({ ...prev, [key]: value })); // optimistic
+        try {
+            const res = await axios.put(
+                `${API_URL}/users/privacy-settings`,
+                { [key]: value },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (res.data?.privacySettings) {
+                setPrivacySettings(res.data.privacySettings);
+            }
+            toast('success', 'Privacy settings updated');
+        } catch (err) {
+            setPrivacySettings(prev => ({ ...prev, [key]: !value })); // revert
+            toast('error', 'Failed to save privacy settings');
         }
     };
 
@@ -522,6 +551,36 @@ const Settings = () => {
                         <button type="button" onClick={handleOpenAvatarModal} className="shrink-0 px-3 py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-lg transition-colors">
                             <Pencil size={14} className="inline mr-1.5" /> Change
                         </button>
+                    </div>
+                </div>
+
+                {/* ── Social & Profile Privacy card ───────────────────────── */}
+                <div className="lg:col-span-2 bg-[#151515] border border-white/5 rounded-2xl p-4 md:p-6 shadow-xl">
+                    <h2 className="text-base font-bold text-white flex items-center gap-2 border-b border-white/5 pb-3 mb-3">
+                        <Lock className="text-emerald-400" size={18} /> Social & Profile Privacy
+                    </h2>
+                    <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Profile Data Visibility</p>
+                    <div className="space-y-0.5">
+                        <div className="flex items-center justify-between py-2.5">
+                            <div>
+                                <p className="text-sm text-white font-medium">Share my library with friends</p>
+                                <p className="text-xs text-zinc-500">Allow friends and visitors to view your completed, in-progress, and planned titles</p>
+                            </div>
+                            <ToggleSwitch
+                                checked={Boolean(privacySettings.shareLibrary)}
+                                onChange={(val) => handlePrivacyToggle('shareLibrary', val)}
+                            />
+                        </div>
+                        <div className="flex items-center justify-between py-2.5">
+                            <div>
+                                <p className="text-sm text-white font-medium">Share my statistics with friends</p>
+                                <p className="text-xs text-zinc-500">Allow friends to view your genre distribution, library summaries, and taste stats</p>
+                            </div>
+                            <ToggleSwitch
+                                checked={Boolean(privacySettings.shareStats)}
+                                onChange={(val) => handlePrivacyToggle('shareStats', val)}
+                            />
+                        </div>
                     </div>
                 </div>
 

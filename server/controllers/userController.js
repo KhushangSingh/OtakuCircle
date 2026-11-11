@@ -1,37 +1,64 @@
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Anime = require('../models/Anime');
 const OTP = require('../models/OTP');
 const bcrypt = require('bcryptjs');
 const { sendEmail, buildEmailHtml } = require('../utils/emailUtils');
 
 const buildDashboardStats = (user) => {
-    const animeHistory = Array.isArray(user.watchhistory) ? user.watchhistory : [];
-    const animeWatchlist = Array.isArray(user.watchlist) ? user.watchlist : [];
-    const movieHistory = Array.isArray(user.movieWatchhistory) ? user.movieWatchhistory : [];
-    const movieWatchlist = Array.isArray(user.movieWatchlist) ? user.movieWatchlist : [];
+    const history = Array.isArray(user.watchhistory) ? user.watchhistory : [];
+    const watchlist = Array.isArray(user.watchlist) ? user.watchlist : [];
+    const recs = Array.isArray(user.recommendations) ? user.recommendations : [];
+
     const isCompleted = (item) => ['Watched', 'Completed'].includes(item.status);
-    const isWatching = (item) => item.status === 'Watching';
-    const watched = animeHistory.filter(isCompleted).length + movieHistory.filter(isCompleted).length;
-    const watching = animeHistory.filter(isWatching).length + movieHistory.filter(isWatching).length;
-    const watchlist = animeWatchlist.length + movieWatchlist.length;
-    const history = animeHistory.length + movieHistory.length;
-    const total = history + watchlist;
-    const scored = animeHistory.filter(item => Number(item.score) > 0);
+    const isManga = (item) => item.mediaType === 'manga' || (item.type || '').toLowerCase().includes('manga');
+
+    // 1. Library Summary (Verified & Disaggregated)
+    const completedAnime = history.filter(item => !isManga(item) && isCompleted(item)).length;
+    const completedManga = history.filter(item => isManga(item) && isCompleted(item)).length;
+    const watchingAnime = history.filter(item => !isManga(item) && item.status === 'Watching').length;
+    const readingManga = history.filter(item => isManga(item) && (item.status === 'Reading' || item.status === 'Watching')).length;
+    const plannedAnime = watchlist.filter(item => !isManga(item)).length;
+    const plannedManga = watchlist.filter(item => isManga(item)).length;
+
+    const totalWatched = completedAnime + completedManga;
+    const totalInProg = watchingAnime + readingManga;
+    const totalPlanned = plannedAnime + plannedManga;
+    const totalTracked = history.length + watchlist.length;
+
+    const scored = history.filter(item => Number(item.score) > 0);
     const averageScore = scored.length
         ? Number((scored.reduce((sum, item) => sum + Number(item.score), 0) / scored.length).toFixed(2))
         : null;
 
+    // 2. Recommendations Overview (Received from Friends)
+    const recsActive = recs.filter(r => !r.status || r.status === 'active').length;
+    const recsPlanned = recs.filter(r => r.status === 'planned').length;
+    const recsCompleted = recs.filter(r => r.status === 'completed').length;
+    const recsArchived = recs.filter(r => r.status === 'archived').length;
+    const recsNotInterested = recs.filter(r => r.status === 'not_interested').length;
+
     return {
-        total,
-        history,
-        watched,
-        watching,
-        watchlist,
-        animeCount: animeHistory.length + animeWatchlist.length,
-        movieCount: movieHistory.length + movieWatchlist.length,
-        estimatedHours: Math.round((animeHistory.length * 5) + (movieHistory.length * 2)),
-        completionRate: history ? Math.round((watched / history) * 100) : 0,
+        totalTracked,
+        totalWatched,
+        totalInProg,
+        totalPlanned,
+        completedAnime,
+        completedManga,
+        watchingAnime,
+        readingManga,
+        plannedAnime,
+        plannedManga,
+        completionRate: history.length ? Math.round((totalWatched / history.length) * 100) : 0,
         averageScore,
-        commitmentScore: total ? Math.round(((watched + watching) / total) * 100) : 0
+        recsOverview: {
+            total: recs.length,
+            active: recsActive,
+            planned: recsPlanned,
+            completed: recsCompleted,
+            archived: recsArchived,
+            notInterested: recsNotInterested
+        }
     };
 };
 
@@ -41,13 +68,116 @@ const makeOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 // Helper: basic email format validation
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-// @desc    Get User Profile (Public info)
+// @desc    Get User Profile (Public info with Privacy Enforcement)
 // @route   GET /api/users/:userId
 const getUser = async (req, res) => {
     try {
         const user = await User.findOne({ username: req.params.userId }).select('-password');
         if (!user) return res.status(404).json({ message: 'User not found' });
-        res.json({ ...user.toObject(), dashboardStats: buildDashboardStats(user) });
+
+        // Check if requester is the profile owner
+        let isOwner = false;
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            try {
+                const token = authHeader.split(' ')[1];
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                if (decoded && (decoded.id === user._id.toString() || decoded.username === user.username)) {
+                    isOwner = true;
+                }
+            } catch (e) {}
+        }
+
+        const privacy = user.privacySettings || { shareLibrary: false, shareStats: false };
+        const shareLibrary = isOwner || Boolean(privacy.shareLibrary);
+        const shareStats = isOwner || Boolean(privacy.shareStats);
+
+        const animeHistory = Array.isArray(user.watchhistory) ? user.watchhistory : [];
+        const animeIds = [...new Set(animeHistory.map(item => item.animeId).filter(Boolean))];
+        
+        let genreCounts = {};
+        if (animeIds.length > 0) {
+            try {
+                const animeDocs = await Anime.find({ mal_id: { $in: animeIds } }).select('mal_id genres').lean();
+                animeDocs.forEach(a => {
+                    (a.genres || []).forEach(g => {
+                        genreCounts[g] = (genreCounts[g] || 0) + 1;
+                    });
+                });
+            } catch (err) {
+                console.error('Error fetching anime genres for user stats:', err);
+            }
+        }
+
+        const totalGenreOccurrences = Object.values(genreCounts).reduce((acc, c) => acc + c, 0);
+        const sortedGenres = Object.entries(genreCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([genre, count], idx) => ({
+                genre,
+                count,
+                percentage: totalGenreOccurrences > 0 ? Math.round((count / totalGenreOccurrences) * 100) : 0,
+                isTop: idx === 0
+            }));
+
+        const isCompleted = (item) => ['Watched', 'Completed'].includes(item.status);
+        const watchedCount = animeHistory.filter(isCompleted).length;
+
+        let rankTier = 'Novice Explorer';
+        if (watchedCount >= 100) rankTier = 'Otaku Legend';
+        else if (watchedCount >= 50) rankTier = 'Master Otaku';
+        else if (watchedCount >= 25) rankTier = 'Avid Enthusiast';
+        else if (watchedCount >= 10) rankTier = 'Dedicated Watcher';
+        else if (watchedCount >= 5) rankTier = 'Rising Fan';
+        else if (watchedCount >= 1) rankTier = 'Active Explorer';
+
+        const globalRanking = {
+            totalCompleted: watchedCount,
+            rankTier,
+            level: Math.floor(Math.sqrt(watchedCount)) + 1
+        };
+
+        const baseDashboardStats = buildDashboardStats(user);
+        const dashboardStats = {
+            ...baseDashboardStats,
+            favoriteGenre: sortedGenres.length > 0 ? sortedGenres[0].genre : null,
+            genreCounts,
+            sortedGenres,
+            globalRanking
+        };
+
+        const userObj = user.toObject();
+
+        // Enforce Library Privacy
+        if (!shareLibrary) {
+            userObj.watchlist = [];
+            userObj.watchhistory = [];
+            userObj.libraryPrivate = true;
+        }
+
+        // Enforce Statistics Privacy
+        let finalStats = null;
+        let finalDashboardStats = null;
+        if (shareStats) {
+            finalStats = {
+                ...(user.stats || {}),
+                favoriteGenre: sortedGenres.length > 0 ? sortedGenres[0].genre : null,
+                genreCounts
+            };
+            finalDashboardStats = dashboardStats;
+        } else {
+            userObj.statsPrivate = true;
+        }
+
+        res.json({
+            ...userObj,
+            isOwner,
+            libraryPrivate: !shareLibrary,
+            statsPrivate: !shareStats,
+            privacySettings: privacy,
+            stats: finalStats,
+            dashboardStats: finalDashboardStats
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -118,17 +248,66 @@ const deleteUser = async (req, res) => {
     }
 };
 
-// @desc    Get User Stats (Watch count, etc)
+// @desc    Get User Stats (Watch count, etc - with Privacy Enforcement)
 // @route   GET /api/users/:userId/stats
 const getUserStats = async (req, res) => {
     try {
         const user = await User.findOne({ username: req.params.userId });
         if (!user) return res.status(404).json({ message: 'User not found' });
 
+        let isOwner = false;
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            try {
+                const token = authHeader.split(' ')[1];
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                if (decoded && (decoded.id === user._id.toString() || decoded.username === user.username)) {
+                    isOwner = true;
+                }
+            } catch (e) {}
+        }
+
+        const shareStats = isOwner || Boolean(user.privacySettings?.shareStats);
+        if (!shareStats) {
+            return res.json({
+                statsPrivate: true,
+                message: "User statistics are private"
+            });
+        }
+
         res.json({
             ...buildDashboardStats(user),
             favoriteGenre: user.stats?.favoriteGenre || null,
             genreCounts: user.stats?.genreCounts || {}
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Update Privacy Settings (Share Library / Share Stats)
+// @route   PUT /api/users/privacy-settings
+const updatePrivacySettings = async (req, res) => {
+    try {
+        const { shareLibrary, shareStats } = req.body;
+        const userId = req.user.id;
+
+        const updates = {};
+        if (typeof shareLibrary === 'boolean') {
+            updates['privacySettings.shareLibrary'] = shareLibrary;
+        }
+        if (typeof shareStats === 'boolean') {
+            updates['privacySettings.shareStats'] = shareStats;
+        }
+
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { $set: updates },
+            { new: true }
+        ).select('-password');
+
+        res.json({
+            privacySettings: user.privacySettings || { shareLibrary: false, shareStats: false }
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -412,5 +591,6 @@ module.exports = {
     searchUsers,
     updateEmailPreferences,
     sendEmailChangeOtp,
-    sendDeleteOtp
+    sendDeleteOtp,
+    updatePrivacySettings
 };

@@ -49,11 +49,11 @@ def build_index():
         print(f"📊 Processing {len(df)} records.")
 
         # 3. Generate Embeddings
-        print("🧠 Loading AI Model (all-mpnet-base-v2)...")
-        model = SentenceTransformer('all-mpnet-base-v2')
+        print("🧠 Loading AI Model (all-MiniLM-L6-v2 - Lightweight & Render Free-Tier Safe)...")
+        model = SentenceTransformer('all-MiniLM-L6-v2')
 
-        print("⚡ Generating Vectors (this takes time)...")
-        embeddings = model.encode(df['combined_text'].tolist(), show_progress_bar=True)
+        print("⚡ Generating Vectors...")
+        embeddings = model.encode(df['combined_text'].tolist(), show_progress_bar=True, normalize_embeddings=True)
 
         # 4. Save to Disk
         print("💾 Saving search_index.pkl...")

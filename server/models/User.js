@@ -17,21 +17,23 @@ const userSchema = mongoose.Schema({
     },
     googleId: { type: String, default: null },
     
-    // Watchlist (Plan to Watch)
+    // Watchlist (Plan to Watch / Plan to Read)
     watchlist: [{
         animeId: { type: Number, required: true },
         title: String,
-        poster: String
+        poster: String,
+        mediaType: { type: String, enum: ['anime', 'manga'], default: 'anime' }
     }],
 
-    // Watch History (Completed/Watching)
+    // Watch / Read History (Completed / In-Progress)
     watchhistory: [{
         animeId: { type: Number, required: true },
         title: String,
         poster: String,
+        mediaType: { type: String, enum: ['anime', 'manga'], default: 'anime' },
         status: {
             type: String,
-            enum: ['Watching', 'Watched'],
+            enum: ['Watching', 'Watched', 'Reading', 'Completed'],
             default: 'Watching'
         },
         progress: { type: Number, default: 0 },
@@ -63,6 +65,11 @@ const userSchema = mongoose.Schema({
         poster: String,
         mediaType: { type: String, enum: ['movie', 'tv'] },
         message: String,
+        status: {
+            type: String,
+            enum: ['active', 'not_interested', 'archived'],
+            default: 'active'
+        },
         timestamp: { type: Date, default: Date.now }
     }],
 
@@ -75,9 +82,18 @@ const userSchema = mongoose.Schema({
         animeId: Number,
         animeTitle: String,
         animePoster: String,
+        mediaType: { type: String, enum: ['anime', 'manga'], default: 'anime' },
         message: String,
+        status: {
+            type: String,
+            enum: ['active', 'planned', 'completed', 'not_interested', 'archived'],
+            default: 'active'
+        },
         timestamp: { type: Date, default: Date.now }
     }],
+
+    // Dismissed AI Recommendations
+    dismissedRecommendations: [{ type: Number }],
 
     // Aggregated Statistics
     stats: {
@@ -93,6 +109,12 @@ const userSchema = mongoose.Schema({
         friendRequest:          { type: Boolean, default: true },  // notify when a friend request is received
         friendRequestAccepted:  { type: Boolean, default: true },  // notify when a friend request is accepted
         platformUpdates:        { type: Boolean, default: true }   // notify for OtakuCircle announcements
+    },
+
+    // Privacy Settings (Defaulting to Off/Private)
+    privacySettings: {
+        shareLibrary: { type: Boolean, default: false },   // Share my library with friends
+        shareStats:   { type: Boolean, default: false }    // Share my statistics with friends
     }
 }, { timestamps: true });
 // --- Explicit Indexes for Performance ---

@@ -7,8 +7,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // Sets 'Outfit' as the default sans-serif font for the app
-        sans: ['Outfit', 'sans-serif'], 
+        // Sets 'DM Sans' as the default sans-serif font for the app
+        sans: ['"DM Sans"', 'sans-serif'], 
       },
     },
   },

@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Anime = require('../models/Anime');
 const Notification = require('../models/Notification');
 const { sendEmail, buildEmailHtml } = require('../utils/emailUtils');
 
@@ -70,57 +71,159 @@ const addFriend = async (req, res) => {
 // @desc    Recommend Anime to Friend
 // @route   POST /api/social/recommend
 const recommendAnime = async (req, res) => {
-    const { friendId, animeId, animeTitle, animePoster, message } = req.body;
+    const { friendId, friendIds, animeId, animeTitle, animePoster, message, mediaType, type } = req.body;
     
+    const targetIds = Array.isArray(friendIds) && friendIds.length > 0
+        ? friendIds
+        : (friendId ? [friendId] : []);
+
+    if (targetIds.length === 0) {
+        return res.status(400).json({ message: 'Please select at least one friend to recommend.' });
+    }
+
+    const isManga = (type || '').toLowerCase().includes('manga') || 
+                    (type || '').toLowerCase().includes('manhwa') || 
+                    (mediaType || '').toLowerCase() === 'manga';
+    const verb = isManga ? 'already read this manga' : 'already watched this anime';
+    const mediaNoun = isManga ? 'manga' : 'anime';
+
     try {
-        const friend = await User.findById(friendId);
-        if (!friend) return res.status(404).json({ message: 'Friend not found' });
+        const sender = await User.findById(req.user.id).select('username');
+        const frontendUrl = process.env.FRONTEND_URL || 'https://otakucircle.vercel.app';
 
-        // Check duplicates
-        const alreadyRec = friend.recommendations.find(
-            r => r.animeId === animeId && r.from.toString() === req.user.id
-        );
+        // Single recipient handling
+        if (targetIds.length === 1) {
+            const singleFriend = await User.findById(targetIds[0]);
+            if (!singleFriend) return res.status(404).json({ message: 'Friend not found' });
 
-        if (alreadyRec) {
-            return res.status(400).json({ message: 'You already recommended this anime.' });
+            const hasCompleted = (singleFriend.watchhistory || []).some(
+                h => Number(h.animeId) === Number(animeId) && (h.status === 'Watched' || h.status === 'Completed')
+            );
+
+            if (hasCompleted) {
+                return res.status(400).json({
+                    code: 'RECOMMENDATION_UNAVAILABLE',
+                    title: 'Recommendation unavailable',
+                    message: `This friend has already ${verb}.`,
+                    subtitle: 'The recommendation cannot be sent to this friend.'
+                });
+            }
+
+            const alreadyRec = (singleFriend.recommendations || []).find(
+                r => Number(r.animeId) === Number(animeId) && r.from.toString() === req.user.id
+            );
+
+            if (alreadyRec) {
+                return res.status(400).json({ message: `You already recommended this ${mediaNoun} to ${singleFriend.username}.` });
+            }
+
+            singleFriend.recommendations.unshift({
+                from: req.user.id,
+                animeId,
+                animeTitle,
+                animePoster,
+                message: message || ''
+            });
+            await singleFriend.save();
+
+            await Notification.create({
+                recipient: singleFriend._id,
+                sender: req.user.id,
+                type: 'RECOMMENDATION',
+                animeId,
+                animeTitle,
+                message: `${req.user.username} recommended: ${animeTitle}`
+            });
+
+            if (singleFriend.emailPreferences?.friendRecommendation !== false) {
+                sendEmail(
+                    singleFriend.email,
+                    `OtakuCircle - ${sender?.username || 'A friend'} recommended an anime`,
+                    buildEmailHtml(
+                        `New anime recommendation!`,
+                        `${sender?.username || 'A friend'} recommended <strong style="color:#f4f4f5">${animeTitle}</strong> to you${message ? `: "${message}"` : '.'}`,
+                        `<a href="${frontendUrl}/friends?tab=recommendations" class="btn">View Recommendation -></a>`
+                    )
+                ).catch(err => console.error('[email] recommendAnime send failed:', err));
+            }
+
+            return res.status(200).json({ message: 'Recommendation sent!' });
         }
 
-        // Add to friend's recommendations list
-        friend.recommendations.unshift({
-            from: req.user.id,
-            animeId,
-            animeTitle,
-            animePoster,
-            message: message || ''
-        });
-        await friend.save();
+        // Multiple recipients handling
+        const friends = await User.find({ _id: { $in: targetIds } });
+        let sentCount = 0;
+        const blockedRecipients = [];
 
-        // Create Notification
-        await Notification.create({
-            recipient: friendId,
-            sender: req.user.id,
-            type: 'RECOMMENDATION',
-            animeId,
-            animeTitle,
-            message: `${req.user.username} recommended: ${animeTitle}`
-        });
+        for (const friend of friends) {
+            const hasCompleted = (friend.watchhistory || []).some(
+                h => Number(h.animeId) === Number(animeId) && (h.status === 'Watched' || h.status === 'Completed')
+            );
 
-        // Email notification (gated by recipient preference, truthy-default for existing users)
-        if (friend.emailPreferences?.friendRecommendation !== false) {
-            const sender = await User.findById(req.user.id).select('username');
-            const frontendUrl = process.env.FRONTEND_URL || 'https://otakucircle.vercel.app';
-            sendEmail(
-                friend.email,
-                `OtakuCircle — ${sender?.username || 'A friend'} recommended an anime`,
-                buildEmailHtml(
-                    `New anime recommendation!`,
-                    `${sender?.username || 'A friend'} recommended <strong style="color:#f4f4f5">${animeTitle}</strong> to you${message ? `: "${message}"` : '.'}`,
-                    `<a href="${frontendUrl}/recommendations" class="btn">View Recommendation →</a>`
-                )
-            ).catch(err => console.error('[email] recommendAnime send failed:', err));
+            if (hasCompleted) {
+                blockedRecipients.push({
+                    _id: friend._id,
+                    username: friend.username,
+                    reason: `This friend has already ${verb}.`
+                });
+                continue; // Block only recipients who completed
+            }
+
+            // Check if already recommended
+            const alreadyRec = (friend.recommendations || []).find(
+                r => Number(r.animeId) === Number(animeId) && r.from.toString() === req.user.id
+            );
+            if (alreadyRec) {
+                continue;
+            }
+
+            friend.recommendations.unshift({
+                from: req.user.id,
+                animeId,
+                animeTitle,
+                animePoster,
+                message: message || ''
+            });
+            await friend.save();
+
+            await Notification.create({
+                recipient: friend._id,
+                sender: req.user.id,
+                type: 'RECOMMENDATION',
+                animeId,
+                animeTitle,
+                message: `${req.user.username} recommended: ${animeTitle}`
+            });
+
+            if (friend.emailPreferences?.friendRecommendation !== false) {
+                sendEmail(
+                    friend.email,
+                    `OtakuCircle - ${sender?.username || 'A friend'} recommended an anime`,
+                    buildEmailHtml(
+                        `New anime recommendation!`,
+                        `${sender?.username || 'A friend'} recommended <strong style="color:#f4f4f5">${animeTitle}</strong> to you${message ? `: "${message}"` : '.'}`,
+                        `<a href="${frontendUrl}/friends?tab=recommendations" class="btn">View Recommendation -></a>`
+                    )
+                ).catch(err => console.error('[email] recommendAnime send failed:', err));
+            }
+
+            sentCount++;
         }
 
-        res.status(200).json({ message: 'Recommendation sent!' });
+        if (sentCount === 0) {
+            return res.status(400).json({
+                code: 'ALL_RECIPIENTS_BLOCKED',
+                title: 'Recommendation unavailable',
+                message: `All selected friends have already ${verb}. The recommendation cannot be sent.`,
+                blockedRecipients
+            });
+        }
+
+        return res.status(200).json({
+            message: `Recommendation sent to ${sentCount} friend(s)!`,
+            sentCount,
+            blockedRecipients
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -136,18 +239,40 @@ const getRecommendations = async (req, res) => {
 
         if (!user) return res.status(404).json({ message: 'User not found' });
 
+        const animeIds = [...new Set((user.recommendations || []).map(r => r.animeId).filter(Boolean))];
+        let animeMap = new Map();
+        if (animeIds.length > 0) {
+            try {
+                const animeDocs = await Anime.find({ mal_id: { $in: animeIds } })
+                    .select('mal_id title title_english synopsis genres score type year episodes poster_url')
+                    .lean();
+                animeMap = new Map(animeDocs.map(a => [a.mal_id, a]));
+            } catch (err) {
+                console.error('Error fetching anime metadata for recommendations:', err);
+            }
+        }
+
         // Format data for frontend
-        const formattedRecs = user.recommendations.map(rec => ({
-            _id: rec._id,
-            from: rec.from,
-            message: rec.message,
-            anime: {
-                mal_id: rec.animeId,
-                title: rec.animeTitle,
-                poster_url: rec.animePoster
-            },
-            timestamp: rec.timestamp
-        }));
+        const formattedRecs = (user.recommendations || []).map(rec => {
+            const animeInfo = animeMap.get(rec.animeId);
+            return {
+                _id: rec._id,
+                from: rec.from,
+                message: rec.message || '',
+                status: rec.status || 'active',
+                anime: {
+                    mal_id: rec.animeId,
+                    title: rec.animeTitle || animeInfo?.title || animeInfo?.title_english || 'Unknown Title',
+                    poster_url: rec.animePoster || animeInfo?.poster_url || '',
+                    genres: animeInfo?.genres || [],
+                    score: animeInfo?.score,
+                    type: animeInfo?.type || 'TV',
+                    year: animeInfo?.year,
+                    synopsis: animeInfo?.synopsis || ''
+                },
+                timestamp: rec.timestamp
+            };
+        });
 
         res.json(formattedRecs);
     } catch (error) {
@@ -176,64 +301,307 @@ const deleteRecommendation = async (req, res) => {
     }
 };
 
+// @desc    Delete all recommendations for an anime title
+// @route   DELETE /api/recommendations/anime/:animeId
+const deleteAnimeRecommendations = async (req, res) => {
+    try {
+        const animeId = Number(req.params.animeId);
+        const result = await User.updateOne(
+            { _id: req.user.id }, 
+            { $pull: { recommendations: { animeId: animeId } } }
+        );
+
+        if (result.modifiedCount === 0) {
+            return res.status(404).json({ message: 'Recommendation not found or already deleted' });
+        }
+
+        res.status(200).json({ message: 'Recommendations for anime deleted' });
+    } catch (error) {
+        console.error("Delete Anime Recs Error:", error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// @desc    Update status of an individual recommendation (active/Keep, planned, completed, not_interested, archived)
+// @route   PATCH /api/recommendations/:id/status
+const updateRecommendationStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+        const allowed = ['active', 'planned', 'completed', 'not_interested', 'archived'];
+        if (!allowed.includes(status)) {
+            return res.status(400).json({ message: 'Invalid status' });
+        }
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const rec = (user.recommendations || []).id(req.params.id);
+        if (!rec) return res.status(404).json({ message: 'Recommendation not found' });
+
+        rec.status = status;
+
+        // Two-way synchronization with personal library
+        const animeId = Number(rec.animeId);
+        const mediaType = rec.mediaType || 'anime';
+
+        if (status === 'planned') {
+            const alreadyInWatchlist = (user.watchlist || []).some(w => Number(w.animeId) === animeId);
+            if (!alreadyInWatchlist) {
+                user.watchlist.unshift({
+                    animeId,
+                    title: rec.animeTitle,
+                    poster: rec.animePoster,
+                    mediaType
+                });
+            }
+        } else if (status === 'completed') {
+            user.watchlist = (user.watchlist || []).filter(w => Number(w.animeId) !== animeId);
+            const historyItem = (user.watchhistory || []).find(h => Number(h.animeId) === animeId);
+            if (historyItem) {
+                historyItem.status = 'Watched';
+            } else {
+                user.watchhistory.unshift({
+                    animeId,
+                    title: rec.animeTitle,
+                    poster: rec.animePoster,
+                    mediaType,
+                    status: 'Watched'
+                });
+            }
+        }
+
+        await user.save();
+        res.status(200).json({ message: `Recommendation marked as ${status}`, status });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Update status for all recommendations of a title with Library Sync (active/Keep, planned, completed, not_interested, archived)
+// @route   PATCH /api/recommendations/anime/:animeId/status
+const updateAnimeRecommendationsStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+        const allowed = ['active', 'planned', 'completed', 'not_interested', 'archived'];
+        if (!allowed.includes(status)) {
+            return res.status(400).json({ message: 'Invalid status' });
+        }
+        const animeId = Number(req.params.animeId);
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        let updated = false;
+        let matchedRec = null;
+
+        (user.recommendations || []).forEach(r => {
+            if (Number(r.animeId) === animeId) {
+                r.status = status;
+                updated = true;
+                if (!matchedRec) matchedRec = r;
+            }
+        });
+
+        if (!updated) {
+            return res.status(404).json({ message: 'No recommendations found for this title' });
+        }
+
+        // Two-way synchronization with personal library
+        const mediaType = matchedRec?.mediaType || 'anime';
+
+        if (status === 'planned') {
+            const alreadyInWatchlist = (user.watchlist || []).some(w => Number(w.animeId) === animeId);
+            if (!alreadyInWatchlist) {
+                user.watchlist.unshift({
+                    animeId,
+                    title: matchedRec.animeTitle,
+                    poster: matchedRec.animePoster,
+                    mediaType
+                });
+            }
+        } else if (status === 'completed') {
+            // Remove from plan to watch
+            user.watchlist = (user.watchlist || []).filter(w => Number(w.animeId) !== animeId);
+            // Add or update in watch history as Watched / Completed
+            const historyItem = (user.watchhistory || []).find(h => Number(h.animeId) === animeId);
+            if (historyItem) {
+                historyItem.status = 'Watched';
+            } else {
+                user.watchhistory.unshift({
+                    animeId,
+                    title: matchedRec.animeTitle,
+                    poster: matchedRec.animePoster,
+                    mediaType,
+                    status: 'Watched'
+                });
+            }
+        }
+
+        await user.save();
+        res.status(200).json({ message: `Recommendations marked as ${status}`, status });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // --- Decoupled Movie Recommendations ---
 
 // @desc    Recommend Movie/TV to Friend
 // @route   POST /api/social/recommend-movie
+// @desc    Recommend Movie/TV to Friend(s)
+// @route   POST /api/social/recommend-movie
 const recommendMovie = async (req, res) => {
-    const { friendId, tmdbId, title, poster, mediaType, message } = req.body;
+    const { friendId, friendIds, tmdbId, title, poster, mediaType, message } = req.body;
     
+    const targetIds = Array.isArray(friendIds) && friendIds.length > 0
+        ? friendIds
+        : (friendId ? [friendId] : []);
+
+    if (targetIds.length === 0) {
+        return res.status(400).json({ message: 'Please select at least one friend to recommend.' });
+    }
+
+    const mediaNoun = mediaType === 'tv' ? 'TV show' : 'movie';
+    const verb = mediaType === 'tv' ? 'already watched this show' : 'already watched this movie';
+
     try {
-        const friend = await User.findById(friendId);
-        if (!friend) return res.status(404).json({ message: 'Friend not found' });
+        const sender = await User.findById(req.user.id).select('username');
+        const frontendUrl = process.env.FRONTEND_URL || 'https://otakucircle.vercel.app';
 
-        // Check duplicates
-        const alreadyRec = friend.movieRecommendations.find(
-            r => r.tmdbId === tmdbId && r.mediaType === mediaType && r.from.toString() === req.user.id
-        );
+        // Single recipient handling
+        if (targetIds.length === 1) {
+            const singleFriend = await User.findById(targetIds[0]);
+            if (!singleFriend) return res.status(404).json({ message: 'Friend not found' });
 
-        if (alreadyRec) {
-            return res.status(400).json({ message: 'You already recommended this.' });
+            const hasCompleted = (singleFriend.movieWatchhistory || []).some(
+                m => Number(m.tmdbId) === Number(tmdbId) && (m.status === 'Watched' || m.status === 'Completed')
+            );
+
+            if (hasCompleted) {
+                return res.status(400).json({
+                    code: 'RECOMMENDATION_UNAVAILABLE',
+                    title: 'Recommendation unavailable',
+                    message: "This friend has already " + verb + ".",
+                    subtitle: 'The recommendation cannot be sent to this friend.'
+                });
+            }
+
+            const alreadyRec = (singleFriend.movieRecommendations || []).find(
+                r => Number(r.tmdbId) === Number(tmdbId) && r.mediaType === mediaType && r.from.toString() === req.user.id
+            );
+
+            if (alreadyRec) {
+                return res.status(400).json({ message: "You already recommended this " + mediaNoun + " to " + singleFriend.username + "." });
+            }
+
+            singleFriend.movieRecommendations.unshift({
+                from: req.user.id,
+                tmdbId,
+                title,
+                poster,
+                mediaType,
+                message: message || ''
+            });
+            await singleFriend.save();
+
+            await Notification.create({
+                recipient: singleFriend._id,
+                sender: req.user.id,
+                type: 'RECOMMENDATION',
+                movieId: tmdbId,
+                movieTitle: title,
+                mediaType: mediaType,
+                message: req.user.username + " recommended: " + title
+            });
+
+            if (singleFriend.emailPreferences?.friendRecommendation !== false) {
+                sendEmail(
+                    singleFriend.email,
+                    "OtakuCircle - " + (sender?.username || 'A friend') + " recommended a " + mediaNoun,
+                    buildEmailHtml(
+                        "New " + mediaNoun + " recommendation!",
+                        `${sender?.username || 'A friend'} recommended <strong style="color:#f4f4f5">${title}</strong> to you${message ? `: "${message}"` : '.'}`,
+                        `<a href="${frontendUrl}/recommendations" class="btn">View Recommendation -></a>`
+                    )
+                ).catch(err => console.error('[email] recommendMovie send failed:', err));
+            }
+
+            return res.status(200).json({ message: 'Recommendation sent!' });
         }
 
-        // Add to friend's movie recommendations list
-        friend.movieRecommendations.unshift({
-            from: req.user.id,
-            tmdbId,
-            title,
-            poster,
-            mediaType,
-            message: message || ''
-        });
-        await friend.save();
+        // Multiple recipients handling
+        const friends = await User.find({ _id: { $in: targetIds } });
+        let sentCount = 0;
+        const blockedRecipients = [];
 
-        // Create Notification
-        await Notification.create({
-            recipient: friendId,
-            sender: req.user.id,
-            type: 'RECOMMENDATION',
-            movieId: tmdbId,
-            movieTitle: title,
-            mediaType: mediaType,
-            message: `${req.user.username} recommended: ${title}`
-        });
+        for (const friend of friends) {
+            const hasCompleted = (friend.movieWatchhistory || []).some(
+                m => Number(m.tmdbId) === Number(tmdbId) && (m.status === 'Watched' || m.status === 'Completed')
+            );
 
-        // Email notification (gated by recipient preference)
-        if (friend.emailPreferences?.friendRecommendation !== false) {
-            const sender = await User.findById(req.user.id).select('username');
-            const frontendUrl = process.env.FRONTEND_URL || 'https://otakucircle.vercel.app';
-            sendEmail(
-                friend.email,
-                `OtakuCircle — ${sender?.username || 'A friend'} recommended a ${mediaType || 'title'}`,
-                buildEmailHtml(
-                    `New ${mediaType === 'tv' ? 'TV show' : 'movie'} recommendation!`,
-                    `${sender?.username || 'A friend'} recommended <strong style="color:#f4f4f5">${title}</strong> to you${message ? `: "${message}"` : '.'}`,
-                    `<a href="${frontendUrl}/recommendations" class="btn">View Recommendation →</a>`
-                )
-            ).catch(err => console.error('[email] recommendMovie send failed:', err));
+            if (hasCompleted) {
+                blockedRecipients.push({
+                    _id: friend._id,
+                    username: friend.username,
+                    reason: "This friend has already " + verb + "."
+                });
+                continue; // Block only recipients who completed
+            }
+
+            const alreadyRec = (friend.movieRecommendations || []).find(
+                r => Number(r.tmdbId) === Number(tmdbId) && r.mediaType === mediaType && r.from.toString() === req.user.id
+            );
+            if (alreadyRec) {
+                continue;
+            }
+
+            friend.movieRecommendations.unshift({
+                from: req.user.id,
+                tmdbId,
+                title,
+                poster,
+                mediaType,
+                message: message || ''
+            });
+            await friend.save();
+
+            await Notification.create({
+                recipient: friend._id,
+                sender: req.user.id,
+                type: 'RECOMMENDATION',
+                movieId: tmdbId,
+                movieTitle: title,
+                mediaType: mediaType,
+                message: req.user.username + " recommended: " + title
+            });
+
+            if (friend.emailPreferences?.friendRecommendation !== false) {
+                sendEmail(
+                    friend.email,
+                    "OtakuCircle - " + (sender?.username || 'A friend') + " recommended a " + mediaNoun,
+                    buildEmailHtml(
+                        "New " + mediaNoun + " recommendation!",
+                        `${sender?.username || 'A friend'} recommended <strong style="color:#f4f4f5">${title}</strong> to you${message ? `: "${message}"` : '.'}`,
+                        `<a href="${frontendUrl}/recommendations" class="btn">View Recommendation -></a>`
+                    )
+                ).catch(err => console.error('[email] recommendMovie send failed:', err));
+            }
+
+            sentCount++;
         }
 
-        res.status(200).json({ message: 'Recommendation sent!' });
+        if (sentCount === 0) {
+            return res.status(400).json({
+                code: 'ALL_RECIPIENTS_BLOCKED',
+                title: 'Recommendation unavailable',
+                message: "All selected friends have already " + verb + ". The recommendation cannot be sent.",
+                blockedRecipients
+            });
+        }
+
+        return res.status(200).json({
+            message: "Recommendation sent to " + sentCount + " friend(s)!",
+            sentCount,
+            blockedRecipients
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -511,6 +879,35 @@ const markNotificationAsRead = async (req, res) => {
     }
 };
 
+// @desc    Mark All Notifications as Read
+const markAllNotificationsAsRead = async (req, res) => {
+    try {
+        const userId = req.user.id || req.user._id;
+        await Notification.updateMany(
+            { recipient: userId, isRead: false },
+            { $set: { isRead: true } }
+        );
+        res.json({ message: 'All notifications marked as read' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Delete / Dismiss Single Notification
+const deleteNotification = async (req, res) => {
+    try {
+        const { notificationId } = req.params;
+        const userId = req.user.id || req.user._id;
+        await Notification.findOneAndDelete({
+            _id: notificationId,
+            recipient: userId
+        });
+        res.json({ message: 'Notification deleted' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // @desc    Decline Friend Request
 const declineFriendRequest = async (req, res) => {
     try {
@@ -532,7 +929,7 @@ const getFriends = async (req, res) => {
         if (!user) return res.status(404).json({ message: 'User not found' });
         
         const friends = await User.find({ _id: { $in: user.friends } })
-            .select('username _id watchhistory profilePicture') 
+            .select('username _id watchhistory movieWatchhistory profilePicture') 
             .lean();
         
         const friendsWithCount = friends.map(friend => {
@@ -548,12 +945,21 @@ const getFriends = async (req, res) => {
                 recentWatched = watchhistory[watchhistory.length - 1];
             }
 
+            const movieWatchhistory = Array.isArray(friend.movieWatchhistory) ? friend.movieWatchhistory : [];
+            const completedAnimeIds = watchedList.map(h => Number(h.animeId)).filter(Boolean);
+            const completedMovieIds = movieWatchhistory
+                .filter(m => m.status === 'Watched' || m.status === 'Completed')
+                .map(m => Number(m.tmdbId))
+                .filter(Boolean);
+
             return {
                 _id: friend._id,
                 username: friend.username,
                 profilePicture: friend.profilePicture, 
                 watchlistCount: watchedList.length,
                 recentWatched: recentWatched,
+                completedAnimeIds,
+                completedMovieIds,
                 tasteMatch: calculateHistorySimilarity(user, friend)
             };
         });
@@ -575,9 +981,14 @@ module.exports = {
     acceptFriendRequest, 
     getFriends, 
     markNotificationAsRead, 
+    markAllNotificationsAsRead,
+    deleteNotification, 
     declineFriendRequest,
     cancelFriendRequest,
     deleteRecommendation,
+    deleteAnimeRecommendations,
+    updateRecommendationStatus,
+    updateAnimeRecommendationsStatus,
     recommendMovie,
     getMovieRecommendations,
     deleteMovieRecommendation

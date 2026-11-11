@@ -21,7 +21,8 @@ const MovieDetails = () => {
     // Modal State
     const [isRecModalOpen, setIsRecModalOpen] = useState(false);
     const [friends, setFriends] = useState([]);
-    const [selectedFriend, setSelectedFriend] = useState(null);
+    const [selectedFriendIds, setSelectedFriendIds] = useState([]);
+    const [singleFriendBlockedNotice, setSingleFriendBlockedNotice] = useState(null);
     const [loadingFriends, setLoadingFriends] = useState(false);
     const [recMessage, setRecMessage] = useState('');
     const [sending, setSending] = useState(false);
@@ -105,15 +106,32 @@ const MovieDetails = () => {
     };
 
     // --- RECOMMENDATION LOGIC ---
+    const isTV = (movie?.media_type || '').toLowerCase() === 'tv';
+    const mediaNoun = isTV ? 'TV show' : 'movie';
+    const completedVerb = isTV ? 'watched this show' : 'watched this movie';
+
+    const isFriendCompleted = (friend) => {
+        return (friend.completedMovieIds || []).includes(Number(movie?.tmdb_id));
+    };
+
+    const eligibleFriends = friends.filter(f => !isFriendCompleted(f));
+    const selectedEligibleIds = selectedFriendIds.filter(id => {
+        const friend = friends.find(f => f._id === id);
+        return friend && !isFriendCompleted(friend);
+    });
+
     const openRecModal = async () => {
         setIsRecModalOpen(true);
         setLoadingFriends(true);
+        setSelectedFriendIds([]);
+        setSingleFriendBlockedNotice(null);
+        setRecMessage('');
         try {
             const token = localStorage.getItem('token');
             const res = await axios.get(`${API_URL}/friends`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setFriends(res.data);
+            setFriends(res.data || []);
         } catch (error) {
             showNotification("Failed to load friends", "error");
         } finally {
@@ -121,26 +139,52 @@ const MovieDetails = () => {
         }
     };
 
+    const handleFriendClick = (friend) => {
+        const completed = isFriendCompleted(friend);
+        if (completed) {
+            setSingleFriendBlockedNotice(friend.username);
+            setSelectedFriendIds(prev => prev.filter(id => id !== friend._id));
+            return;
+        }
+
+        setSingleFriendBlockedNotice(null);
+        setSelectedFriendIds(prev => 
+            prev.includes(friend._id) 
+                ? prev.filter(id => id !== friend._id) 
+                : [...prev, friend._id]
+        );
+    };
+
+    const handleToggleSelectAll = () => {
+        setSingleFriendBlockedNotice(null);
+        if (selectedEligibleIds.length === eligibleFriends.length) {
+            setSelectedFriendIds([]);
+        } else {
+            setSelectedFriendIds(eligibleFriends.map(f => f._id));
+        }
+    };
+
     const handleSendRecommendation = async () => {
-        if (!selectedFriend) return;
+        if (selectedEligibleIds.length === 0) return;
         setSending(true);
         try {
             const token = localStorage.getItem('token');
-            await axios.post(`${API_URL}/movies/recommend`, {
-                friendId: selectedFriend._id,
+            const res = await axios.post(`${API_URL}/social/recommend-movie`, {
+                friendIds: selectedEligibleIds,
                 tmdbId: movie.tmdb_id,
                 title: movie.title,
                 poster: movie.poster_url,
-                mediaType: movie.media_type,
+                mediaType: movie.media_type || (isTV ? 'tv' : 'movie'),
                 message: recMessage
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             
-            showNotification(`Sent to ${selectedFriend.username}!`, "success");
+            showNotification(res.data.message || `Sent recommendation to ${selectedEligibleIds.length} friend(s)!`, "success");
             setIsRecModalOpen(false);
             setRecMessage('');
-            setSelectedFriend(null);
+            setSelectedFriendIds([]);
+            setSingleFriendBlockedNotice(null);
         } catch (error) {
             showNotification(error.response?.data?.message || "Failed to send", "error");
         } finally {
@@ -183,10 +227,10 @@ const MovieDetails = () => {
                 <img 
                     src={movie.backdrop_url || movie.poster_url} 
                     alt="Background" 
-                    className="absolute right-0 top-0 w-full md:w-3/4 h-full object-cover opacity-40 blur-md" 
+                    className="absolute right-0 top-0 w-full lg:w-4/5 h-full object-cover opacity-65 blur-[6px] scale-105 transition-opacity duration-700" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a] via-[#0a0a0a]/90 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/50" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a] via-[#0a0a0a]/70 to-[#0a0a0a]/30" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/40 to-transparent" />
             </div>
 
             {/* MAIN CONTENT */}
@@ -270,73 +314,164 @@ const MovieDetails = () => {
             {/* RECOMMENDATION MODAL */}
             {isRecModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                    <div className="w-full max-w-md bg-[#151515] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+                    <div className="w-full max-w-md bg-[#121212] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                         
+                        {/* Modal Header */}
                         <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
-                            <h3 className="font-bold text-white flex items-center gap-2">
-                                <Share2 size={16} className="text-purple-400"/> Recommend Title
-                            </h3>
-                            <button onClick={() => setIsRecModalOpen(false)} className="text-zinc-400 hover:text-white"><X size={20} /></button>
+                            <div>
+                                <h3 className="font-bold text-white text-base">
+                                    Recommend to Friends
+                                </h3>
+                                <p className="text-xs text-zinc-400 truncate max-w-[280px]">
+                                    {movie.title}
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setIsRecModalOpen(false)} 
+                                className="text-zinc-400 hover:text-white transition p-1 cursor-pointer"
+                                title="Close"
+                            >
+                                <X size={20} />
+                            </button>
                         </div>
 
-                        <div className="p-4">
+                        {/* Modal Body */}
+                        <div className="p-4 space-y-4 overflow-y-auto custom-scrollbar flex-1">
                             {loadingFriends ? (
-                                <div className="py-10 text-center text-zinc-500">Loading friends...</div>
+                                <div className="py-12 text-center text-zinc-500 text-sm">Loading friends...</div>
                             ) : friends.length === 0 ? (
-                                <div className="py-10 text-center text-zinc-500">You need to add friends first!</div>
-                            ) : !selectedFriend ? (
-                                <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                                    <p className="text-xs text-zinc-500 uppercase font-bold mb-2">Select a Friend</p>
-                                    {friends.map(friend => (
-                                        <button 
-                                            key={friend._id} 
-                                            onClick={() => setSelectedFriend(friend)}
-                                            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition text-left border border-transparent hover:border-white/5"
-                                        >
-                                            <div className="w-8 h-8 rounded-full bg-zinc-700 overflow-hidden">
-                                                {friend.profilePicture ? 
-                                                    <img src={friend.profilePicture} className="w-full h-full object-cover"/> : 
-                                                    <div className="w-full h-full flex items-center justify-center text-xs">{friend.username[0]}</div>
-                                                }
-                                            </div>
-                                            <span className="font-medium">{friend.username}</span>
-                                        </button>
-                                    ))}
+                                <div className="py-12 text-center">
+                                    <p className="text-zinc-300 font-semibold text-sm">No friends added yet</p>
+                                    <p className="text-xs text-zinc-500 mt-1">Connect with friends in the Social Hub first.</p>
                                 </div>
                             ) : (
-                                <div className="animate-in slide-in-from-right-10 duration-200">
-                                    <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl mb-4">
-                                        <div className="w-10 h-10 rounded-full bg-zinc-700 overflow-hidden">
-                                            {selectedFriend.profilePicture ? 
-                                                <img src={selectedFriend.profilePicture} className="w-full h-full object-cover"/> : 
-                                                <div className="w-full h-full flex items-center justify-center font-bold">{selectedFriend.username[0]}</div>
-                                            }
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-zinc-500">Recommending to</p>
-                                            <p className="font-bold">{selectedFriend.username}</p>
-                                        </div>
-                                        <button onClick={() => setSelectedFriend(null)} className="ml-auto text-xs text-blue-400 hover:underline">Change</button>
+                                <>
+                                    {/* Selection Controls */}
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-xs text-zinc-400 font-bold uppercase tracking-wider">
+                                            Select Recipients ({selectedEligibleIds.length}/{eligibleFriends.length} eligible)
+                                        </p>
+                                        {eligibleFriends.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={handleToggleSelectAll}
+                                                className="text-xs font-semibold text-blue-400 hover:text-blue-300 transition cursor-pointer"
+                                            >
+                                                {selectedEligibleIds.length === eligibleFriends.length ? 'Deselect All' : 'Select All Eligible'}
+                                            </button>
+                                        )}
                                     </div>
 
-                                    <textarea
-                                        className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500/50 resize-none h-24 mb-4"
-                                        placeholder="Add a message... (optional) [Max 50 chars]"
-                                        value={recMessage}
-                                        onChange={(e) => setRecMessage(e.target.value)}
-                                        maxLength={50}
-                                    ></textarea>
+                                    {/* Single friend blocked notice */}
+                                    {singleFriendBlockedNotice && (
+                                        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/25 text-left animate-in fade-in duration-200">
+                                            <p className="text-sm font-bold text-red-400">Recommendation unavailable</p>
+                                            <p className="text-xs text-zinc-200 mt-1 font-medium">This friend has already {completedVerb}.</p>
+                                            <p className="text-[11px] text-zinc-400 mt-0.5">The recommendation cannot be sent to this friend.</p>
+                                        </div>
+                                    )}
 
-                                    <button 
-                                        onClick={handleSendRecommendation}
-                                        disabled={sending}
-                                        className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {sending ? 'Sending...' : <><Send size={16} /> Send Recommendation</>}
-                                    </button>
-                                </div>
+                                    {/* All friends completed notice */}
+                                    {eligibleFriends.length === 0 && !singleFriendBlockedNotice && (
+                                        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 text-left animate-in fade-in duration-200">
+                                            <p className="text-sm font-bold text-amber-400">Recommendation unavailable</p>
+                                            <p className="text-xs text-zinc-200 mt-1 font-medium">All of your friends have already {completedVerb}.</p>
+                                            <p className="text-[11px] text-zinc-400 mt-0.5">Recommendations can only be sent to friends who haven't completed this title.</p>
+                                        </div>
+                                    )}
+
+                                    {/* Friends List */}
+                                    <div className="space-y-2 max-h-56 overflow-y-auto custom-scrollbar pr-1">
+                                        {friends.map(friend => {
+                                            const completed = isFriendCompleted(friend);
+                                            const isSelected = selectedFriendIds.includes(friend._id);
+
+                                            return (
+                                                <div 
+                                                    key={friend._id}
+                                                    onClick={() => handleFriendClick(friend)}
+                                                    className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${
+                                                        completed
+                                                            ? 'bg-white/[0.02] border-white/5 opacity-60 cursor-not-allowed'
+                                                            : isSelected
+                                                            ? 'bg-blue-500/15 border-blue-500/40 text-white cursor-pointer shadow-sm'
+                                                            : 'bg-white/[0.04] border-white/5 hover:bg-white/[0.08] hover:border-white/10 text-zinc-300 cursor-pointer'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-3 min-w-0 pr-2">
+                                                        <div className="w-8 h-8 rounded-full bg-zinc-700 overflow-hidden shrink-0">
+                                                            {friend.profilePicture ? (
+                                                                <img src={friend.profilePicture} alt={friend.username} className="w-full h-full object-cover"/>
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center font-bold text-xs text-white">
+                                                                    {friend.username?.[0]?.toUpperCase()}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="font-semibold text-sm truncate text-white">{friend.username}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Status indicator / already watched message */}
+                                                    <div className="shrink-0 flex items-center gap-2">
+                                                        {completed ? (
+                                                            <span className="text-[11px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full whitespace-nowrap">
+                                                                This friend has already {completedVerb}.
+                                                            </span>
+                                                        ) : (
+                                                            <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
+                                                                isSelected 
+                                                                    ? 'bg-blue-500 border-blue-400 text-white' 
+                                                                    : 'border-white/20 bg-black/20'
+                                                            }`}>
+                                                                {isSelected && (
+                                                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                                                        <polyline points="20 6 9 17 4 12" />
+                                                                    </svg>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Personal Message */}
+                                    <div>
+                                        <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+                                            Note for recipients <span className="text-zinc-500 font-normal">(optional)</span>
+                                        </label>
+                                        <textarea
+                                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 resize-none h-20 transition"
+                                            placeholder="Why do you recommend this title? [Max 100 chars]"
+                                            value={recMessage}
+                                            onChange={(e) => setRecMessage(e.target.value)}
+                                            maxLength={100}
+                                        />
+                                    </div>
+                                </>
                             )}
                         </div>
+
+                        {/* Modal Footer */}
+                        {friends.length > 0 && !loadingFriends && (
+                            <div className="p-4 border-t border-white/10 bg-white/[0.02]">
+                                <button 
+                                    onClick={handleSendRecommendation}
+                                    disabled={sending || selectedEligibleIds.length === 0}
+                                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-lg active:scale-98 text-sm"
+                                >
+                                    {sending 
+                                        ? 'Sending...' 
+                                        : selectedEligibleIds.length === 0
+                                        ? (eligibleFriends.length === 0 ? 'No eligible recipients' : 'Select at least one eligible friend')
+                                        : `Send Recommendation (${selectedEligibleIds.length})`
+                                    }
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

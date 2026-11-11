@@ -82,7 +82,7 @@ const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded,
                 disabled={disabled}
                 ref={buttonRef}
                 onClick={toggleMenu}
-                className={`w-full h-10 flex items-center justify-between gap-1.5 px-4 rounded-xl text-xs font-bold backdrop-blur-sm transition-all shadow-lg border outline-none
+                className={`w-full h-10 flex items-center justify-between gap-1.5 px-4 rounded-xl text-xs font-bold backdrop-blur-xl backdrop-saturate-150 transition-all shadow-lg border outline-none
                     ${disabled 
                         ? currentStatus === 'Watching'
                             ? 'bg-blue-500/20 border-blue-500/50 text-blue-300 shadow-blue-500/20 cursor-default'
@@ -91,7 +91,7 @@ const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded,
                             ? 'bg-blue-500/20 hover:bg-blue-500/30 border-blue-400/50 text-blue-200'
                             : currentStatus === 'Watched'
                                 ? 'bg-green-500/20 hover:bg-green-500/30 border-green-400/50 text-green-200'
-                                : 'bg-white/10 hover:bg-white/20 border-white/30 text-white cursor-pointer'
+                                : 'bg-white/10 hover:bg-white/20 border-white/20 text-white cursor-pointer hover:scale-105 active:scale-95'
                     } ${className || ''}`}
             >
                 {disabled ? (
@@ -110,7 +110,7 @@ const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded,
             {isOpen && !disabled && createPortal(
                 <div
                     ref={menuRef}
-                    className="fixed left-0 w-32 py-2 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl z-[9999] overflow-hidden transform -translate-x-1/2 animate-in fade-in"
+                    className="fixed left-0 w-36 py-2 bg-[#0d0d0d]/90 backdrop-blur-2xl backdrop-saturate-150 border border-white/20 rounded-2xl shadow-2xl shadow-black/50 z-[9999] overflow-hidden transform -translate-x-1/2 animate-in fade-in"
                     style={{
                         left: menuPosition?.left || 0,
                         top: menuPosition?.top || 0
@@ -119,14 +119,14 @@ const WatchStatusDropdown = ({ currentStatus, onStatusChange, disabled, isAdded,
                     <button
                         type="button"
                         onClick={(e) => handleSelect(e, 'Watching')}
-                        className={`w-full text-left px-4 py-2.5 text-sm font-bold transition-colors hover:bg-white/10 flex items-center gap-2 ${currentStatus === 'Watching' ? 'text-blue-400 bg-blue-500/10' : 'text-zinc-300'}`}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold transition-colors hover:bg-white/15 flex items-center gap-2 ${currentStatus === 'Watching' ? 'text-blue-400 bg-blue-500/15' : 'text-zinc-200'}`}
                     >
                         Watching
                     </button>
                     <button
                         type="button"
                         onClick={(e) => handleSelect(e, 'Watched')}
-                        className={`w-full text-left px-4 py-2.5 text-sm font-bold transition-colors hover:bg-white/10 flex items-center gap-2 ${currentStatus === 'Watched' ? 'text-green-400 bg-green-500/10' : 'text-zinc-300'}`}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold transition-colors hover:bg-white/15 flex items-center gap-2 ${currentStatus === 'Watched' ? 'text-green-400 bg-green-500/15' : 'text-zinc-200'}`}
                     >
                         Watched
                     </button>

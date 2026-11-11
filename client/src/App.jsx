@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { getValidToken } from './utils/auth';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // --- Contexts ---
 import { NotificationProvider } from './components/NotificationProvider';
@@ -22,7 +24,7 @@ import SmartSearch from './pages/SmartSearch';
 import MoviesHome from './pages/MoviesHome';
 import MovieDetails from './pages/MovieDetails';
 import MovieSectionMore from './pages/MovieSectionMore';
-import PrivacyPolicy from './pages/PrivacyPolicy';
+import PrivacyPolicy from './pages/LegalPrivacy';
 import TermsOfService from './pages/TermsOfService';
 import VerifyLink from './pages/VerifyLink';
 
@@ -37,21 +39,30 @@ const MainLayout = () => {
 };
 
 function App() {
-  // Check if token exists in localStorage to determine auth status
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  // Check if a valid, non-expired token exists to determine auth status
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!getValidToken());
 
   useEffect(() => {
-    // Re-check auth status on mount
-    setIsAuthenticated(!!localStorage.getItem('token'));
+    // Re-check auth status on mount and listen to auth changes
+    const syncAuth = () => setIsAuthenticated(!!getValidToken());
+    syncAuth();
+
+    window.addEventListener('auth-change', syncAuth);
+    window.addEventListener('storage', syncAuth);
+    return () => {
+      window.removeEventListener('auth-change', syncAuth);
+      window.removeEventListener('storage', syncAuth);
+    };
   }, []);
 
   return (
-    <NotificationProvider>
-      <BrowserRouter>
-        <MediaStatusProvider>
-          <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-          
-          <Routes>
+    <ErrorBoundary>
+      <NotificationProvider>
+        <BrowserRouter>
+          <MediaStatusProvider>
+            <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+            
+            <Routes>
             {/* --- Public Legal & Auth Routes --- */}
             <Route path="/login" element={<Login />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
@@ -120,6 +131,7 @@ function App() {
         </MediaStatusProvider>
       </BrowserRouter>
     </NotificationProvider>
+    </ErrorBoundary>
   );
 }
 

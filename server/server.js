@@ -32,7 +32,8 @@ const {
     searchUsers,
     updateEmailPreferences,
     sendEmailChangeOtp,
-    sendDeleteOtp
+    sendDeleteOtp,
+    updatePrivacySettings
 } = require('./controllers/userController');
 
 const { 
@@ -46,12 +47,21 @@ const {
     getRecommendations: getFriendRecommendations, // RENAME THIS to avoid conflict
     getNotifications, 
     markNotificationAsRead, 
+    markAllNotificationsAsRead,
+    deleteNotification, 
     declineFriendRequest,
-    deleteRecommendation
+    deleteRecommendation,
+    deleteAnimeRecommendations,
+    updateRecommendationStatus,
+    updateAnimeRecommendationsStatus
 } = require('./controllers/socialController');
 
 // --- NEW IMPORT: AI RECOMMENDATION CONTROLLER ---
-const { getRecommendations: getAIRecommendations } = require('./controllers/recommendationController');
+const { 
+    getRecommendations: getAIRecommendations,
+    dismissRecommendation,
+    undismissRecommendation
+} = require('./controllers/recommendationController');
 
 // --- MIDDLEWARE ---
 const { protect } = require('./middleware/authMiddleware');
@@ -141,6 +151,8 @@ app.put('/api/users/password', protect, changePassword);
 app.put('/api/users/email', protect, changeEmail);        
 // Email preferences
 app.put('/api/users/email-preferences', protect, updateEmailPreferences);
+// Privacy settings
+app.put('/api/users/privacy-settings', protect, updatePrivacySettings);
 // Email change: 2-step OTP flow
 app.post('/api/users/email/send-otp', protect, sendEmailChangeOtp);
 // Account deletion: OTP verification
@@ -157,7 +169,9 @@ app.get('/api/friends/requests/sent', protect, getSentFriendRequests);
 
 // --- NOTIFICATIONS ---
 app.get('/api/social/notifications', protect, getNotifications);
+app.put('/api/social/notifications/read-all', protect, markAllNotificationsAsRead);
 app.put('/api/social/notifications/:notificationId/read', protect, markNotificationAsRead);
+app.delete('/api/social/notifications/:notificationId', protect, deleteNotification);
 
 // --- RECOMMENDATION ROUTES ---
 
@@ -169,10 +183,15 @@ app.get('/api/recommendations/friends', protect, getFriendRecommendations);
 
 // 3. Delete a recommendation
 app.delete('/api/recommendations/:id', protect, deleteRecommendation);
+app.delete('/api/recommendations/anime/:animeId', protect, deleteAnimeRecommendations);
+app.patch('/api/recommendations/:id/status', protect, updateRecommendationStatus);
+app.patch('/api/recommendations/anime/:animeId/status', protect, updateAnimeRecommendationsStatus);
 
 // 4. [NEW] Get AI Recommendations (For You Page)
 // This fixes the 404 error
 app.get('/api/recommendations', protect, getAIRecommendations);
+app.post('/api/recommendations/dismiss', protect, dismissRecommendation);
+app.post('/api/recommendations/undismiss', protect, undismissRecommendation);
 
 
 // --- LIBRARY ROUTES ---

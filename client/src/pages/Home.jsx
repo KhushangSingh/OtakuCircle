@@ -6,6 +6,9 @@ import axios from 'axios';
 import { Plus, Check, ChevronLeft, ChevronRight } from '../components/icons';
 import heroImage from '../assets/spotlight-hero-bg-converted.webp';
 import Footer from '../components/Footer';
+
+
+
 import { useMediaStatus } from '../contexts/MediaStatusContext';
 
 // --- COMPONENT: Anime Card ---
@@ -227,6 +230,7 @@ const SpotlightHero = ({ backgroundImage, onExplore }) => {
 
 // --- COMPONENT: Main Home Page ---
 const Home = () => {
+    const { mediaTab } = useMediaStatus();
     const [homeData, setHomeData] = useState({ 
         trending: [], topRated: [], popular: [], upcoming: [], latest: [],
         action: [], fantasy: [], romance: []
@@ -238,23 +242,23 @@ const Home = () => {
     
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-    const fetchHomeData = useCallback(async () => {
+    const fetchHomeData = useCallback(async (type = mediaTab) => {
         try {
             setLoading(true);
-            const res = await axios.get(`${API_URL}/anime/home`);
+            const res = await axios.get(`${API_URL}/anime/home?mediaType=${type}`);
             setHomeData(res.data);
         } catch (error) {
             console.error("Error fetching home data:", error);
-            showNotification("Failed to load anime data", "error");
+            showNotification(`Failed to load ${type} data`, "error");
         } finally {
             setLoading(false);
         }
-    }, [API_URL, showNotification]);
+    }, [API_URL, mediaTab, showNotification]);
 
     useEffect(() => {
         const loadPageData = async () => {
             const savedScroll = sessionStorage.getItem('otaku_home_scroll');
-            await fetchHomeData();
+            await fetchHomeData(mediaTab);
             
             // Scroll logic
             if (location.state?.scrollToSection) {
@@ -273,14 +277,14 @@ const Home = () => {
             }
         };
         loadPageData();
-    }, [location, fetchHomeData]); // fetchHomeData is now stable due to useCallback
+    }, [location, fetchHomeData, mediaTab]); // fetchHomeData is now stable due to useCallback
 
     const handleAddToWatchlist = async (anime) => {
         const token = localStorage.getItem('token');
         if (!token) { showNotification("Please login first!", "error"); return; }
         try {
             await axios.post(`${API_URL}/anime/watchlist`, {
-                animeId: anime.mal_id, title: anime.title, poster: anime.poster_url
+                animeId: anime.mal_id, title: anime.title, poster: anime.poster_url, mediaType: mediaTab || 'anime'
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Added ${anime.title} to your watchlist!`, "success");
             return true;
@@ -295,7 +299,7 @@ const Home = () => {
         if (!token) { showNotification("Please login first!", "error"); return; }
         try {
             await axios.post(`${API_URL}/anime/watchhistory`, {
-                animeId: anime.mal_id, title: anime.title, poster: anime.poster_url, status: statusValue
+                animeId: anime.mal_id, title: anime.title, poster: anime.poster_url, status: statusValue, mediaType: mediaTab || 'anime'
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Added ${anime.title} to history!`, "success");
             return true;
@@ -322,7 +326,7 @@ const Home = () => {
             <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-10 h-10 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
-                    <p className="text-zinc-500 text-sm font-medium tracking-wide">Loading the ANIME world...</p>
+                    <p className="text-zinc-500 text-sm font-medium tracking-wide">Loading {(mediaTab || 'anime') === "manga" ? "Manga" : "Anime"} world...</p>
                 </div>
             </div>
         );
@@ -333,9 +337,10 @@ const Home = () => {
             <SpotlightHero backgroundImage={heroImage} onExplore={handleScrollToTrending} />
 
             <div className="space-y-8 pb-20 relative z-20 bg-[#0d0d0d]">
+
                 <AnimeSection 
                     id="section-trending" 
-                    title="Trending Now" 
+                    title={mediaTab === 'manga' ? "Trending Manga & Manhwa" : "Trending Now"} 
                     data={homeData.trending} 
                     onAddWatchlist={handleAddToWatchlist}
                     onAddWatchhistory={handleAddToWatchhistory}

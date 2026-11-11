@@ -2,10 +2,18 @@ import { useState, useEffect, useCallback } from 'react';
 import WatchStatusDropdown from '../components/WatchStatusDropdown';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Search, Plus, Check, Star } from '../components/icons';
+import { Search, Plus, Check, Star, RefreshCw } from '../components/icons';
 import SearchBar from '../components/SearchBar';
 import { useNotification } from '../components/NotificationProvider';
 import { useMediaStatus } from '../contexts/MediaStatusContext';
+
+// Example Prompts
+const EXAMPLE_PROMPTS = [
+    "Anime about a boy who wants to become a ninja",
+    "Time travel thriller with a microwave",
+    "High school student finds a supernatural notebook that can kill",
+    "Superhero academy where people have quirks"
+];
 
 // --- ANIME CARD COMPONENT ---
 // Reused design from Home/Recommendations for UI consistency
@@ -97,11 +105,13 @@ const AnimeCard = ({ anime, onAddWatchlist, onAddWatchhistory, onClick }) => {
 
 // --- MAIN PAGE COMPONENT ---
 const SmartSearch = () => {
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [query, setQuery] = useState(searchParams.get('q') || '');
-    const [results, setResults] = useState([]);
+    const [animeResults, setAnimeResults] = useState([]);
+    const [mangaResults, setMangaResults] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [searched, setSearched] = useState(false);
+    const [searched, setSearched] = useState(Boolean(searchParams.get('q')));
+    const [error, setError] = useState(null);
     
     const navigate = useNavigate();
     const { showNotification } = useNotification();
@@ -109,16 +119,27 @@ const SmartSearch = () => {
     // Environment Variable for API URL
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-    // Using useCallback to memoize the function and prevent infinite loops in useEffect
     const performSmartSearch = useCallback(async (searchQuery) => {
-        if (!searchQuery.trim()) return;
+        if (!searchQuery || !searchQuery.trim()) return;
         setLoading(true);
         setSearched(true);
+        setError(null);
         try {
-            const res = await axios.get(`${API_URL}/search/smart?q=${encodeURIComponent(searchQuery)}`);
-            setResults(res.data.data || res.data); 
-        } catch (error) {
-            console.error("AI Search failed", error);
+            const res = await axios.get(`${API_URL}/search/smart?q=${encodeURIComponent(searchQuery.trim())}`);
+            const anime = Array.isArray(res.data.anime) ? res.data.anime : [];
+            const manga = Array.isArray(res.data.manga) ? res.data.manga : [];
+            
+            // Fallback if array was returned directly
+            if (anime.length === 0 && manga.length === 0 && Array.isArray(res.data)) {
+                setAnimeResults(res.data.filter(item => item.mediaType !== 'manga'));
+                setMangaResults(res.data.filter(item => item.mediaType === 'manga'));
+            } else {
+                setAnimeResults(anime);
+                setMangaResults(manga);
+            } 
+        } catch (err) {
+            console.error("AI Search failed", err);
+            setError("Search failed. Please check your connection and try again.");
             showNotification("Search failed. Please try again.", "error");
         } finally {
             setLoading(false);
@@ -135,8 +156,17 @@ const SmartSearch = () => {
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
-            navigate(`/smart-search?q=${encodeURIComponent(query)}`);
+            if (query.trim()) {
+                setSearchParams({ q: query.trim() });
+                performSmartSearch(query.trim());
+            }
         }
+    };
+
+    const handlePromptClick = (prompt) => {
+        setQuery(prompt);
+        setSearchParams({ q: prompt });
+        performSmartSearch(prompt);
     };
 
     const handleCardClick = (id) => navigate(`/anime/${id}`);
@@ -146,21 +176,31 @@ const SmartSearch = () => {
         const token = localStorage.getItem('token');
         if (!token) { showNotification("Login required", "error"); return; }
         try {
+             const isManga = anime.mediaType === 'manga' || anime.type === 'Manga';
              await axios.post(`${API_URL}/anime/watchlist`, {
-                animeId: anime.mal_id, title: anime.title, poster: anime.poster_url
+                animeId: anime.mal_id, 
+                title: anime.title, 
+                poster: anime.poster_url,
+                mediaType: isManga ? 'manga' : 'anime'
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Added ${anime.title}`, "success");
             return true;
         } catch(err) { showNotification("Failed to add", "error"); return false; }
     };
 
-    const handleAddToWatchhistory = async (e, anime, statusValue = 'Watched') => {
+    const handleAddToWatchhistory = async (e, anime, statusValue) => {
         if (e) e.stopPropagation();
         const token = localStorage.getItem('token');
         if (!token) { showNotification("Login required", "error"); return; }
+        const isManga = anime.mediaType === 'manga' || anime.type === 'Manga';
+        const finalStatus = statusValue || (isManga ? 'Read' : 'Watched');
         try {
              await axios.post(`${API_URL}/anime/watchhistory`, {
-                animeId: anime.mal_id, title: anime.title, poster: anime.poster_url, status: statusValue
+                animeId: anime.mal_id, 
+                title: anime.title, 
+                poster: anime.poster_url, 
+                status: finalStatus,
+                mediaType: isManga ? 'manga' : 'anime'
             }, { headers: { Authorization: `Bearer ${token}` } });
             showNotification(`Marked ${anime.title} as ${statusValue}`, "success");
             return true;
@@ -190,8 +230,8 @@ const SmartSearch = () => {
                         </p>
                     </div>
 
-                    {/* RIGHT COLUMN: Search Bar */}
-                    <div className="w-full lg:w-1/2 relative group">
+                    {/* RIGHT COLUMN: Search Bar & Quick Prompts */}
+                    <div className="w-full lg:w-1/2 flex flex-col gap-3 group">
                         <SearchBar
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
@@ -199,6 +239,21 @@ const SmartSearch = () => {
                             placeholder="Describe an anime (e.g., 'Time travel thriller with a microwave')"
                             autoFocus
                         />
+
+                        {/* Quick Prompts */}
+                        <div className="flex flex-wrap items-center gap-2 pt-1">
+                            <span className="text-xs text-zinc-500 font-medium">Examples:</span>
+                            {EXAMPLE_PROMPTS.map((prompt) => (
+                                <button
+                                    key={prompt}
+                                    type="button"
+                                    onClick={() => handlePromptClick(prompt)}
+                                    className="text-xs px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer border border-white/5"
+                                >
+                                    "{prompt}"
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                 </div>
@@ -211,29 +266,77 @@ const SmartSearch = () => {
                         <div className="w-10 h-10 border-4 border-white/10 border-t-white rounded-full animate-spin"></div>
                         <p className="text-zinc-500 font-medium tracking-widest text-xs uppercase animate-pulse">Processing Query...</p>
                     </div>
+                ) : error ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <p className="text-red-400 text-sm mb-4">{error}</p>
+                        <button
+                            type="button"
+                            onClick={() => performSmartSearch(query)}
+                            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition-colors flex items-center gap-2"
+                        >
+                            <RefreshCw size={14} />
+                            <span>Retry</span>
+                        </button>
+                    </div>
                 ) : (
                     <>
-                        {searched && results.length === 0 ? (
-                             <div className="flex flex-col items-center justify-center py-20 text-center">
+                        {searched && animeResults.length === 0 && mangaResults.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-center">
                                 <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 backdrop-blur-sm border border-white/5">
                                     <Search size={28} className="text-zinc-600" />
                                 </div>
                                 <h3 className="text-lg font-bold text-white mb-2">No matches found</h3>
                                 <p className="text-zinc-500 max-w-md text-sm">
-                                    We couldn't find anything matching that description. Try using broader keywords.
+                                    We couldn't find anything matching that description. Try using broader keywords or concepts.
                                 </p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 gap-4 gap-y-10">
-                                {results.map((anime) => (
-                                    <AnimeCard 
-                                        key={anime.mal_id} 
-                                        anime={anime}
-                                        onAddWatchlist={handleAddToWatchlist}
-                                        onAddWatchhistory={handleAddToWatchhistory}
-                                        onClick={() => handleCardClick(anime.mal_id)}
-                                    />
-                                ))}
+                            <div className="space-y-16">
+                                {/* --- ANIME SECTION --- */}
+                                {animeResults.length > 0 && (
+                                    <section>
+                                        <div className="flex items-center gap-3 mb-6 pb-2 border-b border-white/10">
+                                            <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">Anime</h2>
+                                            <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 font-bold border border-blue-500/25">
+                                                {animeResults.length} {animeResults.length === 1 ? 'match' : 'matches'}
+                                            </span>
+                                        </div>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 gap-4 gap-y-10">
+                                            {animeResults.map((anime) => (
+                                                <AnimeCard 
+                                                    key={`anime-${anime.mal_id}`} 
+                                                    anime={anime}
+                                                    onAddWatchlist={handleAddToWatchlist}
+                                                    onAddWatchhistory={handleAddToWatchhistory}
+                                                    onClick={() => handleCardClick(anime.mal_id)}
+                                                />
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
+
+                                {/* --- MANGA SECTION --- */}
+                                {mangaResults.length > 0 && (
+                                    <section>
+                                        <div className="flex items-center gap-3 mb-6 pb-2 border-b border-white/10">
+                                            <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">Manga</h2>
+                                            <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-400 font-bold border border-purple-500/25">
+                                                {mangaResults.length} {mangaResults.length === 1 ? 'match' : 'matches'}
+                                            </span>
+                                        </div>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 gap-4 gap-y-10">
+                                            {mangaResults.map((manga) => (
+                                                <AnimeCard 
+                                                    key={`manga-${manga.mal_id}`} 
+                                                    anime={manga}
+                                                    onAddWatchlist={handleAddToWatchlist}
+                                                    onAddWatchhistory={handleAddToWatchhistory}
+                                                    onClick={() => handleCardClick(manga.mal_id)}
+                                                />
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
                             </div>
                         )}
                     </>

@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { getRecommendations } = require('../controllers/recommendationController');
+const { 
+    getRecommendations, 
+    dismissRecommendation, 
+    undismissRecommendation 
+} = require('../controllers/recommendationController');
 const { protect } = require('../middleware/authMiddleware'); 
 
 /**
@@ -9,5 +13,7 @@ const { protect } = require('../middleware/authMiddleware');
  * @access  Private
  */
 router.get('/', protect, getRecommendations);
+router.post('/dismiss', protect, dismissRecommendation);
+router.post('/undismiss', protect, undismissRecommendation);
 
 module.exports = router;
